@@ -1,0 +1,48 @@
+Flask
+Jinja2
+MarkupSafe
+Werkzeug
+gunicorn
+PyJWT==2.8.0
+bcrypt
+requests
+
+# Data Science & Math
+numpy<2.0.0
+pandas
+python-dateutil
+pytz
+tzdata
+scikit-learn
+scipy
+
+# Visualizations
+matplotlib
+bokeh
+plotly
+
+# AWS & Database
+awswrangler
+boto3
+psycopg2-binary
+SQLAlchemy
+
+# GIS & Mapping
+geopandas
+shapely
+openpyxl
+osmnx
+scikit-learn
+networkx
+
+# AI & LangChain (Including LiteLLM and PDF RAG)
+langchain
+langchain-core
+langchain-community
+langgraph
+langchain-ollama
+langchain-text-splitters
+litellm
+pypdf
+sentence-transformers
+einops

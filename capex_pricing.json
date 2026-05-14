@@ -1,0 +1,116 @@
+{
+    "EQ": {
+        "Accelerate NIC": {
+            "price": 65001,
+            "min": 1001,
+            "max": 65000
+        },
+        "Add Layer": {
+            "price": 39000,
+            "min": 1001,
+            "max": 39000
+        },
+        "Add Sector IBC": {
+            "price": 25000,
+            "min": 10000,
+            "max": 25000
+        },
+        "Add Sector Outdoor": {
+            "price": 47000,
+            "min": 47000,
+            "max": 47000
+        },
+        "BW Upg": {
+            "price": 5000,
+            "min": 5000,
+            "max": 5000
+        },
+        "Bi-Sect Antenna + Accessory": {
+            "price": 7000,
+            "min": 7000,
+            "max": 7000
+        },
+        "Bi-Sect Radio": {
+            "price": 49000.72,
+            "min": 49000.72,
+            "max": 49000.72
+        },
+        "MM": {
+            "price": 85000.42,
+            "min": 85000.42,
+            "max": 85000.42
+        },
+        "NNS": {
+            "price": 290000,
+            "min": 290000,
+            "max": 290000
+        },
+        "Split Omni to Sector": {
+            "price": 12123.75,
+            "min": 12123.75,
+            "max": 12123.75
+        },
+        "Swap all Sector Radio Ericsson to ZTE": {
+            "price": 150000,
+            "min": 150000,
+            "max": 150000
+        }
+    },
+    "ES": {
+        "Accelerate NIC": {
+            "price": 31000,
+            "min": 31000,
+            "max": 31000
+        },
+        "Add Layer": {
+            "price": 36000,
+            "min": 36000,
+            "max": 36000
+        },
+        "Add Sector IBC": {
+            "price": 20000,
+            "min": 20000,
+            "max": 20000
+        },
+        "Add Sector Outdoor": {
+            "price": 21000,
+            "min": 21000,
+            "max": 21000
+        },
+        "BW Upg": {
+            "price": 1650,
+            "min": 1650,
+            "max": 1650
+        },
+        "Bi-Sect": {
+            "price": 38000,
+            "min": 38000,
+            "max": 38000
+        },
+        "Dismantle": {
+            "price": 29000,
+            "min": 29000,
+            "max": 29000
+        },
+        "MM": {
+            "price": 41000,
+            "min": 41000,
+            "max": 41000
+        },
+        "NNS": {
+            "price": 48000,
+            "min": 48000,
+            "max": 48000
+        },
+        "Split Omni to Sector": {
+            "price": 52000,
+            "min": 52000,
+            "max": 52000
+        },
+        "Swap all sector radio Ericsson to ZTE": {
+            "price": 48000,
+            "min": 48000,
+            "max": 48000
+        }
+    }
+}
