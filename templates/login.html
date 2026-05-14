@@ -2,45 +2,141 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg:       #020912;
+            --surface:  rgba(255,255,255,0.04);
+            --border:   rgba(255,255,255,0.10);
+            --border-h: rgba(255,255,255,0.30);
+            --text:     #e8f0f8;
+            --muted:    #7eaac6;
+            --dim:      #3a5c75;
+        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+        /* grid sits above the globe canvas */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 64px, rgba(255,255,255,.018) 64px, rgba(255,255,255,.018) 65px),
+                repeating-linear-gradient(90deg, transparent, transparent 64px, rgba(255,255,255,.018) 64px, rgba(255,255,255,.018) 65px);
+            pointer-events: none;
+            z-index: 1;
+        }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 2px; }
+
+        .card {
+            position: relative; z-index: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 52px 48px;
+            width: 100%; max-width: 440px;
+            backdrop-filter: blur(20px);
+        }
+        .card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent);
+        }
+        .logo-area { text-align: center; margin-bottom: 40px; }
+        .logo-area img { height: 60px; width: auto; margin: 0 auto 20px; display: block; }
+        .logo-eyebrow {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-family: 'Raleway', sans-serif;
+            font-size: 11px; letter-spacing: 4px; color: rgba(255,255,255,.35); text-transform: uppercase;
+        }
+        .gline { display: inline-block; width: 28px; height: 1px; background: rgba(255,255,255,.2); }
+        .form-group { margin-bottom: 22px; }
+        .form-label {
+            display: block; font-family: 'Raleway', sans-serif;
+            font-size: 11px; font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--muted); margin-bottom: 9px;
+        }
+        .input-wrap { position: relative; }
+        .input-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--dim); font-size: 13px; pointer-events: none; }
+        .form-input {
+            width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            color: var(--text); padding: 13px 16px 13px 42px;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+            transition: border-color .2s, background .2s;
+        }
+        .form-input::placeholder { color: var(--dim); }
+        .form-input:focus { border-color: var(--border-h); background: rgba(255,255,255,0.065); }
+        .btn-primary {
+            width: 100%; background: #fff; color: var(--bg); border: none; padding: 14px 24px;
+            font-family: 'Raleway', sans-serif; font-size: 12px; font-weight: 800;
+            letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+            clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+            transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+        }
+        .btn-primary:hover { background: var(--text); transform: translateY(-2px); box-shadow: 0 10px 36px rgba(255,255,255,.10); }
+        .btn-primary:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+        .error-box {
+            background: rgba(220,38,38,0.10); border: 1px solid rgba(220,38,38,0.28);
+            color: #fca5a5; padding: 11px 16px; font-size: 13px; margin-bottom: 18px;
+        }
+        .hidden { display: none; }
+        .footer-link { text-align: center; margin-top: 32px; font-size: 13px; color: var(--muted); }
+        .footer-link a { color: var(--text); font-weight: 700; text-decoration: none; font-family: 'Raleway', sans-serif; font-size: 12px; letter-spacing: .5px; }
+        .footer-link a:hover { color: #fff; }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        <div class="text-center mb-8">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="h-30 w-auto mx-auto mb-2">
-            <p class="text-gray-600 mt-2">Sign in to continue</p>
+<body>
+<!-- ── GLOBE BACKGROUND ── -->
+<canvas id="globeCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+    <div class="card">
+        <div class="logo-area">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+            <div class="logo-eyebrow">
+                <span class="gline"></span>
+                Sign in to continue
+                <span class="gline"></span>
+            </div>
         </div>
 
-        <form id="loginForm" class="space-y-6">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
-                <div class="relative">
-                    <i class="fas fa-user absolute left-3 top-3.5 text-gray-400"></i>
-                    <input type="text" id="username" required class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <div class="input-wrap">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" required class="form-input" placeholder="Enter your username">
                 </div>
             </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
-                <div class="relative">
-                    <i class="fas fa-lock absolute left-3 top-3.5 text-gray-400"></i>
-                    <input type="password" id="password" required class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-wrap">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" required class="form-input" placeholder="Enter your password">
                 </div>
             </div>
 
-            <div id="errorMessage" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
+            <div id="errorMessage" class="hidden error-box"></div>
 
-            <button type="submit" id="loginBtn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition">
-                <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+            <button type="submit" id="loginBtn" class="btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Sign In
             </button>
         </form>
 
-        <!-- Added the missing Register link here -->
-        <div class="mt-6 text-center">
-            <p class="text-gray-600">Don't have an account? 
-                <a href="/register" class="text-blue-600 hover:text-blue-700 font-semibold">Register here</a>
-            </p>
+        <div class="footer-link">
+            Don't have an account?&nbsp;
+            <a href="/register">Register here</a>
         </div>
     </div>
 
@@ -74,6 +170,9 @@
                 btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Sign In';
             }
         });
+    </script>
+    <script>
+(function(){function buildGlobe(){var c=document.getElementById('globeCanvas');if(!c||!window.THREE)return;var T=window.THREE,W=window.innerWidth,H=window.innerHeight;var renderer=new T.WebGLRenderer({canvas:c,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));renderer.setSize(W,H);var scene=new T.Scene(),camera=new T.PerspectiveCamera(50,W/H,0.1,100);camera.position.z=3.2;var R=1,group=new T.Group();group.add(new T.Mesh(new T.SphereGeometry(R,72,72),new T.MeshBasicMaterial({color:0x020912})));group.add(new T.LineSegments(new T.WireframeGeometry(new T.SphereGeometry(R+0.002,26,13)),new T.LineBasicMaterial({color:0x7eaac6,transparent:true,opacity:0.14})));var N=4000,pos=new Float32Array(N*3),golden=Math.PI*(3-Math.sqrt(5));for(var i=0;i<N;i++){var y=1-(i/(N-1))*2,rr=Math.sqrt(1-y*y),th=golden*i,rr2=R+0.004;pos[i*3]=rr*Math.cos(th)*rr2;pos[i*3+1]=y*rr2;pos[i*3+2]=rr*Math.sin(th)*rr2;}var ptGeo=new T.BufferGeometry();ptGeo.setAttribute('position',new T.BufferAttribute(pos,3));group.add(new T.Points(ptGeo,new T.PointsMaterial({color:0x7eaac6,size:0.0065,transparent:true,opacity:0.55})));group.add(new T.Mesh(new T.SphereGeometry(R*1.04,48,48),new T.MeshBasicMaterial({color:0x3a5c75,side:T.BackSide,transparent:true,opacity:0.12})));group.add(new T.Mesh(new T.SphereGeometry(R*1.22,48,48),new T.MeshBasicMaterial({color:0x7eaac6,side:T.BackSide,transparent:true,opacity:0.045})));group.rotation.x=0.28;scene.add(group);var paused=false;document.addEventListener('visibilitychange',function(){paused=document.hidden;});(function tick(){requestAnimationFrame(tick);if(!paused){group.rotation.y+=0.0016;renderer.render(scene,camera);}})();window.addEventListener('resize',function(){var w=window.innerWidth,h=window.innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);});}if(window.THREE){buildGlobe();}else{var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';s.onload=buildGlobe;document.head.appendChild(s);}})();
     </script>
 </body>
 </html>
