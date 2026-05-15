@@ -4,79 +4,186 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Network Analytics Platform</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg:       #020912;
+            --bg2:      #040e1c;
+            --surface:  rgba(255,255,255,0.04);
+            --border:   rgba(255,255,255,0.10);
+            --border-h: rgba(255,255,255,0.30);
+            --text:     #e8f0f8;
+            --muted:    #7eaac6;
+            --dim:      #3a5c75;
+        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 64px, rgba(255,255,255,.018) 64px, rgba(255,255,255,.018) 65px),
+                repeating-linear-gradient(90deg, transparent, transparent 64px, rgba(255,255,255,.018) 64px, rgba(255,255,255,.018) 65px);
+            pointer-events: none;
+            z-index: 1;
+        }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 2px; }
+
+        .card {
+            position: relative; z-index: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 48px 44px;
+            width: 100%; max-width: 460px;
+            backdrop-filter: blur(20px);
+        }
+        .card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent);
+        }
+        .card-header { text-align: center; margin-bottom: 36px; }
+        .header-icon {
+            width: 56px; height: 56px; border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .header-icon i { color: var(--muted); font-size: 22px; }
+        .card-title { font-family: 'Raleway', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -.3px; color: #fff; margin-bottom: 6px; }
+        .card-sub { font-size: 13px; color: var(--muted); }
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block; font-family: 'Raleway', sans-serif;
+            font-size: 11px; font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+        }
+        .form-input {
+            width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            color: var(--text); padding: 12px 14px;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+            transition: border-color .2s, background .2s;
+        }
+        .form-input::placeholder { color: var(--dim); }
+        .form-input:focus { border-color: var(--border-h); background: rgba(255,255,255,0.065); }
+        .email-row { display: flex; }
+        .email-row .form-input { border-right: none; }
+        .email-suffix {
+            display: flex; align-items: center; padding: 0 14px;
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+            color: var(--dim); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+            white-space: nowrap;
+        }
+        /* Password criteria */
+        .pw-criteria { margin-top: 10px; }
+        .pw-criteria-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
+        .crit-item { display: flex; align-items: center; gap: 7px; font-size: 12px; margin-bottom: 3px; transition: color .2s; }
+        /* These classes are assigned by JS */
+        .text-red-500  { color: #f87171; }
+        .text-green-600 { color: #6ee7b7; }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%; background: #fff; color: var(--bg); border: none; padding: 14px 24px;
+            font-family: 'Raleway', sans-serif; font-size: 12px; font-weight: 800;
+            letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+            clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+            transition: all .2s; margin-top: 8px;
+        }
+        .btn-primary:hover { background: var(--text); transform: translateY(-2px); box-shadow: 0 10px 36px rgba(255,255,255,.10); }
+        .btn-primary:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Messages */
+        .msg-box { padding: 11px 16px; font-size: 13px; margin-bottom: 4px; border: 1px solid; }
+        .msg-error   { background: rgba(220,38,38,0.10); border-color: rgba(220,38,38,0.28); color: #fca5a5; }
+        .msg-success { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.25); color: #6ee7b7; }
+        .hidden { display: none; }
+
+        /* Footer */
+        .footer-link { text-align: center; margin-top: 28px; font-size: 13px; color: var(--muted); }
+        .footer-link a { color: var(--text); font-weight: 700; text-decoration: none; font-family: 'Raleway', sans-serif; font-size: 12px; letter-spacing: .5px; }
+        .footer-link a:hover { color: #fff; }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-green-500 via-teal-500 to-blue-500 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        <div class="text-center mb-8">
-            <i class="fas fa-user-plus text-6xl text-green-600 mb-4"></i>
-            <h1 class="text-3xl font-bold text-gray-800">Create Account</h1>
-            <p class="text-gray-600 mt-2">Join Network Analytics Platform</p>
+<body>
+<!-- ── GLOBE BACKGROUND ── -->
+<canvas id="globeCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+    <div class="card">
+        <div class="card-header">
+            <div class="header-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h1 class="card-title">Create Account</h1>
         </div>
-        
-        <form id="registerForm" class="space-y-4">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label class="form-label">Username</label>
                 <input type="text" id="username" name="username" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+                       class="form-input" placeholder="Choose a username">
             </div>
-            
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
                 <input type="text" id="full_name" name="full_name" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+                       class="form-input" placeholder="Your full name">
             </div>
-            
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                <div class="flex">
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <div class="email-row">
                     <input type="text" id="emailPrefix" name="emailPrefix" required
-                           class="w-full px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                           placeholder="yourname">
-                    <span class="flex items-center px-3 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-sm font-semibold text-gray-500 whitespace-nowrap">@celcomdigi.com</span>
+                           class="form-input" placeholder="yourname">
+                    <span class="email-suffix">@celcomdigi.com</span>
                 </div>
                 <input type="hidden" id="email" name="email">
             </div>
-            
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
                 <input type="password" id="password" name="password" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                       placeholder="Create a strong password">
-                <div class="mt-2 space-y-1" id="passwordCriteria">
-                    <p class="text-xs font-semibold text-gray-500 mb-1">Password must contain:</p>
-                    <p id="crit-length"  class="text-xs flex items-center gap-1.5 text-red-500"><i class="fas fa-times-circle"></i> At least 10 characters</p>
-                    <p id="crit-upper"   class="text-xs flex items-center gap-1.5 text-red-500"><i class="fas fa-times-circle"></i> One uppercase letter</p>
-                    <p id="crit-number"  class="text-xs flex items-center gap-1.5 text-red-500"><i class="fas fa-times-circle"></i> One number</p>
-                    <p id="crit-special" class="text-xs flex items-center gap-1.5 text-red-500"><i class="fas fa-times-circle"></i> One special character (!@#$%^&amp;*...)</p>
+                       class="form-input" placeholder="Create a strong password">
+                <div class="pw-criteria" id="passwordCriteria">
+                    <p class="pw-criteria-title">Password must contain:</p>
+                    <p id="crit-length"  class="crit-item text-xs flex items-center gap-1.5 text-red-500"><i class="fas fa-times-circle"></i> At least 10 characters</p>
+                    <p id="crit-upper"   class="crit-item text-xs flex items-center gap-1.5 text-red-500"><i class="fas fa-times-circle"></i> One uppercase letter</p>
+                    <p id="crit-number"  class="crit-item text-xs flex items-center gap-1.5 text-red-500"><i class="fas fa-times-circle"></i> One number</p>
+                    <p id="crit-special" class="crit-item text-xs flex items-center gap-1.5 text-red-500"><i class="fas fa-times-circle"></i> One special character (!@#$%^&amp;*...)</p>
                 </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Confirm Password</label>
+            <div class="form-group">
+                <label class="form-label">Confirm Password</label>
                 <input type="password" id="confirm_password" name="confirm_password" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                       placeholder="Re-enter your password">
-                <p id="crit-match" class="text-xs flex items-center gap-1.5 text-red-500 mt-2 hidden"><i class="fas fa-times-circle"></i> Passwords do not match</p>
+                       class="form-input" placeholder="Re-enter your password">
+                <p id="crit-match" class="crit-item text-xs flex items-center gap-1.5 text-red-500 mt-2 hidden"><i class="fas fa-times-circle"></i> Passwords do not match</p>
             </div>
-            
-            <div id="errorMessage" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
-            <div id="successMessage" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm"></div>
-            
-            <button type="submit" id="registerBtn"
-                    class="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:from-green-700 hover:to-teal-700 transition transform hover:scale-105">
+
+            <div id="errorMessage" class="hidden msg-box msg-error"></div>
+            <div id="successMessage" class="hidden msg-box msg-success"></div>
+
+            <button type="submit" id="registerBtn" class="btn-primary">
                 <i class="fas fa-user-plus mr-2"></i>Create Account
             </button>
         </form>
-        
-        <div class="mt-6 text-center">
-            <p class="text-gray-600">Already have an account? 
-                <a href="/login" class="text-green-600 hover:text-green-700 font-semibold">Sign in here</a>
-            </p>
+
+        <div class="footer-link">
+            Already have an account?&nbsp;
+            <a href="/login">Sign in here</a>
         </div>
     </div>
-    
+
     <script>
         // Live password criteria checker
         document.getElementById('password').addEventListener('input', function() {
@@ -96,11 +203,11 @@
             const el  = document.getElementById('crit-match');
             if (!cpw) { el.classList.add('hidden'); return; }
             if (pw === cpw) {
-                el.className = 'text-xs flex items-center gap-1.5 text-green-600 mt-2';
+                el.className = 'crit-item text-xs flex items-center gap-1.5 text-green-600 mt-2';
                 el.innerHTML = '<i class="fas fa-check-circle"></i> Passwords match';
                 el.classList.remove('hidden');
             } else {
-                el.className = 'text-xs flex items-center gap-1.5 text-red-500 mt-2';
+                el.className = 'crit-item text-xs flex items-center gap-1.5 text-red-500 mt-2';
                 el.innerHTML = '<i class="fas fa-times-circle"></i> Passwords do not match';
                 el.classList.remove('hidden');
             }
@@ -109,10 +216,10 @@
         function setCrit(id, passed) {
             const el = document.getElementById(id);
             if (passed) {
-                el.className = 'text-xs flex items-center gap-1.5 text-green-600';
+                el.className = 'crit-item text-xs flex items-center gap-1.5 text-green-600';
                 el.querySelector('i').className = 'fas fa-check-circle';
             } else {
-                el.className = 'text-xs flex items-center gap-1.5 text-red-500';
+                el.className = 'crit-item text-xs flex items-center gap-1.5 text-red-500';
                 el.querySelector('i').className = 'fas fa-times-circle';
             }
         }
@@ -204,6 +311,9 @@
                 btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Create Account';
             }
         });
+    </script>
+    <script>
+(function(){function buildGlobe(){var c=document.getElementById('globeCanvas');if(!c||!window.THREE)return;var T=window.THREE,W=window.innerWidth,H=window.innerHeight;var renderer=new T.WebGLRenderer({canvas:c,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));renderer.setSize(W,H);var scene=new T.Scene(),camera=new T.PerspectiveCamera(50,W/H,0.1,100);camera.position.z=3.2;var R=1,group=new T.Group();group.add(new T.Mesh(new T.SphereGeometry(R,72,72),new T.MeshBasicMaterial({color:0x020912})));group.add(new T.LineSegments(new T.WireframeGeometry(new T.SphereGeometry(R+0.002,26,13)),new T.LineBasicMaterial({color:0x7eaac6,transparent:true,opacity:0.14})));var N=4000,pos=new Float32Array(N*3),golden=Math.PI*(3-Math.sqrt(5));for(var i=0;i<N;i++){var y=1-(i/(N-1))*2,rr=Math.sqrt(1-y*y),th=golden*i,rr2=R+0.004;pos[i*3]=rr*Math.cos(th)*rr2;pos[i*3+1]=y*rr2;pos[i*3+2]=rr*Math.sin(th)*rr2;}var ptGeo=new T.BufferGeometry();ptGeo.setAttribute('position',new T.BufferAttribute(pos,3));group.add(new T.Points(ptGeo,new T.PointsMaterial({color:0x7eaac6,size:0.0065,transparent:true,opacity:0.55})));group.add(new T.Mesh(new T.SphereGeometry(R*1.04,48,48),new T.MeshBasicMaterial({color:0x3a5c75,side:T.BackSide,transparent:true,opacity:0.12})));group.add(new T.Mesh(new T.SphereGeometry(R*1.22,48,48),new T.MeshBasicMaterial({color:0x7eaac6,side:T.BackSide,transparent:true,opacity:0.045})));group.rotation.x=0.28;scene.add(group);var paused=false;document.addEventListener('visibilitychange',function(){paused=document.hidden;});(function tick(){requestAnimationFrame(tick);if(!paused){group.rotation.y+=0.0016;renderer.render(scene,camera);}})();window.addEventListener('resize',function(){var w=window.innerWidth,h=window.innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);});}if(window.THREE){buildGlobe();}else{var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';s.onload=buildGlobe;document.head.appendChild(s);}})();
     </script>
 </body>
 </html>
