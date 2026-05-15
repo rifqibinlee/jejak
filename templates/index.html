@@ -669,6 +669,27 @@
       padding: 12px 14px !important;
       background-image: none !important;
     }
+
+    /* Fix scroll-head alignment & background */
+    #ranPanelSector .dataTables_scrollHead,
+    #ranPanelForecast .dataTables_scrollHead,
+    #ranPanelCongested .dataTables_scrollHead { background: transparent !important; overflow: hidden !important; }
+
+    #ranPanelSector .dataTables_scrollHeadInner,
+    #ranPanelForecast .dataTables_scrollHeadInner,
+    #ranPanelCongested .dataTables_scrollHeadInner { width: 100% !important; padding-right: 0 !important; box-sizing: border-box !important; }
+
+    #ranPanelSector .dataTables_scrollHeadInner table,
+    #ranPanelForecast .dataTables_scrollHeadInner table,
+    #ranPanelCongested .dataTables_scrollHeadInner table { width: 100% !important; margin: 0 !important; }
+
+    #ranPanelSector .dataTables_scrollBody,
+    #ranPanelForecast .dataTables_scrollBody,
+    #ranPanelCongested .dataTables_scrollBody { background: transparent !important; }
+
+    #ranPanelSector .dataTables_scrollBody table,
+    #ranPanelForecast .dataTables_scrollBody table,
+    #ranPanelCongested .dataTables_scrollBody table { width: 100% !important; margin: 0 !important; }
     #sectorTable thead th::before, #sectorTable thead th::after,
     #forecastTable thead th::before, #forecastTable thead th::after,
     #congestionTable thead th::before, #congestionTable thead th::after { display: none !important; content: none !important; }
