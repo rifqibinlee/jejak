@@ -670,7 +670,23 @@
       background-image: none !important;
     }
 
-    /* Fix scroll-head alignment & background */
+    /* Processing indicator */
+    #ranPanelSector .dataTables_processing,
+    #ranPanelForecast .dataTables_processing,
+    #ranPanelCongested .dataTables_processing {
+      position: absolute !important;
+      top: 50% !important; left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      background: rgba(4,14,28,0.95) !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      color: #7eaac6 !important;
+      font-family: 'Raleway', sans-serif !important;
+      font-size: 11px !important; font-weight: 700 !important;
+      letter-spacing: 2px !important; text-transform: uppercase !important;
+      padding: 12px 28px !important;
+      margin: 0 !important; width: auto !important;
+      z-index: 10 !important;
+    }
     #ranPanelSector .dataTables_scrollHead,
     #ranPanelForecast .dataTables_scrollHead,
     #ranPanelCongested .dataTables_scrollHead { background: transparent !important; overflow: hidden !important; }
@@ -861,7 +877,7 @@
           </div>
           <a id="btnDownloadSector" href="/download/sector" style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.28);color:#818cf8;font-family:'Raleway',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;"><i class="fas fa-download"></i>Download CSV</a>
         </div>
-        <div class="table-container"><table id="sectorTable" class="display" style="width:100%"><thead></thead><tbody></tbody></table></div>
+        <div class="table-container" style="position:relative;"><table id="sectorTable" class="display" style="width:100%"><thead></thead><tbody></tbody></table></div>
       </div>
 
       <!-- ── TAB: Future Forecasts ── -->
@@ -882,7 +898,7 @@
           </div>
           <button id="btnDownloadForecast" onclick="$('#forecastTable').DataTable().button(0).trigger()" style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.28);color:#fb923c;font-family:'Raleway',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;"><i class="fas fa-download"></i>Download CSV</button>
         </div>
-        <div class="table-container"><table id="forecastTable" class="display" style="width:100%"><thead></thead><tbody></tbody></table></div>
+        <div class="table-container" style="position:relative;"><table id="forecastTable" class="display" style="width:100%"><thead></thead><tbody></tbody></table></div>
       </div>
 
       <!-- ── TAB: Congested Sectors ── -->
@@ -902,7 +918,7 @@
             3. DL Throughput &lt; 3 Mbps
           </p>
         </div>
-        <div class="table-container"><table id="congestionTable" class="display" style="width:100%"><thead></thead><tbody></tbody></table></div>
+        <div class="table-container" style="position:relative;"><table id="congestionTable" class="display" style="width:100%"><thead></thead><tbody></tbody></table></div>
       </div>
 
       <!-- ── TAB: Site Plot ── -->
