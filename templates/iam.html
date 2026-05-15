@@ -253,6 +253,17 @@
       padding: 12px 14px !important;
       font-size: 13px !important;
     }
+    /* Kill the white highlight on sorted column cells */
+    table.dataTable tbody td.sorting_1,
+    table.dataTable tbody td.sorting_2,
+    table.dataTable tbody td.sorting_3,
+    table.dataTable tbody tr.odd,
+    table.dataTable tbody tr.even,
+    table.dataTable tbody tr.odd td.sorting_1,
+    table.dataTable tbody tr.even td.sorting_1 {
+      background: transparent !important;
+      color: var(--text) !important;
+    }
     .dataTables_wrapper .dataTables_paginate .paginate_button {
       color: var(--muted) !important;
       border: 1px solid transparent !important;
