@@ -670,13 +670,13 @@
       background-image: none !important;
     }
 
-    /* Processing indicator */
+    /* Processing indicator — centred in body, not over header */
     #ranPanelSector .dataTables_processing,
     #ranPanelForecast .dataTables_processing,
     #ranPanelCongested .dataTables_processing {
       position: absolute !important;
       top: 50% !important; left: 50% !important;
-      transform: translate(-50%, -50%) !important;
+      transform: translate(-50%, 40px) !important;
       background: rgba(4,14,28,0.95) !important;
       border: 1px solid rgba(255,255,255,0.10) !important;
       color: #7eaac6 !important;
@@ -686,6 +686,19 @@
       padding: 12px 28px !important;
       margin: 0 !important; width: auto !important;
       z-index: 10 !important;
+    }
+
+    /* Filter selects — dark glass */
+    #dashboardView select,
+    #dashboardView input[type="text"] {
+      background: rgba(255,255,255,0.06) !important;
+      color: #e8f0f8 !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      -webkit-appearance: none; appearance: none;
+    }
+    #dashboardView select option {
+      background: #040e1c !important;
+      color: #e8f0f8 !important;
     }
     #ranPanelSector .dataTables_scrollHead,
     #ranPanelForecast .dataTables_scrollHead,
@@ -951,12 +964,10 @@
 
   <!-- Globe JS (RAN tab) -->
   <script>
-  (function() {
-    var _ranGlobeInit = false;
-    function initRanGlobe() {
-      if (_ranGlobeInit) return;
-      _ranGlobeInit = true;
-      try {
+  window._initRanGlobe = function() {
+    if (document.getElementById('ranGlobeCanvas')._ranDone) return;
+    document.getElementById('ranGlobeCanvas')._ranDone = true;
+    try {
         var canvas = document.getElementById('ranGlobeCanvas');
         var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -992,9 +1003,7 @@
         (function tick(){ requestAnimationFrame(tick); G.rotation.y += 0.0018; renderer.render(scene, camera); })();
         window.addEventListener('resize', function(){ camera.aspect=window.innerWidth/(window.innerHeight-72); camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight-72); });
       } catch(e) { console.warn('RAN globe failed:', e); }
-    }
-    window._initRanGlobe = initRanGlobe;
-  })();
+  };
 
   function toggleRanAbout() {
     var c = document.getElementById('ranAboutContent');
@@ -2769,7 +2778,7 @@
             }
 
             if (tab === 'dashboard') {
-                if (dashboardView) { dashboardView.style.display = 'block'; if(window._initRanGlobe) window._initRanGlobe(); }
+                if (dashboardView) { dashboardView.style.display = 'block'; setTimeout(function(){ if(window._initRanGlobe) window._initRanGlobe(); }, 60); }
                 _navSetActive('tabBtnDashboard', true);
                 setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 100);
 
