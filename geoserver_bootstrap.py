@@ -11,7 +11,7 @@ import time
 
 import requests
 
-BASE = os.getenv("GEOSERVER_URL", "http://vibe_geoserver:8080/geoserver").rstrip("/")
+BASE = os.getenv("GEOSERVER_URL", "http://geoserver:8080/geoserver").rstrip("/")
 REST = f"{BASE}/rest"
 USER = os.getenv("GEOSERVER_USER", "admin")
 PASSWORD = os.getenv("GEOSERVER_PASSWORD", "geoserver")

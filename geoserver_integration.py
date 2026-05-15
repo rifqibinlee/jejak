@@ -11,7 +11,7 @@ _GEOSERVER_ENABLED = os.getenv("GEOSERVER_ENABLED", "true").strip().lower() in (
     "yes",
     "on",
 )
-_GEOSERVER_BASE = os.getenv("GEOSERVER_URL", "http://vibe_geoserver:8080/geoserver").rstrip("/")
+_GEOSERVER_BASE = os.getenv("GEOSERVER_URL", "http://geoserver:8080/geoserver").rstrip("/")
 _GEOSERVER_USER = os.getenv("GEOSERVER_USER", "admin")
 _GEOSERVER_PASSWORD = os.getenv("GEOSERVER_PASSWORD", "geoserver")
 _GEOSERVER_WORKSPACE = os.getenv("GEOSERVER_WORKSPACE", "vibe")
