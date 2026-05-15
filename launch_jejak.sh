@@ -21,8 +21,5 @@ docker compose run --rm vibe python app_database.py
 echo "🚀 Launching All Services..."
 docker compose up -d
 
-echo "🚀 Launching All Services..."
-docker compose up -d
-
 echo "✅ ALL SYSTEMS ONLINE (Data Preserved!)"
 

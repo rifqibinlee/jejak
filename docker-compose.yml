@@ -35,8 +35,10 @@ services:
       start_period: 60s
 
   # --- EXISTING: Relational Database for VIBE IAM, Chat, Annotations ---
+  # Custom image: pgvector + PostGIS (GeoServer JDBC layers share this DB)
   vibe_db:
-    image: pgvector/pgvector:pg16
+    build: ./db
+    image: jejak-vibe-db:pg16-postgis-pgvector
     container_name: vibe_db
     restart: always
     environment:
@@ -120,6 +122,9 @@ services:
       GEOSERVER_USER: admin
       GEOSERVER_PASSWORD: geoserver
       GEOSERVER_WORKSPACE: vibe
+      GEOSERVER_ENABLED: "true"
+      GEOSERVER_BOOTSTRAP: "true"
+      GEOSERVER_WMS_LAYERS: "vibe:geoserver_demo_footprints|Published regions (demo)|0.45"
       METABASE_URL: "http://52.221.228.202:3000"
       METABASE_SECRET_KEY: "0e1c46582460375c024ab228cb2994daec4daa0e21ca21711adc279444e68947"
       SECRET_KEY: "vibe-production-secret-key-2026"

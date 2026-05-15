@@ -222,6 +222,28 @@ def run_setup():
                 """, (cat, name, p, pmin, pmax))
             print("  [OK] Default CAPEX Pricing seeded.")
 
+        # --- 6. POSTGIS + GEOSERVER DEMO LAYER (optional extension) ---
+        try:
+            cursor.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS geoserver_demo_footprints (
+                    id   SERIAL PRIMARY KEY,
+                    name TEXT NOT NULL DEFAULT 'Demo',
+                    geom geometry(Polygon, 4326) NOT NULL
+                );
+            """)
+            cursor.execute("""
+                INSERT INTO geoserver_demo_footprints (name, geom)
+                SELECT 'Peninsula Malaysia (demo)',
+                    ST_GeomFromText(
+                        'POLYGON((100.0 1.2, 119.5 1.2, 119.5 7.5, 100.0 7.5, 100.0 1.2))', 4326
+                    )
+                WHERE NOT EXISTS (SELECT 1 FROM geoserver_demo_footprints LIMIT 1);
+            """)
+            print("  [OK] PostGIS + geoserver_demo_footprints ready.")
+        except Exception as pg_exc:
+            print(f"  [WARN] PostGIS demo layer skipped: {pg_exc}")
+
         print("\nSUCCESS: All stateful tables generated perfectly.")
 
     except Exception as e:

@@ -16,6 +16,11 @@ import orjson
 # --- AI AGENT IMPORT ---
 from agent import run_netalytics_agent
 from genset_pipeline import route_substations
+from geoserver_integration import (
+    catalog_payload,
+    geoserver_enabled,
+    proxy_wms_get,
+)
 
 # --- PLOTLY & BOKEH IMPORTS ---
 from sklearn.linear_model import LinearRegression
@@ -2311,6 +2316,24 @@ def api_genset_route():
     except Exception as e:
         print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/geoserver/config')
+@api_login_required
+def api_geoserver_config():
+    """Layer catalogue for the map UI (same auth as other /api routes)."""
+    payload = catalog_payload()
+    payload["enabled"] = payload["enabled"] and geoserver_enabled()
+    return jsonify(payload)
+
+
+@app.route('/api/geoserver/wms')
+@api_login_required
+def api_geoserver_wms_proxy():
+    """Authenticated WMS proxy — browsers never touch GeoServer credentials."""
+    if not geoserver_enabled():
+        return jsonify({"error": "GeoServer integration disabled"}), 404
+    return proxy_wms_get(request.query_string.decode())
+
 
 @app.route('/api/dashboard/embed')
 @api_login_required

@@ -18,5 +18,8 @@ python app_database.py
 echo "Verifying Admin Credentials..."
 python recreate_admin_user.py
 
+echo "GeoServer workspace/layer bootstrap (non-fatal if GeoServer not ready)..."
+python geoserver_bootstrap.py || true
+
 echo "All migrations successful. Booting Gunicorn..."
 exec "$@"

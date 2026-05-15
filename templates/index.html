@@ -368,16 +368,24 @@
 </head>
 <body class="bg-gray-50">
 
+    <script type="application/json" id="jejak-page-bootstrap">{{ {'APP_CONFIG': {'role': role}, 'USER_DATA': {'userId': user_id, 'username': username, 'fullName': full_name, 'role': role}}|tojson }}</script>
     <script>
-        window.APP_CONFIG = {
-            role: "{{ role }}"
-        };
-        window.USER_DATA = {
-            userId: {{ user_id | tojson | safe }},
-            username: "{{ username }}",
-            fullName: "{{ full_name }}",
-            role: "{{ role }}"
-        };
+        (function () {
+            var el = document.getElementById('jejak-page-bootstrap');
+            if (el) {
+                try {
+                    var cfg = JSON.parse(el.textContent);
+                    window.APP_CONFIG = cfg.APP_CONFIG || {};
+                    window.USER_DATA = cfg.USER_DATA || {};
+                } catch (e) {
+                    window.APP_CONFIG = { role: '' };
+                    window.USER_DATA = { userId: null, username: '', fullName: '', role: '' };
+                }
+            } else {
+                window.APP_CONFIG = { role: '' };
+                window.USER_DATA = { userId: null, username: '', fullName: '', role: '' };
+            }
+        })();
 
         // Global shims — delegate to the real functions once loaded
         function openSettingsModal()  { if (window._openSettingsModal)  window._openSettingsModal();  else { const m=document.getElementById('settingsModal');  if(m) m.classList.remove('hidden'); } }
@@ -788,7 +796,7 @@
                     <div class="layer-toggle-switch" id="toggle-dem"><div class="layer-toggle-knob"></div></div>
                 </label>
                 <!-- DEM opacity slider (hidden until DEM is on) -->
-                <div id="demOpacityRow" style="display:none; padding:4px 14px 8px; align-items:center; gap-8px;">
+                <div id="demOpacityRow" style="display:none; padding:4px 14px 8px;">
                     <div style="display:flex; align-items:center; gap:8px; width:100%;">
                         <i class="fas fa-adjust" style="color:#b45309; font-size:0.6rem; flex-shrink:0;"></i>
                         <span style="font-size:0.65rem; color:#6b7280; flex-shrink:0;">Opacity</span>
@@ -813,6 +821,12 @@
                         <div class="layer-toggle-knob"></div>
                     </div>
                 </label>
+            </div>
+
+            <!-- GeoServer (WMS via Jejak session — same auth as rest of app) -->
+            <div id="geoserverSection" style="display:none; padding:8px 0; border-bottom:1px solid #f3f4f6;">
+                <div style="padding:4px 14px 6px; font-size:0.62rem; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:0.08em;">GeoServer</div>
+                <div id="geoserverLayerRows"></div>
             </div>
 
             <!-- Overlays Section -->
@@ -3401,6 +3415,65 @@
             }
         }
 
+        var geoserverWmsEntries = [];
+
+        async function loadGeoserverMapLayers() {
+            var section = document.getElementById('geoserverSection');
+            var rows = document.getElementById('geoserverLayerRows');
+            if (!section || !rows || typeof map === 'undefined') return;
+            try {
+                var res = await fetch('/api/geoserver/config', { credentials: 'same-origin' });
+                if (!res.ok) return;
+                var cfg = await res.json();
+                if (!cfg.enabled || !cfg.layers || !cfg.layers.length) return;
+                section.style.display = 'block';
+                rows.innerHTML = '';
+                geoserverWmsEntries.forEach(function (e) {
+                    if (e.layer && map.hasLayer(e.layer)) map.removeLayer(e.layer);
+                });
+                geoserverWmsEntries = [];
+                var wmsBase = window.location.origin + (cfg.wmsPath || '/api/geoserver/wms');
+                cfg.layers.forEach(function (ly, idx) {
+                    var switchId = 'toggle-geoserver-' + idx;
+                    var op = (ly.opacity != null && !isNaN(ly.opacity)) ? ly.opacity : 0.65;
+                    var wms = L.tileLayer.wms(wmsBase, {
+                        layers: ly.layers,
+                        format: 'image/png',
+                        transparent: true,
+                        version: '1.1.1',
+                        opacity: op,
+                        zIndex: 400,
+                    });
+                    geoserverWmsEntries.push({ layer: wms, active: false });
+                    var label = document.createElement('label');
+                    label.className = 'layer-menu-item';
+                    label.setAttribute('onclick', 'event.preventDefault(); toggleGeoserverLayer(' + idx + ', "' + switchId + '");');
+                    label.innerHTML =
+                        '<div class="layer-menu-icon" style="background:linear-gradient(135deg,#0e7490,#155e75);">' +
+                        '<i class="fas fa-draw-polygon" style="color:white;font-size:0.65rem;"></i></div>' +
+                        '<span class="layer-menu-label">' + (ly.title || ly.layers).replace(/</g, '&lt;') + '</span>' +
+                        '<div class="layer-toggle-switch" id="' + switchId + '"><div class="layer-toggle-knob"></div></div>';
+                    rows.appendChild(label);
+                });
+            } catch (e) {
+                console.warn('GeoServer config unavailable', e);
+            }
+        }
+
+        function toggleGeoserverLayer(idx, switchId) {
+            var entry = geoserverWmsEntries[idx];
+            if (!entry || !entry.layer) return;
+            var sw = document.getElementById(switchId);
+            entry.active = !entry.active;
+            if (entry.active) {
+                entry.layer.addTo(map);
+                if (sw) sw.classList.add('active');
+            } else {
+                map.removeLayer(entry.layer);
+                if (sw) sw.classList.remove('active');
+            }
+        }
+
         var siteDataCache = [];
         var activeCoverageLayers = [];
         var siteMarkerMap = {};
@@ -3451,6 +3524,7 @@
             loadAnnotations();
             loadNotes();
             loadTasks();
+            loadGeoserverMapLayers();
         }
 
         async function loadRegions() {
