@@ -630,6 +630,87 @@
 
 <div id="dashboardView" style="display:none; position:relative; min-height:calc(100vh - 72px); background:#020912;">
 
+  <!-- DataTables dark overrides for RAN Forecast -->
+  <style>
+    #ranPanelSector .dataTables_wrapper,
+    #ranPanelForecast .dataTables_wrapper,
+    #ranPanelCongested .dataTables_wrapper { color: #7eaac6 !important; font-family: 'DM Sans', sans-serif !important; font-size: 13px; }
+
+    #ranPanelSector .dataTables_wrapper .dataTables_length,
+    #ranPanelSector .dataTables_wrapper .dataTables_filter,
+    #ranPanelForecast .dataTables_wrapper .dataTables_length,
+    #ranPanelForecast .dataTables_wrapper .dataTables_filter,
+    #ranPanelCongested .dataTables_wrapper .dataTables_length,
+    #ranPanelCongested .dataTables_wrapper .dataTables_filter { color: #7eaac6 !important; margin-bottom: 12px !important; }
+
+    #ranPanelSector .dataTables_wrapper .dataTables_length select,
+    #ranPanelSector .dataTables_wrapper .dataTables_filter input,
+    #ranPanelForecast .dataTables_wrapper .dataTables_length select,
+    #ranPanelForecast .dataTables_wrapper .dataTables_filter input,
+    #ranPanelCongested .dataTables_wrapper .dataTables_length select,
+    #ranPanelCongested .dataTables_wrapper .dataTables_filter input {
+      background: rgba(255,255,255,0.06) !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      color: #e8f0f8 !important;
+      outline: none !important;
+      padding: 5px 10px !important;
+      font-family: 'DM Sans', sans-serif !important;
+    }
+
+    #sectorTable, #forecastTable, #congestionTable { border-collapse: collapse !important; }
+
+    #sectorTable thead th, #forecastTable thead th, #congestionTable thead th {
+      background: rgba(255,255,255,0.05) !important;
+      color: #7eaac6 !important;
+      border-bottom: 1px solid rgba(255,255,255,0.10) !important;
+      font-family: 'Raleway', sans-serif !important;
+      font-size: 10px !important; font-weight: 700 !important;
+      letter-spacing: 1.5px !important; text-transform: uppercase !important;
+      padding: 12px 14px !important;
+      background-image: none !important;
+    }
+    #sectorTable thead th::before, #sectorTable thead th::after,
+    #forecastTable thead th::before, #forecastTable thead th::after,
+    #congestionTable thead th::before, #congestionTable thead th::after { display: none !important; content: none !important; }
+
+    #sectorTable tbody tr, #forecastTable tbody tr, #congestionTable tbody tr { background: transparent !important; }
+    #sectorTable tbody tr.odd, #forecastTable tbody tr.odd, #congestionTable tbody tr.odd { background: transparent !important; }
+    #sectorTable tbody tr.even, #forecastTable tbody tr.even, #congestionTable tbody tr.even { background: rgba(255,255,255,0.02) !important; }
+    #sectorTable tbody tr:hover td, #forecastTable tbody tr:hover td, #congestionTable tbody tr:hover td { background: rgba(255,255,255,0.05) !important; }
+
+    #sectorTable tbody td, #forecastTable tbody td, #congestionTable tbody td {
+      color: #e8f0f8 !important;
+      border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+      padding: 11px 14px !important; font-size: 13px !important;
+      background: transparent !important;
+    }
+    #sectorTable tbody td.sorting_1, #forecastTable tbody td.sorting_1, #congestionTable tbody td.sorting_1,
+    #sectorTable tbody tr.odd td.sorting_1, #forecastTable tbody tr.odd td.sorting_1, #congestionTable tbody tr.odd td.sorting_1,
+    #sectorTable tbody tr.even td.sorting_1, #forecastTable tbody tr.even td.sorting_1, #congestionTable tbody tr.even td.sorting_1 { background: transparent !important; }
+
+    #sectorTable.no-footer, #forecastTable.no-footer, #congestionTable.no-footer { border-bottom: 1px solid rgba(255,255,255,0.10) !important; }
+
+    #ranPanelSector .dataTables_wrapper .dataTables_info,
+    #ranPanelSector .dataTables_wrapper .dataTables_paginate,
+    #ranPanelForecast .dataTables_wrapper .dataTables_info,
+    #ranPanelForecast .dataTables_wrapper .dataTables_paginate,
+    #ranPanelCongested .dataTables_wrapper .dataTables_info,
+    #ranPanelCongested .dataTables_wrapper .dataTables_paginate { color: #7eaac6 !important; margin-top: 12px !important; }
+
+    #ranPanelSector .dataTables_wrapper .paginate_button,
+    #ranPanelForecast .dataTables_wrapper .paginate_button,
+    #ranPanelCongested .dataTables_wrapper .paginate_button { color: #7eaac6 !important; border: 1px solid transparent !important; border-radius: 0 !important; }
+    #ranPanelSector .dataTables_wrapper .paginate_button:hover,
+    #ranPanelForecast .dataTables_wrapper .paginate_button:hover,
+    #ranPanelCongested .dataTables_wrapper .paginate_button:hover { background: rgba(255,255,255,0.06) !important; color: #e8f0f8 !important; border-color: rgba(255,255,255,0.10) !important; }
+    #ranPanelSector .dataTables_wrapper .paginate_button.current,
+    #ranPanelForecast .dataTables_wrapper .paginate_button.current,
+    #ranPanelCongested .dataTables_wrapper .paginate_button.current { background: rgba(255,255,255,0.10) !important; color: #e8f0f8 !important; border-color: rgba(255,255,255,0.28) !important; }
+    #ranPanelSector .dataTables_wrapper .paginate_button.disabled,
+    #ranPanelForecast .dataTables_wrapper .paginate_button.disabled,
+    #ranPanelCongested .dataTables_wrapper .paginate_button.disabled { color: #3a5c75 !important; }
+  </style>
+
   <!-- Globe canvas (behind everything) -->
   <canvas id="ranGlobeCanvas" style="position:fixed;top:72px;left:0;width:100%;height:calc(100vh - 72px);z-index:0;pointer-events:none;"></canvas>
 
