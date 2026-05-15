@@ -628,200 +628,286 @@
       </div>
     </nav>
 
-<div id="dashboardView" style="display:none;">
-     <div class="container mx-auto px-4 py-8">
-        <div class="info-card">
-            <h2 class="text-2xl font-bold mb-3 flex items-center gap-2"><i class="fas fa-info-circle"></i> About This Tool</h2>
-            <p class="text-blue-50 mb-4">
-                This platform performs comprehensive network performance analysis for cellular networks, processing data from multiple vendors. It forecasts congestion, identifies bottlenecks, and provides actionable insights.
-            </p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                    <h3 class="font-semibold mb-2 flex items-center gap-2"><i class="fas fa-file-upload"></i> Supported Formats</h3>
-                    <ul class="text-sm text-blue-50 space-y-1">
-                        <li>• <strong>xC Format (Celcom):</strong> Daily data with Date column.</li>
-                        <li>• <strong>xD Format (Digi):</strong> Weekly aggregated data.</li>
-                        <li>• CSV, Excel (XLS, XLSX, XLSB)</li>
-                    </ul>
-                </div>
-                <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                    <h3 class="font-semibold mb-2 flex items-center gap-2"><i class="fas fa-chart-line"></i> Key Features</h3>
-                    <ul class="text-sm text-blue-50 space-y-1">
-                        <li>• <strong>Dual Pipeline:</strong> Adaptive logic for xC vs xD.</li>
-                        <li>• <strong>52-week Forecasting:</strong> AI-driven prediction.</li>
-                        <li>• <strong>Congestion Alerts:</strong> Multi-metric thresholds.</li>
-                        <li>• <strong>CD File Export:</strong> Unified granular data download.</li>
-                    </ul>
-                </div>
-                <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                    <h3 class="font-semibold mb-2 flex items-center gap-2"><i class="fas fa-database"></i> Naming Logic</h3>
-                    <ul class="text-sm text-blue-50 space-y-1">
-                        <li>• <strong>Celcom:</strong> Identified by "_" (e.g. <i>..._7_1</i> -> Sector 1)</li>
-                        <li>• <strong>Digi:</strong> Identified by "-" (e.g. <i>...-21</i> -> Sector 1)</li>
-                        <li>• Automatic Operator Detection</li>
-                    </ul>
-                </div>
-            </div>
+<div id="dashboardView" style="display:none; position:relative; min-height:calc(100vh - 72px); background:#020912;">
+
+  <!-- Globe canvas (behind everything) -->
+  <canvas id="ranGlobeCanvas" style="position:fixed;top:72px;left:0;width:100%;height:calc(100vh - 72px);z-index:0;pointer-events:none;"></canvas>
+
+  <!-- Page content -->
+  <div style="position:relative;z-index:1;padding:28px 40px 48px;max-width:1400px;margin:0 auto;">
+
+    <!-- ── ABOUT THIS TOOL (collapsible, full width) ── -->
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10);margin-bottom:20px;">
+      <button onclick="toggleRanAbout()" style="width:100%;padding:16px 22px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <span style="font-family:'Raleway',sans-serif;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#e8f0f8;display:flex;align-items:center;gap:10px;">
+          <i class="fas fa-info-circle" style="color:#7eaac6;"></i>About This Tool
+        </span>
+        <i id="ranAboutChevron" class="fas fa-chevron-down" style="color:#7eaac6;font-size:11px;transition:transform .25s;"></i>
+      </button>
+      <div id="ranAboutContent" style="padding:0 22px 20px;display:none;">
+        <p style="color:#7eaac6;font-family:'DM Sans',sans-serif;font-size:13px;margin-bottom:16px;line-height:1.7;">
+          This platform performs comprehensive network performance analysis for cellular networks, processing data from multiple vendors. It forecasts congestion, identifies bottlenecks, and provides actionable insights.
+        </p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:16px;">
+            <h3 style="font-family:'Raleway',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e8f0f8;margin-bottom:10px;display:flex;align-items:center;gap:8px;"><i class="fas fa-file-upload" style="color:#60a5fa;"></i>Supported Formats</h3>
+            <ul style="font-size:12px;color:#7eaac6;line-height:2;list-style:none;">
+              <li>· <strong style="color:#e8f0f8;">xC Format (Celcom):</strong> Daily data with Date column.</li>
+              <li>· <strong style="color:#e8f0f8;">xD Format (Digi):</strong> Weekly aggregated data.</li>
+              <li>· CSV, Excel (XLS, XLSX, XLSB)</li>
+            </ul>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:16px;">
+            <h3 style="font-family:'Raleway',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e8f0f8;margin-bottom:10px;display:flex;align-items:center;gap:8px;"><i class="fas fa-chart-line" style="color:#34d399;"></i>Key Features</h3>
+            <ul style="font-size:12px;color:#7eaac6;line-height:2;list-style:none;">
+              <li>· <strong style="color:#e8f0f8;">Dual Pipeline:</strong> Adaptive logic for xC vs xD.</li>
+              <li>· <strong style="color:#e8f0f8;">52-week Forecasting:</strong> AI-driven prediction.</li>
+              <li>· <strong style="color:#e8f0f8;">Congestion Alerts:</strong> Multi-metric thresholds.</li>
+              <li>· <strong style="color:#e8f0f8;">CD File Export:</strong> Unified granular data download.</li>
+            </ul>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:16px;">
+            <h3 style="font-family:'Raleway',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e8f0f8;margin-bottom:10px;display:flex;align-items:center;gap:8px;"><i class="fas fa-database" style="color:#a78bfa;"></i>Naming Logic</h3>
+            <ul style="font-size:12px;color:#7eaac6;line-height:2;list-style:none;">
+              <li>· <strong style="color:#e8f0f8;">Celcom:</strong> Identified by "_" (e.g. <i>..._7_1</i> → Sector 1)</li>
+              <li>· <strong style="color:#e8f0f8;">Digi:</strong> Identified by "-" (e.g. <i>...-21</i> → Sector 1)</li>
+              <li>· Automatic Operator Detection</li>
+            </ul>
+          </div>
         </div>
+      </div>
     </div>
 
+    <!-- ── RESULTS SECTION ── -->
+    <div id="resultsSection" class="hidden">
 
-        <div id="resultsSection" class="hidden">
-            <div class="bg-white rounded-lg shadow-sm p-4 mb-6 sticky top-0 border-b border-gray-200" style="z-index:40;">
-                <!-- Row 1: Filters -->
-                <div class="flex flex-wrap gap-3 mb-3">
-                    <div class="flex-1 min-w-[130px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Region</label>
-                        <select id="globalFilterRegion" class="w-full p-2 border border-gray-200 rounded-md font-medium bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm text-gray-700">
-                            <option value="All">All Regions</option>
-                        </select>
-                    </div>
-                    <div class="flex-1 min-w-[100px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Year</label>
-                        <select id="globalFilterYear" class="w-full p-2 border border-gray-200 rounded-md font-medium bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm text-gray-700"></select>
-                    </div>
-                    <div class="flex-1 min-w-[100px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Week</label>
-                        <select id="globalFilterWeek" class="w-full p-2 border border-gray-200 rounded-md font-medium bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm text-gray-700">
-                            <option value="All">All Weeks</option>
-                        </select>
-                    </div>
-                    <div class="flex-1 min-w-[130px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Operator</label>
-                        <select id="globalFilterOperator" class="w-full p-2 border border-gray-200 rounded-md font-medium bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm text-gray-700">
-                            <option value="All">All Operators</option>
-                            <option value="Celcom">Celcom</option>
-                            <option value="Digi">Digi</option>
-                        </select>
-                    </div>
-                    <div class="flex-1 min-w-[130px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Cluster</label>
-                        <input type="text" id="globalFilterCluster" placeholder="e.g. KUL_01" class="w-full p-2 border border-gray-200 rounded-md font-medium bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm text-gray-700">
-                    </div>
-                </div>
-                <!-- Row 2: Stats + Export -->
-                <div class="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-100">
-                    <a href="/download/cd_file" class="flex items-center gap-2 px-4 py-2 rounded-md font-bold text-sm text-white transition" style="background:#0f2d52;" onmouseover="this.style.background='#1e3a8a'" onmouseout="this.style.background='#0f2d52'" title="Download Unified CD File">
-                        <i class="fas fa-file-export"></i> Export Unified CD
-                    </a>
-                    <div class="flex items-center gap-2 px-4 py-2 rounded-md border border-gray-200 bg-gray-50 text-center min-w-[110px]">
-                        <div>
-                            <div class="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Total Sites</div>
-                            <div id="scoreTotalSectors" class="text-xl font-bold" style="color:#0f2d52;">-</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 px-4 py-2 rounded-md border border-red-100 bg-red-50 text-center min-w-[130px]">
-                        <div>
-                            <div class="text-[9px] text-red-400 font-bold uppercase tracking-wider">Congested Sectors</div>
-                            <div id="scoreCongested" class="text-xl font-bold text-red-700">-</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 px-4 py-2 rounded-md border border-green-100 bg-green-50 text-center min-w-[110px]">
-                        <div>
-                            <div class="text-[9px] text-green-500 font-bold uppercase tracking-wider">Avg Vol (GB)</div>
-                            <div id="scoreAvgVol" class="text-xl font-bold text-green-700">-</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-                <div class="section-header">
-                    <i class="fas fa-chart-bar text-2xl"></i>
-                    <div class="flex-1">
-                        <h2 class="text-xl font-bold">Sector Performance Metrics</h2>
-                        <p class="text-sm opacity-90">Weekly aggregated performance indicators across all sectors. <strong>Click row to view trend.</strong></p>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <a id="btnDownloadSector" href="/download/sector" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition inline-flex items-center gap-2"><i class="fas fa-download"></i> Download CSV </a>
-                </div>
-                <div class="table-container">
-                    <table id="sectorTable" class="display" style="width:100%">
-                        <thead></thead><tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="bg-white p-3 rounded-lg shadow-sm mb-4 flex flex-wrap items-center">
-            <span class="font-bold text-sm text-gray-600 mr-4">Legend:</span>
-            <div class="legend-item"><span class="legend-box" style="background:black;"></span>Actual</div>
-            <div class="legend-item"><span class="legend-box" style="border:2px dashed #2ca02c;"></span>Forecast (Vol)</div>
-            <div class="legend-item"><span class="legend-box" style="border:2px dashed #ff7f0e;"></span>Forecast (PRB)</div>
-            <div class="legend-item"><span class="legend-box" style="border:2px dashed #9467bd;"></span>Forecast (Thpt)</div>
-            <div class="legend-item"><span class="legend-box" style="background:#fee2e2; border:1px solid #dc2626;"></span>Congested/Alert</div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-                <div class="section-header">
-                    <i class="fas fa-crystal-ball text-2xl"></i>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold">Future Performance Forecasts</h3>
-                        <p class="text-sm opacity-90">52-week predictions with confidence intervals</p>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <button id="btnDownloadForecast" onclick="$('#forecastTable').DataTable().button(0).trigger()" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition inline-flex items-center gap-2"><i class="fas fa-download"></i> Download CSV </button>                              </div>
-                <div class="table-container">
-                    <table id="forecastTable" class="display" style="width:100%">
-                        <thead></thead><tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-                <div class="section-header">
-                    <i class="fas fa-exclamation-triangle text-2xl"></i>
-                    <div class="flex-1">
-                        <h2 class="text-xl font-bold">Congested Sectors</h2>
-                        <p class="text-sm opacity-90">Sectors experiencing performance degradation</p>
-                    </div>
-                </div>
-                <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-                    <p class="text-sm text-red-800">
-                        <strong>Congestion Criteria:</strong><br>
-                        1. Max Users ≥ 120 (Adaptive: BH Max for xC, Max Active for xD)<br>
-                        2. PRB Utilization ≥ 80%<br>
-                        3. DL Throughput < 3 Mbps
-                    </p>
-                </div>
-                <div class="mb-4">
-                    <a id="btnDownloadCongested" href="/download/congested" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition inline-flex items-center gap-2"><i class="fas fa-download"></i> Download CSV </a>
-                </div>
-                <div class="table-container">
-                    <table id="congestionTable" class="display" style="width:100%">
-                        <thead></thead><tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="plotSection" class="bg-white rounded-lg shadow-md p-6 mb-8">
-                <div class="section-header">
-                    <i class="fas fa-chart-area text-2xl"></i>
-                    <div class="flex-1">
-                    <h2 class="text-xl font-bold">Site Plot — KPIs (Interactive)</h2>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-4 items-end mb-4">
-                    <div class="relative w-64">
-                        <label class="block text-sm font-bold text-gray-700 mb-1">Search Site ID:</label>
-                        <input type="text" id="plotSiteInput" placeholder="Type to search..."
-                               class="w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-                        <div id="plotSiteResults" class="autocomplete-results hidden"></div>
-                    </div>
-                    <label class="flex flex-col">
-                        <span class="text-sm font-bold text-gray-700 mb-1">Horizon (weeks):</span>
-                        <select id="plotHorizonSelect" class="p-2 border border-gray-300 rounded shadow-sm w-24">
-                            <option value="4">4</option><option value="8">8</option><option value="13">13</option><option value="26">26</option><option value="52" selected>52</option>
-                        </select>
-                    </label>
-                    <button id="generatePlotBtn" class="bg-blue-600 text-white px-6 py-2 rounded shadow-md hover:bg-blue-700 transition font-bold h-[42px]">Generate Plot</button>
-                    <div id="plotStatus" class="text-sm text-gray-600 ml-4 self-center font-semibold"></div>
-                </div>
-                <div id="plotContainer" class="min-h-[600px] w-full bg-white border border-gray-200 rounded-xl"></div>
-            </div>
+      <!-- Stats bar -->
+      <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:12px;margin-bottom:20px;align-items:stretch;">
+        <a href="/download/cd_file" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:#fff;color:#020912;font-family:'Raleway',sans-serif;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);white-space:nowrap;" onmouseover="this.style.background='#e8f0f8'" onmouseout="this.style.background='#fff'">
+          <i class="fas fa-file-export"></i>Export Unified CD
+        </a>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);padding:14px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7eaac6;margin-bottom:4px;">Total Sites</div>
+          <div id="scoreTotalSectors" style="font-family:'Raleway',sans-serif;font-size:22px;font-weight:900;color:#e8f0f8;">-</div>
         </div>
-    </div>
+        <div style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.20);padding:14px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f87171;margin-bottom:4px;">Congested Sectors</div>
+          <div id="scoreCongested" style="font-family:'Raleway',sans-serif;font-size:22px;font-weight:900;color:#f87171;">-</div>
+        </div>
+        <div style="background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.20);padding:14px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#34d399;margin-bottom:4px;">Avg Vol (GB)</div>
+          <div id="scoreAvgVol" style="font-family:'Raleway',sans-serif;font-size:22px;font-weight:900;color:#34d399;">-</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10);padding:18px 22px;margin-bottom:20px;">
+        <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;">
+          <div style="flex:1;min-width:120px;">
+            <label style="display:block;font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7eaac6;margin-bottom:7px;">Region</label>
+            <select id="globalFilterRegion" style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:#e8f0f8;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+              <option value="All">All Regions</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:90px;">
+            <label style="display:block;font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7eaac6;margin-bottom:7px;">Year</label>
+            <select id="globalFilterYear" style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:#e8f0f8;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;"></select>
+          </div>
+          <div style="flex:1;min-width:90px;">
+            <label style="display:block;font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7eaac6;margin-bottom:7px;">Week</label>
+            <select id="globalFilterWeek" style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:#e8f0f8;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+              <option value="All">All Weeks</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:120px;">
+            <label style="display:block;font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7eaac6;margin-bottom:7px;">Operator</label>
+            <select id="globalFilterOperator" style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:#e8f0f8;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+              <option value="All">All Operators</option>
+              <option value="Celcom">Celcom</option>
+              <option value="Digi">Digi</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:120px;">
+            <label style="display:block;font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7eaac6;margin-bottom:7px;">Cluster</label>
+            <input type="text" id="globalFilterCluster" placeholder="e.g. KUL_01" style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:#e8f0f8;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab bar -->
+      <div style="display:flex;border-bottom:1px solid rgba(255,255,255,0.10);margin-bottom:20px;">
+        <button onclick="switchRanTab('sector')" id="ranTabBtnSector" style="padding:12px 22px;background:rgba(255,255,255,0.06);border:none;border-bottom:2px solid #e8f0f8;cursor:pointer;font-family:'Raleway',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#e8f0f8;white-space:nowrap;">
+          <i class="fas fa-chart-bar" style="margin-right:6px;"></i>Sector Performance
+        </button>
+        <button onclick="switchRanTab('forecast')" id="ranTabBtnForecast" style="padding:12px 22px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Raleway',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#3a5c75;white-space:nowrap;">
+          <i class="fas fa-crystal-ball" style="margin-right:6px;"></i>Future Forecasts
+        </button>
+        <button onclick="switchRanTab('congested')" id="ranTabBtnCongested" style="padding:12px 22px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Raleway',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#3a5c75;white-space:nowrap;">
+          <i class="fas fa-exclamation-triangle" style="margin-right:6px;color:#f87171;"></i>Congested Sectors
+        </button>
+        <button onclick="switchRanTab('plot')" id="ranTabBtnPlot" style="padding:12px 22px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Raleway',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#3a5c75;white-space:nowrap;">
+          <i class="fas fa-chart-area" style="margin-right:6px;"></i>Site Plot — KPIs
+        </button>
+      </div>
+
+      <!-- ── TAB: Sector Performance ── -->
+      <div id="ranPanelSector" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10);padding:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h2 style="font-family:'Raleway',sans-serif;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#e8f0f8;display:flex;align-items:center;gap:10px;"><i class="fas fa-chart-bar" style="color:#7eaac6;"></i>Sector Performance Metrics</h2>
+            <p style="font-size:12px;color:#7eaac6;margin-top:4px;font-family:'DM Sans',sans-serif;">Weekly aggregated performance indicators. <strong style="color:#e8f0f8;">Click row to view trend.</strong></p>
+          </div>
+          <a id="btnDownloadSector" href="/download/sector" style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.28);color:#818cf8;font-family:'Raleway',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;"><i class="fas fa-download"></i>Download CSV</a>
+        </div>
+        <div class="table-container"><table id="sectorTable" class="display" style="width:100%"><thead></thead><tbody></tbody></table></div>
+      </div>
+
+      <!-- ── TAB: Future Forecasts ── -->
+      <div id="ranPanelForecast" class="hidden" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10);padding:24px;">
+        <!-- Legend -->
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);margin-bottom:18px;">
+          <span style="font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7eaac6;">Legend</span>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#7eaac6;"><span style="display:inline-block;width:16px;height:3px;background:#e8f0f8;"></span>Actual</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#7eaac6;"><span style="display:inline-block;width:16px;height:3px;border-top:2px dashed #34d399;"></span>Forecast (Vol)</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#7eaac6;"><span style="display:inline-block;width:16px;height:3px;border-top:2px dashed #fb923c;"></span>Forecast (PRB)</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#7eaac6;"><span style="display:inline-block;width:16px;height:3px;border-top:2px dashed #a78bfa;"></span>Forecast (Thpt)</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#7eaac6;"><span style="display:inline-block;width:14px;height:14px;background:rgba(248,113,113,0.15);border:1px solid #f87171;"></span>Congested/Alert</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h2 style="font-family:'Raleway',sans-serif;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#e8f0f8;display:flex;align-items:center;gap:10px;"><i class="fas fa-crystal-ball" style="color:#7eaac6;"></i>Future Performance Forecasts</h2>
+            <p style="font-size:12px;color:#7eaac6;margin-top:4px;font-family:'DM Sans',sans-serif;">52-week predictions with confidence intervals</p>
+          </div>
+          <button id="btnDownloadForecast" onclick="$('#forecastTable').DataTable().button(0).trigger()" style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.28);color:#fb923c;font-family:'Raleway',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;"><i class="fas fa-download"></i>Download CSV</button>
+        </div>
+        <div class="table-container"><table id="forecastTable" class="display" style="width:100%"><thead></thead><tbody></tbody></table></div>
+      </div>
+
+      <!-- ── TAB: Congested Sectors ── -->
+      <div id="ranPanelCongested" class="hidden" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10);padding:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h2 style="font-family:'Raleway',sans-serif;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#e8f0f8;display:flex;align-items:center;gap:10px;"><i class="fas fa-exclamation-triangle" style="color:#f87171;"></i>Congested Sectors</h2>
+            <p style="font-size:12px;color:#7eaac6;margin-top:4px;font-family:'DM Sans',sans-serif;">Sectors experiencing performance degradation</p>
+          </div>
+          <a id="btnDownloadCongested" href="/download/congested" style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:rgba(248,113,113,0.10);border:1px solid rgba(248,113,113,0.25);color:#f87171;font-family:'Raleway',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;"><i class="fas fa-download"></i>Download CSV</a>
+        </div>
+        <div style="padding:14px 16px;background:rgba(248,113,113,0.07);border-left:3px solid #f87171;margin-bottom:18px;">
+          <p style="font-size:12px;color:#fca5a5;font-family:'DM Sans',sans-serif;line-height:1.7;">
+            <strong style="color:#f87171;">Congestion Criteria:</strong><br>
+            1. Max Users ≥ 120 (Adaptive: BH Max for xC, Max Active for xD)<br>
+            2. PRB Utilization ≥ 80%<br>
+            3. DL Throughput &lt; 3 Mbps
+          </p>
+        </div>
+        <div class="table-container"><table id="congestionTable" class="display" style="width:100%"><thead></thead><tbody></tbody></table></div>
+      </div>
+
+      <!-- ── TAB: Site Plot ── -->
+      <div id="ranPanelPlot" class="hidden" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10);padding:24px;">
+        <div style="margin-bottom:18px;">
+          <h2 style="font-family:'Raleway',sans-serif;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#e8f0f8;display:flex;align-items:center;gap:10px;"><i class="fas fa-chart-area" style="color:#7eaac6;"></i>Site Plot — KPIs (Interactive)</h2>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:18px;">
+          <div style="position:relative;width:260px;">
+            <label style="display:block;font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7eaac6;margin-bottom:7px;">Search Site ID</label>
+            <input type="text" id="plotSiteInput" placeholder="Type to search..." style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:#e8f0f8;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
+            <div id="plotSiteResults" class="autocomplete-results hidden"></div>
+          </div>
+          <div>
+            <label style="display:block;font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7eaac6;margin-bottom:7px;">Horizon (weeks)</label>
+            <select id="plotHorizonSelect" style="padding:9px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:#e8f0f8;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;min-width:80px;">
+              <option value="4">4</option><option value="8">8</option><option value="13">13</option><option value="26">26</option><option value="52" selected>52</option>
+            </select>
+          </div>
+          <button id="generatePlotBtn" style="padding:9px 24px;background:#fff;color:#020912;font-family:'Raleway',sans-serif;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;border:none;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);" onmouseover="this.style.background='#e8f0f8'" onmouseout="this.style.background='#fff'">Generate Plot</button>
+          <div id="plotStatus" style="font-size:12px;color:#7eaac6;font-family:'DM Sans',sans-serif;font-weight:600;"></div>
+        </div>
+        <div id="plotSection">
+          <div id="plotContainer" style="min-height:600px;width:100%;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);"></div>
+        </div>
+      </div>
+
+    </div><!-- /resultsSection -->
+  </div><!-- /content -->
+
+  <!-- Globe JS (RAN tab) -->
+  <script>
+  (function() {
+    var _ranGlobeInit = false;
+    function initRanGlobe() {
+      if (_ranGlobeInit) return;
+      _ranGlobeInit = true;
+      try {
+        var canvas = document.getElementById('ranGlobeCanvas');
+        var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight - 72);
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(48, window.innerWidth / (window.innerHeight - 72), 0.1, 500);
+        camera.position.z = 5;
+        var sv = new Float32Array(7000 * 3);
+        for (var i = 0; i < sv.length; i++) sv[i] = (Math.random() - .5) * 300;
+        var sGeo = new THREE.BufferGeometry();
+        sGeo.setAttribute('position', new THREE.BufferAttribute(sv, 3));
+        scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.07, transparent: true, opacity: .5 })));
+        var G = new THREE.Group(); G.position.x = 2.4; scene.add(G);
+        var R = 2.0;
+        G.add(new THREE.Mesh(new THREE.SphereGeometry(R, 64, 64), new THREE.MeshPhongMaterial({ color: 0x020912, emissive: 0x05101e, specular: 0x334455, shininess: 12 })));
+        G.add(new THREE.Mesh(new THREE.SphereGeometry(R + .008, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: .05 })));
+        function addRing(lat, op) {
+          var phi = (90 - lat) * Math.PI / 180, ry = (R + .014) * Math.cos(phi), rr = (R + .014) * Math.sin(phi), pts = [];
+          for (var i = 0; i <= 160; i++) { var t = (i / 160) * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(t) * rr, ry, Math.sin(t) * rr)); }
+          G.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: op })));
+        }
+        addRing(0,.28); addRing(30,.13); addRing(-30,.13); addRing(60,.07); addRing(-60,.07);
+        var cities = [[3.14,101.68],[1.35,103.82],[13.75,100.52],[21.03,105.85],[10.82,106.63],[14.55,121.0],[-6.21,106.85],[22.3,114.18],[31.23,121.47],[35.68,139.69],[28.61,77.23],[19.08,72.88],[51.51,-0.12],[48.85,2.35],[40.71,-74.0],[37.77,-122.4],[-33.87,151.21],[55.75,37.62],[30.05,31.25],[-23.55,-46.63],[25.2,55.27],[24.69,46.72],[41.01,28.97]];
+        var dGeo = new THREE.SphereGeometry(.019,8,8), dMat = new THREE.MeshBasicMaterial({color:0xffffff}), dgGeo = new THREE.SphereGeometry(.036,8,8), dgMat = new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.16});
+        cities.forEach(function(c) {
+          var phi=(90-c[0])*Math.PI/180, theta=(c[1]+180)*Math.PI/180;
+          var pos=new THREE.Vector3(-(R+.045)*Math.sin(phi)*Math.cos(theta),(R+.045)*Math.cos(phi),(R+.045)*Math.sin(phi)*Math.sin(theta));
+          var d=new THREE.Mesh(dGeo,dMat); d.position.copy(pos); G.add(d);
+          var g=new THREE.Mesh(dgGeo,dgMat); g.position.copy(pos); G.add(g);
+        });
+        scene.add(new THREE.AmbientLight(0x1a2233, 2.5));
+        var dl=new THREE.DirectionalLight(0xffffff,.7); dl.position.set(5,3,4); scene.add(dl);
+        (function tick(){ requestAnimationFrame(tick); G.rotation.y += 0.0018; renderer.render(scene, camera); })();
+        window.addEventListener('resize', function(){ camera.aspect=window.innerWidth/(window.innerHeight-72); camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight-72); });
+      } catch(e) { console.warn('RAN globe failed:', e); }
+    }
+    window._initRanGlobe = initRanGlobe;
+  })();
+
+  function toggleRanAbout() {
+    var c = document.getElementById('ranAboutContent');
+    var ch = document.getElementById('ranAboutChevron');
+    var open = c.style.display !== 'none';
+    c.style.display = open ? 'none' : 'block';
+    ch.style.transform = open ? '' : 'rotate(180deg)';
+  }
+
+  function switchRanTab(tab) {
+    var tabs = ['sector','forecast','congested','plot'];
+    tabs.forEach(function(t) {
+      var panel = document.getElementById('ranPanel' + t.charAt(0).toUpperCase() + t.slice(1));
+      var btn   = document.getElementById('ranTabBtn'  + t.charAt(0).toUpperCase() + t.slice(1));
+      if (t === tab) {
+        panel.classList.remove('hidden');
+        btn.style.background    = 'rgba(255,255,255,0.06)';
+        btn.style.borderBottom  = '2px solid #e8f0f8';
+        btn.style.color         = '#e8f0f8';
+      } else {
+        panel.classList.add('hidden');
+        btn.style.background    = 'none';
+        btn.style.borderBottom  = '2px solid transparent';
+        btn.style.color         = '#3a5c75';
+      }
+    });
+  }
+  </script>
+
+</div><!-- /dashboardView -->
+
 
 
 
@@ -2565,7 +2651,7 @@
             }
 
             if (tab === 'dashboard') {
-                if (dashboardView) dashboardView.style.display = 'block';
+                if (dashboardView) { dashboardView.style.display = 'block'; if(window._initRanGlobe) window._initRanGlobe(); }
                 _navSetActive('tabBtnDashboard', true);
                 setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 100);
 
