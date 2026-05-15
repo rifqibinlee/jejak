@@ -125,6 +125,9 @@ services:
       GEOSERVER_WORKSPACE: vibe
       GEOSERVER_ENABLED: "true"
       GEOSERVER_BOOTSTRAP: "true"
+      # Merge: layers from GEOSERVER_WMS_LAYERS first, then any workspace layers GeoServer publishes (WMS GetCapabilities).
+      # Style layers in GeoServer UI; Jejak picks them up after cache TTL (GEOSERVER_CAPABILITIES_CACHE_SECONDS).
+      GEOSERVER_LAYER_CATALOG_MODE: "merge"
       GEOSERVER_WMS_LAYERS: "vibe:geoserver_demo_footprints|Published regions (demo)|0.45"
       METABASE_URL: "http://52.221.228.202:3000"
       METABASE_SECRET_KEY: "0e1c46582460375c024ab228cb2994daec4daa0e21ca21711adc279444e68947"
