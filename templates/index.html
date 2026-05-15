@@ -40,7 +40,7 @@
   <!-- Corporate fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&family=Raleway:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     // Guard: if SheetJS didn't load, patch gensetXlsxLoaded with a clear error
@@ -54,12 +54,26 @@
   </script>
 
     <style>
+        /* ── DARK THEME TOKENS ── */
+        :root {
+          --bg:       #020912;
+          --bg2:      #040e1c;
+          --surface:  rgba(255,255,255,0.03);
+          --surface2: rgba(255,255,255,0.06);
+          --border:   rgba(255,255,255,0.10);
+          --border-h: rgba(255,255,255,0.28);
+          --text:     #e8f0f8;
+          --muted:    #7eaac6;
+          --dim:      #3a5c75;
+          --hf:       'Raleway', sans-serif;
+          --bf:       'DM Sans', sans-serif;
+        }
         /* ═══════════════════════════════════════════════════
            CORPORATE THEME — Navy · White · Gray
            Primary: #0f2d52  Accent: #1e3a8a  Gray: #64748b
         ═══════════════════════════════════════════════════ */
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; color: #1e293b; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: #1e293b; }
 
         /* ── UTILITY ── */
         .table-container { overflow-x: auto; }
@@ -396,115 +410,224 @@
         function closeMessagingModal(){ if (window._closeMessagingModal)window._closeMessagingModal();else { const m=document.getElementById('messagingModal'); if(m) m.classList.add('hidden');    } }
     </script>
 
-    <nav style="background:#ffffff; z-index:10000; position:sticky; top:0; height:72px; box-shadow:0 1px 0 #e2e8f0, 0 2px 12px rgba(0,0,0,.06);" class="px-5 flex items-center">
-    <div class="w-full flex justify-between items-center">
+    <!-- ══ NAV STYLES (scoped here to avoid cascade conflicts) ══ -->
+    <style>
+      #mainNav {
+        background: rgba(2,9,18,.95);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-bottom: 1px solid var(--border);
+        border-top: none !important;
+        box-shadow: none !important;
+        outline: none;
+        position: sticky; top: 0; z-index: 10000;
+        height: 72px; padding: 0 24px;
+        display: flex; align-items: center;
+      }
+      #mainNav .nav-inner { width:100%; display:flex; align-items:center; justify-content:space-between; }
 
-        <!-- ── LOGO — 3W centered above tagline ── -->
-        <div style="display:flex; flex-direction:column; align-items:center; line-height:1; gap:1px;">
-            <span style="font-family:'Montserrat',sans-serif; font-weight:900; font-size:1.45rem; letter-spacing:-.5px; color:#0f2d52;">3W</span>
-            <span style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.48rem; letter-spacing:.28em; color:#94a3b8; text-transform:uppercase; white-space:nowrap;">What&nbsp;·&nbsp;Where&nbsp;·&nbsp;When</span>
-            <span style="font-family:'Montserrat',sans-serif; font-weight:800; font-size:0.42rem; letter-spacing:.14em; color:#0f2d52; text-transform:uppercase; white-space:nowrap;">Brought to you by Advanced Analytics</span>
+      /* Logo */
+      .nav-logo-text {
+        font-family:'Montserrat',sans-serif; font-weight:900;
+        font-size:1.5rem; letter-spacing:4px; color:#fff;
+        text-transform:uppercase; text-decoration:none; flex-shrink:0;
+      }
+
+      /* Tab buttons */
+      .nav-tab {
+        font-family: var(--hf); font-size:.72rem; font-weight:700;
+        letter-spacing:1.5px; text-transform:uppercase;
+        color: var(--muted); padding:7px 16px;
+        background: transparent; border: 1px solid transparent;
+        cursor: pointer; transition: all .2s; white-space:nowrap;
+        display:flex; align-items:center; gap:5px;
+      }
+      .nav-tab:hover { color: var(--text); border-color: var(--border); background: var(--surface2); }
+      .nav-tab.nav-active { color: #fff; border-color: var(--border-h); background: var(--surface2); }
+
+      /* Dropdowns */
+      .nav-dropdown {
+        display:none; position:absolute; left:50%; transform:translateX(-50%);
+        top:calc(100% + 8px); width:240px;
+        background: rgba(4,14,28,0.98);
+        border: 1px solid var(--border);
+        backdrop-filter: blur(24px);
+        z-index:9999;
+      }
+      .nav-dropdown.open { display:block; }
+      .nav-dropdown-label {
+        padding:7px 14px 5px;
+        font-family:var(--hf); font-size:9px; font-weight:800;
+        letter-spacing:2px; text-transform:uppercase; color:var(--dim);
+        border-bottom:1px solid var(--border);
+      }
+      .nav-dropdown-item {
+        width:100%; text-align:left; padding:10px 14px;
+        display:flex; align-items:center; gap:10px;
+        background:none; border:none; border-bottom:1px solid rgba(255,255,255,.04);
+        cursor:pointer; transition:background .15s; text-decoration:none;
+      }
+      .nav-dropdown-item:hover { background: var(--surface2); }
+      .nav-dropdown-item:disabled { opacity:.35; cursor:not-allowed; }
+      .nav-dropdown-item:disabled:hover { background:none; }
+      .nav-dd-icon {
+        width:30px; height:30px; border-radius:4px;
+        background: var(--surface2); border:1px solid var(--border);
+        display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      }
+      .nav-dd-icon i { color:var(--muted); font-size:.78rem; }
+      .nav-dd-title { font-family:var(--hf); font-size:11px; font-weight:800; color:var(--text); letter-spacing:.5px; }
+      .nav-dd-sub   { font-size:10px; color:var(--dim); margin-top:1px; }
+
+      /* Right icon buttons */
+      .nav-icon-btn {
+        position:relative;
+        width:36px; height:36px;
+        background: var(--surface2); border:1px solid var(--border);
+        color:var(--muted); cursor:pointer; transition:all .2s;
+        display:flex; align-items:center; justify-content:center;
+        clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);
+        font-size:.85rem; text-decoration:none; flex-shrink:0;
+      }
+      .nav-icon-btn:hover { background:rgba(255,255,255,.10); color:var(--text); border-color:var(--border-h); }
+      .nav-unread-badge {
+        display:none; position:absolute; top:-5px; right:-5px;
+        background:#f87171; color:#fff; font-size:9px; font-weight:700;
+        min-width:15px; height:15px; border-radius:8px;
+        align-items:center; justify-content:center; padding:0 3px;
+      }
+      .nav-unread-badge:not(.hidden) { display:flex; }
+
+      /* User menu button */
+      .nav-user-btn {
+        background: var(--surface2); border:1px solid var(--border);
+        color:var(--text); padding:5px 12px 5px 6px;
+        cursor:pointer; display:flex; align-items:center; gap:8px;
+        transition:all .2s; font-size:.78rem; white-space:nowrap;
+        clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+      }
+      .nav-user-btn:hover { background:rgba(255,255,255,.10); border-color:var(--border-h); }
+      .nav-avatar {
+        width:24px; height:24px; border-radius:50%;
+        background:rgba(255,255,255,.15); border:1px solid var(--border);
+        display:flex; align-items:center; justify-content:center;
+        font-size:.65rem; font-weight:800; color:#fff; flex-shrink:0;
+        font-family:var(--hf);
+      }
+      .nav-username { font-family:var(--hf); font-weight:700; font-size:.72rem; letter-spacing:.5px; color:var(--text); }
+
+      /* User dropdown */
+      .nav-user-dropdown {
+        display:none; position:absolute; right:0; top:calc(100% + 8px);
+        width:180px;
+        background: rgba(4,14,28,0.98);
+        border:1px solid var(--border);
+        backdrop-filter:blur(24px);
+        z-index:9999;
+      }
+      .nav-user-dropdown.open { display:block; }
+      .nav-user-dropdown a, .nav-user-dropdown button {
+        display:flex; align-items:center; gap:9px;
+        width:100%; padding:10px 16px;
+        background:none; border:none; border-bottom:1px solid rgba(255,255,255,.04);
+        color:var(--muted); font-family:var(--bf); font-size:12px; font-weight:600;
+        letter-spacing:.5px; cursor:pointer; text-decoration:none; text-align:left;
+        transition:all .15s;
+      }
+      .nav-user-dropdown a:hover, .nav-user-dropdown button:hover { background:var(--surface2); color:var(--text); }
+      .nav-user-dropdown .danger { color:#f87171; }
+      .nav-user-dropdown .danger:hover { background:rgba(248,113,113,.08); }
+    </style>
+
+    <nav id="mainNav">
+      <div class="nav-inner">
+
+        <!-- LOGO -->
+        <span class="nav-logo-text">JEJAK</span>
+
+        <!-- NAV TABS (centred) -->
+        <div style="display:flex; gap:4px; position:absolute; left:50%; transform:translateX(-50%); align-items:center;">
+
+          <button id="tabBtnDashboard" class="nav-tab" onclick="switchMainTab('dashboard')">
+            RAN Forecast
+          </button>
+
+          <button id="tabBtnMap" class="nav-tab" onclick="switchMainTab('map')">
+            Coverage Map
+          </button>
+
+          <!-- Enterprise dropdown -->
+          <div style="position:relative;" id="toolsDropdownWrapper">
+            <button id="tabBtnTools" class="nav-tab" onclick="toggleToolsDropdown()">
+              Enterprise <i class="fas fa-chevron-down" style="font-size:.5rem; opacity:.6;"></i>
+            </button>
+            <div id="toolsDropdown" class="nav-dropdown">
+              <div class="nav-dropdown-label">Tools</div>
+              <button class="nav-dropdown-item" onclick="switchMainTab('cctv')">
+                <div class="nav-dd-icon"><i class="fas fa-video"></i></div>
+                <div><div class="nav-dd-title">CCTV Planning</div><div class="nav-dd-sub">Site coverage &amp; camera placement</div></div>
+              </button>
+              <button class="nav-dropdown-item" onclick="switchMainTab('bitcoin')">
+                <div class="nav-dd-icon"><i class="fab fa-bitcoin"></i></div>
+                <div><div class="nav-dd-title">Illegal Mining</div><div class="nav-dd-sub">Anomaly detection candidates</div></div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Operations dropdown -->
+          <div style="position:relative;" id="opsDropdownWrapper">
+            <button id="tabBtnOps" class="nav-tab" onclick="toggleOpsDropdown()">
+              Operations <i class="fas fa-chevron-down" style="font-size:.5rem; opacity:.6;"></i>
+            </button>
+            <div id="opsDropdown" class="nav-dropdown">
+              <div class="nav-dropdown-label">Operations</div>
+              <button class="nav-dropdown-item" onclick="switchMainTab('genset')">
+                <div class="nav-dd-icon"><i class="fas fa-bolt"></i></div>
+                <div><div class="nav-dd-title">Genset</div><div class="nav-dd-sub">Nearest TNB substation finder</div></div>
+              </button>
+              <button class="nav-dropdown-item" disabled>
+                <div class="nav-dd-icon"><i class="fas fa-battery-three-quarters"></i></div>
+                <div><div class="nav-dd-title" style="color:var(--dim);">USP</div><div class="nav-dd-sub">Coming soon</div></div>
+              </button>
+            </div>
+          </div>
+
         </div>
 
-        <!-- ── NAV TABS ── -->
-        <div class="flex gap-1 absolute left-1/2 transform -translate-x-1/2 items-center">
-            <button id="tabBtnDashboard" onclick="switchMainTab('dashboard')"
-                style="font-family:'Inter',sans-serif; font-size:.8rem; font-weight:600; color:#64748b; padding:6px 14px; border-radius:5px; border:none; background:transparent; cursor:pointer; transition:all .2s; white-space:nowrap;"
-                onmouseover="this.style.color='#0f2d52'; this.style.background='#f1f5f9'"
-                onmouseout="if(!this.classList.contains('nav-active')){this.style.color='#64748b'; this.style.background='transparent'}">
-                RAN Forecast
+        <!-- RIGHT ACTIONS -->
+        <div style="display:flex; align-items:center; gap:6px;">
+
+          {% if role == 'Admin' %}
+          <a href="/iam" class="nav-icon-btn" title="User Management">
+            <i class="fas fa-shield-alt"></i>
+          </a>
+          {% endif %}
+
+          <button class="nav-icon-btn" onclick="openMessagingModal()" title="Messages">
+            <i class="fas fa-envelope"></i>
+            <span id="navUnreadBadge" class="nav-unread-badge hidden">0</span>
+          </button>
+
+          <button class="nav-icon-btn" onclick="openReviewModal()" title="Submit Review">
+            <i class="fas fa-star"></i>
+          </button>
+
+          <!-- User menu -->
+          <div style="position:relative; margin-left:2px;">
+            <button id="menuBtn" class="nav-user-btn">
+              <div class="nav-avatar">{{ username[0]|upper if username else 'U' }}</div>
+              <span class="nav-username">{{ username }}</span>
+              <i class="fas fa-chevron-down" style="font-size:.5rem; color:var(--dim);"></i>
             </button>
-
-            <button id="tabBtnMap" onclick="switchMainTab('map')"
-                style="font-family:'Inter',sans-serif; font-size:.8rem; font-weight:600; color:#0f2d52; padding:6px 14px; border-radius:5px; border:none; background:#f1f5f9; cursor:pointer; transition:all .2s; white-space:nowrap;"
-                onmouseover="this.style.background='#e2e8f0'"
-                onmouseout="if(!this.classList.contains('nav-active')){this.style.background='#f1f5f9'}">
-                Coverage Map
-            </button>
-
-            <div class="relative" id="toolsDropdownWrapper">
-                <button id="tabBtnTools" onclick="toggleToolsDropdown()"
-                    style="font-family:'Inter',sans-serif; font-size:.8rem; font-weight:600; color:#64748b; padding:6px 14px; border-radius:5px; border:none; background:transparent; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:5px; white-space:nowrap;"
-                    onmouseover="this.style.color='#0f2d52'; this.style.background='#f1f5f9'"
-                    onmouseout="if(!this.classList.contains('nav-active')){this.style.color='#64748b'; this.style.background='transparent'}">
-                    Enterprise <i class="fas fa-chevron-down" style="font-size:.55rem; opacity:.6;"></i>
-                </button>
-                <div id="toolsDropdown" class="hidden absolute left-1/2 -translate-x-1/2 mt-2 w-64 bg-white rounded-lg shadow-2xl overflow-hidden text-gray-700 border border-gray-200" style="z-index:9999; top:100%;">
-                    <div style="padding:6px 12px 4px; font-size:.6rem; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:.08em; border-bottom:1px solid #f1f5f9; background:#f8fafc;">Tools</div>
-                    <button onclick="switchMainTab('cctv')" class="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center gap-3 border-b border-gray-100 transition-colors">
-                        <div style="width:32px;height:32px;border-radius:6px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;"><i class="fas fa-video" style="color:#1e3a8a;font-size:.8rem;"></i></div>
-                        <div><div class="font-bold text-sm text-gray-800">CCTV Planning</div><div class="text-[11px] text-gray-400">Site coverage &amp; camera placement</div></div>
-                    </button>
-                    <button onclick="switchMainTab('bitcoin')" class="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center gap-3 transition-colors">
-                        <div style="width:32px;height:32px;border-radius:6px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;"><i class="fab fa-bitcoin" style="color:#1e3a8a;font-size:.8rem;"></i></div>
-                        <div><div class="font-bold text-sm text-gray-800">Illegal Mining</div><div class="text-[11px] text-gray-400">Anomaly detection candidates</div></div>
-                    </button>
-                </div>
+            <div id="menuDropdown" class="nav-user-dropdown">
+              <button onclick="openSettingsModal()"><i class="fas fa-cog"></i>Settings</button>
+              <a href="/logout" class="danger"><i class="fas fa-sign-out-alt"></i>Logout</a>
             </div>
+          </div>
 
-            <div class="relative" id="opsDropdownWrapper">
-                <button id="tabBtnOps" onclick="toggleOpsDropdown()"
-                    style="font-family:'Inter',sans-serif; font-size:.8rem; font-weight:600; color:#64748b; padding:6px 14px; border-radius:5px; border:none; background:transparent; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:5px; white-space:nowrap;"
-                    onmouseover="this.style.color='#0f2d52'; this.style.background='#f1f5f9'"
-                    onmouseout="if(!this.classList.contains('nav-active')){this.style.color='#64748b'; this.style.background='transparent'}">
-                    Operations <i class="fas fa-chevron-down" style="font-size:.55rem; opacity:.6;"></i>
-                </button>
-                <div id="opsDropdown" class="hidden absolute left-1/2 -translate-x-1/2 mt-2 w-64 bg-white rounded-lg shadow-2xl overflow-hidden text-gray-700 border border-gray-200" style="z-index:9999; top:100%;">
-                    <div style="padding:6px 12px 4px; font-size:.6rem; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:.08em; border-bottom:1px solid #f1f5f9; background:#f8fafc;">Operations</div>
-                    <button onclick="switchMainTab('genset')" class="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center gap-3 border-b border-gray-100 transition-colors">
-                        <div style="width:32px;height:32px;border-radius:6px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;"><i class="fas fa-bolt" style="color:#1e3a8a;font-size:.8rem;"></i></div>
-                        <div><div class="font-bold text-sm text-gray-800">Genset</div><div class="text-[11px] text-gray-400">Nearest TNB substation finder</div></div>
-                    </button>
-                    <button class="w-full text-left px-4 py-3 flex items-center gap-3 opacity-40 cursor-not-allowed" disabled>
-                        <div style="width:32px;height:32px;border-radius:6px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;"><i class="fas fa-battery-three-quarters" style="color:#94a3b8;font-size:.8rem;"></i></div>
-                        <div><div class="font-bold text-sm text-gray-500">USP</div><div class="text-[11px] text-gray-400">Coming soon</div></div>
-                    </button>
-                </div>
-            </div>
         </div>
-
-        <!-- ── RIGHT ACTIONS ── -->
-        <div class="flex items-center gap-2">
-            {% if role == 'Admin' %}
-            <a href="/iam" style="background:#f1f5f9; color:#475569; width:36px; height:36px; border-radius:6px; display:flex; align-items:center; justify-content:center; transition:background .2s; border:1px solid #e2e8f0;" title="User Management"
-               onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-                <i class="fas fa-shield-alt" style="font-size:.85rem;"></i>
-            </a>
-            {% endif %}
-
-            <button onclick="openMessagingModal()" style="position:relative; background:#f1f5f9; color:#475569; width:36px; height:36px; border-radius:6px; border:1px solid #e2e8f0; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s;" title="Messages"
-                onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-                <i class="fas fa-envelope" style="font-size:.85rem;"></i>
-                <span id="navUnreadBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 font-bold" style="font-size:.6rem;">0</span>
-            </button>
-
-            <button onclick="openReviewModal()" style="background:#f1f5f9; color:#475569; width:36px; height:36px; border-radius:6px; border:1px solid #e2e8f0; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s;" title="Submit Review"
-                onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-                <i class="fas fa-star" style="font-size:.85rem;"></i>
-            </button>
-
-            <div class="relative" style="margin-left:4px;">
-                <button id="menuBtn"
-                    style="background:#f1f5f9; border:1px solid #e2e8f0; color:#1e293b; padding:5px 10px 5px 6px; border-radius:6px; font-weight:600; font-size:.8rem; cursor:pointer; display:flex; align-items:center; gap:8px; transition:background .2s;"
-                    onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-                    <div style="width:26px;height:26px;border-radius:50%;background:#0f2d52;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:white;flex-shrink:0;">
-                        {{ username[0]|upper if username else 'U' }}
-                    </div>
-                    <span style="color:#1e293b;">{{ username }}</span>
-                    <i class="fas fa-chevron-down" style="font-size:.55rem; color:#94a3b8;"></i>
-                </button>
-                <div id="menuDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl overflow-hidden text-gray-700 border border-gray-200" style="z-index:9999; top:100%;">
-                    <button onclick="openSettingsModal()" class="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center gap-2 border-b border-gray-100 text-sm transition-colors">
-                        <i class="fas fa-cog text-gray-400 w-4"></i> Settings
-                    </button>
-                    <a href="/logout" class="block px-4 py-3 hover:bg-red-50 text-red-600 flex items-center gap-2 text-sm transition-colors">
-                        <i class="fas fa-sign-out-alt w-4"></i> Logout
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</nav>
+      </div>
+    </nav>
 
 <div id="dashboardView" style="display:none;">
      <div class="container mx-auto px-4 py-8">
@@ -2479,8 +2602,8 @@
             if (pegmanControl) pegmanControl.style.visibility = 'hidden';
 
             // Close dropdowns
-            document.getElementById('toolsDropdown')?.classList.add('hidden');
-            document.getElementById('opsDropdown')?.classList.add('hidden');
+            document.getElementById('toolsDropdown')?.classList.remove('open');
+            document.getElementById('opsDropdown')?.classList.remove('open');
 
             // Close sliding panels unless on a map-based tab
             if (tab !== 'map' && tab !== 'genset' && tab !== 'cctv' && tab !== 'bitcoin') {
@@ -2528,27 +2651,35 @@
 
         function toggleToolsDropdown() {
             const dd = document.getElementById('toolsDropdown');
-            dd.classList.toggle('hidden');
+            const opsdd = document.getElementById('opsDropdown');
+            opsdd.classList.remove('open');
+            dd.classList.toggle('open');
         }
 
         function toggleOpsDropdown() {
             const dd = document.getElementById('opsDropdown');
-            dd.classList.toggle('hidden');
-            // close Enterprise if open
-            document.getElementById('toolsDropdown').classList.add('hidden');
+            const toolsdd = document.getElementById('toolsDropdown');
+            toolsdd.classList.remove('open');
+            dd.classList.toggle('open');
         }
 
-        // Close tools dropdown when clicking outside
+        // Close dropdowns when clicking outside
         document.addEventListener('click', function(e) {
             const wrapper = document.getElementById('toolsDropdownWrapper');
             const dd = document.getElementById('toolsDropdown');
             if (wrapper && dd && !wrapper.contains(e.target)) {
-                dd.classList.add('hidden');
+                dd.classList.remove('open');
             }
             const opsWrapper = document.getElementById('opsDropdownWrapper');
             const opsdd = document.getElementById('opsDropdown');
             if (opsWrapper && opsdd && !opsWrapper.contains(e.target)) {
-                opsdd.classList.add('hidden');
+                opsdd.classList.remove('open');
+            }
+            // Close user menu
+            const menuBtn = document.getElementById('menuBtn');
+            const menuDd  = document.getElementById('menuDropdown');
+            if (menuBtn && menuDd && !menuBtn.contains(e.target) && !menuDd.contains(e.target)) {
+                menuDd.classList.remove('open');
             }
         });
 
@@ -2785,8 +2916,8 @@
             const menuBtn = document.getElementById("menuBtn");
             const dropdown = document.getElementById("menuDropdown");
             if(menuBtn) {
-                menuBtn.addEventListener("click", function(e){ e.stopPropagation(); dropdown.classList.toggle("hidden"); });
-                document.addEventListener("click", function(e){ if (!menuBtn.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.add("hidden"); });
+                menuBtn.addEventListener("click", function(e){ e.stopPropagation(); dropdown.classList.toggle("open"); });
+                document.addEventListener("click", function(e){ if (!menuBtn.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.remove("open"); });
             }
             pollUnreadCount(); setInterval(pollUnreadCount, 15000);
             // Auto-init the map since it's the landing page
@@ -2800,7 +2931,7 @@
 
         // --- SETTINGS ---
         window._openSettingsModal = async function() {
-            document.getElementById('menuDropdown').classList.add('hidden');
+            document.getElementById('menuDropdown').classList.remove('open');
             try {
                 const res = await fetch('/api/user/profile'); const data = await res.json();
                 document.getElementById('settingsFullName').value = data.full_name || '';
@@ -2891,7 +3022,7 @@
         let currentConversationId = null; let allMessages = []; let allConversations = []; let chatPollInterval = null;
         const EMOJIS = ['😀','😂','😍','🥰','😎','🤔','😅','😭','😤','🙏','👍','👎','❤️','🔥','✅','⚡','🎉','💯','🚀','👏','😊','🤣','😆','😁','😋','🤩','😇','😴','🤗','😏','😒','🙄','😑','🤐','😬','🥲','😓','😥','😢','😨','😰','😱','🤯','🤫','🫡','🫠','💀','👻'];
         window._openMessagingModal = async function() {
-            try { document.getElementById('menuDropdown').classList.add('hidden'); } catch(e) {}
+            try { document.getElementById('menuDropdown').classList.remove('open'); } catch(e) {}
             document.getElementById('messagingModal').classList.remove('hidden'); buildEmojiPicker(); await loadConversations(); await loadUsersForMessaging();
         }
         window._closeMessagingModal = function() { document.getElementById('messagingModal').classList.add('hidden'); if (chatPollInterval) { clearInterval(chatPollInterval); chatPollInterval = null; } document.getElementById('emojiPicker').classList.add('hidden'); }
