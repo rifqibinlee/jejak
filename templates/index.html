@@ -402,12 +402,12 @@
         })();
 
         // Global shims — delegate to the real functions once loaded
-        function openSettingsModal()  { if (window._openSettingsModal)  window._openSettingsModal();  else { const m=document.getElementById('settingsModal');  if(m) m.classList.remove('hidden'); } }
-        function closeSettingsModal() { if (window._closeSettingsModal) window._closeSettingsModal(); else { const m=document.getElementById('settingsModal');  if(m) m.classList.add('hidden');    } }
-        function openReviewModal()    { if (window._openReviewModal)    window._openReviewModal();    else { const m=document.getElementById('reviewModal');    if(m) m.classList.remove('hidden'); } }
-        function closeReviewModal()   { if (window._closeReviewModal)   window._closeReviewModal();   else { const m=document.getElementById('reviewModal');    if(m) m.classList.add('hidden');    } }
-        function openMessagingModal() { if (window._openMessagingModal) window._openMessagingModal(); else { const m=document.getElementById('messagingModal'); if(m) m.classList.remove('hidden'); } }
-        function closeMessagingModal(){ if (window._closeMessagingModal)window._closeMessagingModal();else { const m=document.getElementById('messagingModal'); if(m) m.classList.add('hidden');    } }
+        function openSettingsModal()  { if (window._openSettingsModal)  window._openSettingsModal();  else { const m=document.getElementById('settingsModal');  if(m) m.style.display='flex'; } }
+        function closeSettingsModal() { if (window._closeSettingsModal) window._closeSettingsModal(); else { const m=document.getElementById('settingsModal');  if(m){ m.classList.add('hidden'); m.style.display='none'; } }
+        function openReviewModal()    { if (window._openReviewModal)    window._openReviewModal();    else { const m=document.getElementById('reviewModal');    if(m) m.style.display='flex'; } }
+        function closeReviewModal()   { if (window._closeReviewModal)   window._closeReviewModal();   else { const m=document.getElementById('reviewModal');    if(m){ m.classList.add('hidden'); m.style.display='none'; } }
+        function openMessagingModal() { if (window._openMessagingModal) window._openMessagingModal(); else { const m=document.getElementById('messagingModal'); if(m) m.style.display='flex'; } }
+        function closeMessagingModal(){ if (window._closeMessagingModal)window._closeMessagingModal();else { const m=document.getElementById('messagingModal'); if(m){ m.classList.add('hidden'); m.style.display='none'; } }
     </script>
 
     <!-- ══ NAV STYLES (scoped here to avoid cascade conflicts) ══ -->
@@ -2106,50 +2106,52 @@
         </div>
     </div>
 
-    <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="z-index:11000;">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white flex items-center justify-between">
-                <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-cog"></i> Account Settings</h2>
-                <button onclick="closeSettingsModal()" class="hover:bg-white/20 p-1 rounded-lg transition"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="p-6 space-y-6">
-                <div>
-                    <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Profile Information</h3>
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
-                            <input type="text" id="settingsFullName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                            <input type="email" id="settingsEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Username</label>
-                            <input type="text" id="settingsUsername" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-500" readonly>
-                        </div>
-                        <button onclick="saveProfileSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition text-sm"><i class="fas fa-save mr-2"></i>Save Profile</button>
-                        <div id="profileMsg" class="hidden text-sm text-center font-semibold rounded-lg py-2"></div>
-                    </div>
-                </div>
-                <hr class="border-gray-200">
-                <div>
-                    <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Change Password</h3>
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">New Password</label>
-                            <input type="password" id="settingsNewPassword" placeholder="At least 6 characters" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Confirm Password</label>
-                            <input type="password" id="settingsConfirmPassword" placeholder="Repeat new password" class="w-full px-3 py-2 border border-gray-300 rounded-lgfocus:ring-2 focus:ring-blue-500 text-sm">
-                        </div>
-                        <button onclick="savePasswordSettings()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition text-sm"><i class="fas fa-key mr-2"></i>Update Password</button>
-                        <div id="passwordMsg" class="hidden text-sm text-center font-semibold rounded-lg py-2"></div>
-                    </div>
-                </div>
-            </div>
+    <!-- ═══ SETTINGS MODAL ═══ -->
+    <div id="settingsModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:11000;padding:20px;">
+      <div style="background:rgba(4,14,28,0.98);border:1px solid var(--border);width:100%;max-width:460px;max-height:90vh;overflow-y:auto;position:relative;">
+        <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-family:var(--hf);font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--text);display:flex;align-items:center;gap:10px;">
+            <i class="fas fa-cog" style="color:var(--muted);"></i>Account Settings
+          </span>
+          <button onclick="closeSettingsModal()" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:16px;padding:4px;transition:color .2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--dim)'"><i class="fas fa-times"></i></button>
         </div>
+        <div style="padding:24px;">
+          <p style="font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">Profile Information</p>
+          <div style="margin-bottom:14px;">
+            <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">Full Name</label>
+            <input type="text" id="settingsFullName" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;">
+          </div>
+          <div style="margin-bottom:14px;">
+            <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">Email</label>
+            <input type="email" id="settingsEmail" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">Username</label>
+            <input type="text" id="settingsUsername" readonly style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--dim);font-family:var(--bf);font-size:13px;outline:none;cursor:not-allowed;">
+            <p style="font-size:11px;color:var(--dim);margin-top:5px;">Username cannot be changed</p>
+          </div>
+          <button onclick="saveProfileSettings()" style="width:100%;padding:11px;background:#fff;color:var(--bg);font-family:var(--hf);font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;border:none;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);margin-bottom:8px;transition:all .2s;" onmouseover="this.style.background='#e8f0f8'" onmouseout="this.style.background='#fff'">
+            <i class="fas fa-save" style="margin-right:6px;"></i>Save Profile
+          </button>
+          <div id="profileMsg" class="hidden" style="padding:10px 14px;font-size:12px;font-family:var(--bf);text-align:center;border:1px solid;margin-bottom:4px;"></div>
+
+          <div style="border:none;border-top:1px solid var(--border);margin:20px 0;"></div>
+
+          <p style="font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">Change Password</p>
+          <div style="margin-bottom:14px;">
+            <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">New Password</label>
+            <input type="password" id="settingsNewPassword" placeholder="At least 6 characters" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">Confirm Password</label>
+            <input type="password" id="settingsConfirmPassword" placeholder="Repeat new password" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;">
+          </div>
+          <button onclick="savePasswordSettings()" style="width:100%;padding:11px;background:transparent;color:var(--text);font-family:var(--hf);font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--border);cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);margin-bottom:8px;transition:all .2s;" onmouseover="this.style.borderColor='var(--border-h)'" onmouseout="this.style.borderColor='var(--border)'">
+            <i class="fas fa-key" style="margin-right:6px;"></i>Update Password
+          </button>
+          <div id="passwordMsg" class="hidden" style="padding:10px 14px;font-size:12px;font-family:var(--bf);text-align:center;border:1px solid;"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Admin Pricing Modal -->
@@ -2169,158 +2171,212 @@
         </div>
     </div>
 
-    <!-- Review Modal -->
-    <div id="reviewModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="z-index:11000;">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
-            <div class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-4 flex justify-between items-center">
-                <div>
-                    <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-star"></i> Submit a Review</h2>
-                    <p class="text-xs text-yellow-100 mt-0.5">Share your feedback about the platform</p>
-                </div>
-                <button onclick="closeReviewModal()" class="text-white hover:text-yellow-200 text-xl"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="flex border-b border-gray-200">
-                <button id="reviewTabWrite" onclick="switchReviewTab('write')" class="flex-1 py-3 text-sm font-semibold text-yellow-600 border-b-2 border-yellow-500 bg-yellow-50"><i class="fas fa-pen mr-1"></i> Write Review</button>
-                <button id="reviewTabRead" onclick="switchReviewTab('read')" class="flex-1 py-3 text-sm font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-50"><i class="fas fa-list mr-1"></i> All Reviews</button>
-            </div>
-            <div id="reviewPanelWrite" class="p-6 space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Category</label>
-                        <select id="reviewCategory" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
-                            <option>General</option><option>Dashboard</option><option>Coverage Map</option><option>Data Quality</option><option>Performance</option><option>Feature Request</option><option>Bug Report</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Rating</label>
-                        <div id="reviewStars" class="flex gap-1 mt-1">
-                            <i class="review-star fas fa-star text-2xl cursor-pointer text-gray-300" data-val="1"></i>
-                            <i class="review-star fas fa-star text-2xl cursor-pointer text-gray-300" data-val="2"></i>
-                            <i class="review-star fas fa-star text-2xl cursor-pointer text-gray-300" data-val="3"></i>
-                            <i class="review-star fas fa-star text-2xl cursor-pointer text-gray-300" data-val="4"></i>
-                            <i class="review-star fas fa-star text-2xl cursor-pointer text-gray-300" data-val="5"></i>
-                        </div>
-                        <input type="hidden" id="reviewRating" value="0">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">Title <span class="text-gray-400 font-normal">(optional)</span></label>
-                    <input id="reviewTitle" type="text" placeholder="Brief summary..." maxlength="120" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">Your Feedback <span class="text-red-500">*</span></label>
-                    <textarea id="reviewBody" rows="4" placeholder="Tell us about your experience..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none"></textarea>
-                </div>
-                <div class="flex items-center justify-between">
-                    <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                        <input type="checkbox" id="reviewAnon" class="w-4 h-4 rounded"> Post anonymously
-                    </label>
-                    <button onclick="submitReview()" id="reviewSubmitBtn" class="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 py-2 rounded-lg text-sm font-bold transition-all"><i class="fas fa-paper-plane mr-1"></i> Submit</button>
-                </div>
-                <div id="reviewMsg" class="hidden text-sm text-center font-semibold rounded-lg py-2"></div>
-            </div>
-            <div id="reviewPanelRead" class="hidden p-4 max-h-96 overflow-y-auto">
-                <div class="flex gap-2 mb-3">
-                    <select id="reviewFilterCat" onchange="loadReviews()" class="border border-gray-200 rounded-lg px-3 py-1.5 text-xs flex-1">
-                        <option value="">All Categories</option><option>General</option><option>Dashboard</option><option>Coverage Map</option><option>Data Quality</option><option>Performance</option><option>Feature Request</option><option>Bug Report</option>
-                    </select>
-                    <button onclick="loadReviews()" class="bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-lg px-3 py-1.5 text-xs font-bold hover:bg-yellow-100"><i class="fas fa-sync-alt"></i></button>
-                </div>
-                <div id="reviewsList" class="space-y-3">
-                    <div class="text-center text-gray-400 text-sm py-8"><i class="fas fa-circle-notch fa-spin mr-2"></i>Loading...</div>
-                </div>
-            </div>
+    <!-- ═══ REVIEW MODAL ═══ -->
+    <div id="reviewModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:11000;padding:20px;">
+      <div style="background:rgba(4,14,28,0.98);border:1px solid var(--border);width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;">
+        <!-- Header -->
+        <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+          <div>
+            <span style="font-family:var(--hf);font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--text);display:flex;align-items:center;gap:10px;">
+              <i class="fas fa-star" style="color:#fbbf24;"></i>Submit a Review
+            </span>
+            <p style="font-size:11px;color:var(--dim);margin-top:4px;font-family:var(--bf);">Share your feedback about the platform</p>
+          </div>
+          <button onclick="closeReviewModal()" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:16px;padding:4px;transition:color .2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--dim)'"><i class="fas fa-times"></i></button>
         </div>
+        <!-- Tabs -->
+        <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;">
+          <button id="reviewTabWrite" onclick="switchReviewTab('write')" style="flex:1;padding:12px;background:rgba(251,191,36,0.04);border:none;border-bottom:2px solid #fbbf24;cursor:pointer;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fbbf24;transition:all .2s;">
+            <i class="fas fa-pen" style="margin-right:4px;"></i>Write Review
+          </button>
+          <button id="reviewTabRead" onclick="switchReviewTab('read')" style="flex:1;padding:12px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);transition:all .2s;">
+            <i class="fas fa-list" style="margin-right:4px;"></i>All Reviews
+          </button>
+        </div>
+        <!-- Write panel -->
+        <div id="reviewPanelWrite" style="padding:20px;overflow-y:auto;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div>
+              <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">Category</label>
+              <select id="reviewCategory" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;appearance:none;">
+                <option style="background:#040e1c;">General</option><option style="background:#040e1c;">Dashboard</option><option style="background:#040e1c;">Coverage Map</option><option style="background:#040e1c;">Data Quality</option><option style="background:#040e1c;">Performance</option><option style="background:#040e1c;">Feature Request</option><option style="background:#040e1c;">Bug Report</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">Rating</label>
+              <div id="reviewStars" style="display:flex;gap:6px;margin-top:6px;">
+                <i class="review-star fas fa-star" data-val="1" style="font-size:22px;cursor:pointer;color:var(--dim);transition:color .15s;"></i>
+                <i class="review-star fas fa-star" data-val="2" style="font-size:22px;cursor:pointer;color:var(--dim);transition:color .15s;"></i>
+                <i class="review-star fas fa-star" data-val="3" style="font-size:22px;cursor:pointer;color:var(--dim);transition:color .15s;"></i>
+                <i class="review-star fas fa-star" data-val="4" style="font-size:22px;cursor:pointer;color:var(--dim);transition:color .15s;"></i>
+                <i class="review-star fas fa-star" data-val="5" style="font-size:22px;cursor:pointer;color:var(--dim);transition:color .15s;"></i>
+              </div>
+              <input type="hidden" id="reviewRating" value="0">
+            </div>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">Title <span style="color:var(--dim);font-weight:400;">(optional)</span></label>
+            <input id="reviewTitle" type="text" placeholder="Brief summary..." maxlength="120" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;">
+          </div>
+          <div style="margin-bottom:14px;">
+            <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">Your Feedback <span style="color:#f87171;">*</span></label>
+            <textarea id="reviewBody" rows="4" placeholder="Tell us about your experience..." style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;resize:none;"></textarea>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);cursor:pointer;">
+              <input type="checkbox" id="reviewAnon" style="accent-color:var(--text);width:14px;height:14px;"> Post anonymously
+            </label>
+            <button onclick="submitReview()" id="reviewSubmitBtn" style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:#fff;color:var(--bg);font-family:var(--hf);font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;border:none;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:all .2s;">
+              <i class="fas fa-paper-plane"></i>Submit
+            </button>
+          </div>
+          <div id="reviewMsg" class="hidden" style="margin-top:12px;padding:10px 14px;font-size:12px;font-family:var(--bf);text-align:center;border:1px solid;"></div>
+        </div>
+        <!-- Read panel -->
+        <div id="reviewPanelRead" class="hidden" style="padding:16px;max-height:420px;overflow-y:auto;">
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <select id="reviewFilterCat" onchange="loadReviews()" style="flex:1;padding:8px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:12px;outline:none;appearance:none;">
+              <option style="background:#040e1c;" value="">All Categories</option>
+              <option style="background:#040e1c;">General</option><option style="background:#040e1c;">Dashboard</option><option style="background:#040e1c;">Coverage Map</option><option style="background:#040e1c;">Data Quality</option><option style="background:#040e1c;">Performance</option><option style="background:#040e1c;">Feature Request</option><option style="background:#040e1c;">Bug Report</option>
+            </select>
+            <button onclick="loadReviews()" style="width:36px;height:36px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted);cursor:pointer;flex-shrink:0;transition:all .2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'"><i class="fas fa-sync-alt" style="font-size:12px;"></i></button>
+          </div>
+          <div id="reviewsList" style="display:flex;flex-direction:column;gap:8px;">
+            <div style="text-align:center;color:var(--dim);font-size:13px;padding:24px;font-family:var(--bf);"><i class="fas fa-circle-notch fa-spin" style="margin-right:8px;"></i>Loading...</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Messaging Modal -->
-    <div id="messagingModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="z-index:11000;">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden" style="height: 640px; display: flex; flex-direction: column;">
-            <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white flex items-center justify-between flex-shrink-0">
-                <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-comments"></i> Messages</h2>
-                <button onclick="closeMessagingModal()" class="hover:bg-white/20 p-1 rounded-lg transition"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="flex flex-1 overflow-hidden">
-                <div class="w-64 border-r border-gray-200 flex flex-col flex-shrink-0">
-                    <div class="p-2 border-b border-gray-100">
-                        <div class="relative">
-                            <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-400 text-xs"></i>
-                            <input id="msgSearchInput" type="text" placeholder="Search messages..." oninput="filterConversations()" class="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-400 outline-none">
-                        </div>
-                    </div>
-                    <div class="p-2 border-b border-gray-100 flex gap-2">
-                        <button onclick="showNewConversation()" class="flex-1 bg-blue-600 text-white text-xs font-semibold py-1.5 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-1"><i class="fas fa-plus"></i> DM</button>
-                        <button onclick="showNewGroup()" class="flex-1 bg-purple-600 text-white text-xs font-semibold py-1.5 rounded-lg hover:bg-purple-700 transition flexitems-center justify-center gap-1"><i class="fas fa-users"></i> Group</button>
-                    </div>
-                    <div id="conversationList" class="flex-1 overflow-y-auto"></div>
-                </div>
-                <div class="flex-1 flex flex-col overflow-hidden">
-                    <div id="chatEmpty" class="flex-1 flex items-center justify-center text-gray-400 flex-col gap-3">
-                        <i class="fas fa-comments text-5xl opacity-30"></i><p class="text-sm font-medium">Select a conversation or start a new one</p>
-                    </div>
-                    <div id="newConvForm" class="hidden flex-1 flex flex-col p-4">
-                        <h3 class="font-bold text-gray-700 mb-3 text-sm">New Message</h3>
-                        <div class="mb-3"><select id="newMsgRecipient" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"><option value="">Select recipient...</option></select></div>
-                        <div class="flex-1 mb-3"><textarea id="newMsgContent" class="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-blue-500" placeholder="Write your message..."></textarea></div>
-                        <div class="flex gap-2">
-                            <button onclick="sendNewMessage()" class="flex-1 bg-blue-600 text-white text-sm font-semibold py-2 rounded-lg hover:bg-blue-700 transition"><i class="fas fa-paper-plane mr-1"></i> Send</button>
-                            <button onclick="cancelNewConv()" class="flex-1 bg-gray-100 text-gray-700 text-sm font-semibold py-2 rounded-lg hover:bg-gray-200 transition">Cancel</button>
-                        </div>
-                        <div id="newMsgStatus" class="mt-2 text-xs text-center font-semibold hidden"></div>
-                    </div>
-                    <div id="newGroupForm" class="hidden flex-1 flex flex-col p-4 overflow-y-auto">
-                        <h3 class="font-bold text-gray-700 mb-3 text-sm flex items-center gap-2"><i class="fas fa-users text-purple-600"></i> New Group Chat</h3>
-                        <div class="mb-3"><input type="text" id="newGroupName" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="e.g. Planning Team"></div>
-                        <div class="mb-3"><div id="groupMemberCheckboxes" class="max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-1 text-sm text-gray-700"></div></div>
-                        <div class="mb-3"><textarea id="newGroupMessage" class="w-full h-20 px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-purple-500" placeholder="Write your first message..."></textarea></div>
-                        <div class="flex gap-2">
-                            <button onclick="sendNewGroup()" class="flex-1 bg-purple-600 text-white text-sm font-semibold py-2 rounded-lg hover:bg-purple-700 transition"><i class="fas fa-users mr-1"></i> Create Group</button>
-                            <button onclick="cancelNewConv()" class="flex-1 bg-gray-100 text-gray-700 text-sm font-semibold py-2 rounded-lg hover:bg-gray-200 transition">Cancel</button>
-                        </div>
-                        <div id="newGroupStatus" class="mt-2 text-xs text-center font-semibold hidden"></div>
-                    </div>
-                    <div id="activeChat" class="hidden flex-1 flex flex-col overflow-hidden">
-                        <div class="p-3 border-b border-gray-100 flex-shrink-0 flex items-center justify-between">
-                            <p class="font-bold text-gray-800 text-sm" id="chatPartnerName"></p>
-                            <div id="groupChatActions" class="hidden flex items-center gap-1">
-                                <button onclick="showGroupMembers()" title="View members" class="text-xs text-gray-500 hover:text-purple-600 px-2 py-1 rounded hover:bg-purple-50 transition flex items-center gap-1"><i class="fas fa-users"></i><span class="hidden sm:inline">Members</span></button>
-                                <button id="renameGroupBtn" onclick="showRenameGroup()" title="Rename group" class="hidden text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50 transition flex items-center gap-1"><i class="fas fa-pen"></i><span class="hidden sm:inline ml-1">Rename</span></button>
-                                <button id="leaveGroupBtn" onclick="leaveGroup()" title="Leave group" class="text-xs text-orange-500 hover:text-orange-700 px-2 py-1 rounded hover:bg-orange-50 transition flex items-center gap-1"><i class="fas fa-sign-out-alt"></i><span class="hidden sm:inline ml-1">Leave</span></button>
-                                <button id="deleteGroupBtn" onclick="deleteGroup()" title="Delete group" class="hidden text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition flex items-center gap-1"><i class="fas fa-trash-alt"></i><span class="hidden sm:inline ml-1">Delete</span></button>
-                            </div>
-                        </div>
-                        <div id="groupMembersPanel" class="hidden border-b border-gray-100 bg-purple-50 px-3 py-2 flex-shrink-0">
-                            <p class="text-xs font-semibold text-purple-700 mb-1">Members</p><div id="groupMembersList" class="flex flex-wrap gap-1.5"></div>
-                        </div>
-                        <div id="renameGroupPanel" class="hidden border-b border-gray-100 bg-blue-50 px-3 py-2 flex-shrink-0">
-                            <p class="text-xs font-semibold text-blue-700 mb-1.5">Rename Group</p>
-                            <div class="flex gap-2">
-                                <input type="text" id="renameGroupInput" maxlength="80" class="flex-1 px-2 py-1.5 text-sm border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" placeholder="New group name...">
-                                <button onclick="submitRenameGroup()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-lg transition">Save</button>
-                                <button onclick="hideRenameGroup()" class="text-xs text-gray-500 hover:text-gray-700 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition">Cancel</button>
-                            </div><p id="renameGroupStatus" class="text-xs mt-1 hidden"></p>
-                        </div>
-                        <div id="msgInChatSearchBar" class="hidden border-b border-gray-100 px-3 py-2 flex-shrink-0">
-                            <div class="relative">
-                                <i class="fas fa-search absolute left-2.5 top-2 text-gray-400 text-xs"></i>
-                                <input id="msgInChatInput" type="text" placeholder="Search in conversation..." oninput="filterMessagesInChat()" class="w-full pl-7 pr-8 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-400 outline-none">
-                                <button onclick="closeMsgInChatSearch()" class="absolute right-2 top-1.5 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xs"></i></button>
-                            </div>
-                        </div>
-                        <div id="chatMessagesPanel" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
-                        <div class="p-3 border-t border-gray-100 flex-shrink-0">
-                            <div id="emojiPicker" class="hidden mb-2 p-2 border border-gray-200 rounded-xl bg-white shadow-md"><div class="flex flex-wrap gap-1 max-h-28 overflow-y-auto text-lg leading-none"></div></div>
-                            <div class="flex gap-2 items-center">
-                                <button onclick="toggleEmojiPicker()" title="Emoji" class="text-gray-400 hover:text-yellow-500 transition text-lg flex-shrink-0">😊</button>
-                                <input type="text" id="internalChatInput" placeholder="Type a message..." class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-smfocus:ring-2 focus:ring-blue-500 outline-none" onkeydown="if(event.key==='Enter')sendChatMessage()">
-                                <button onclick="toggleMsgInChatSearch()" title="Search messages" class="text-gray-400 hover:text-blue-500 transition flex-shrink-0"><i class="fas fa-search text-sm"></i></button>
-                                <button onclick="sendChatMessage()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition flex-shrink-0"><i class="fas fa-paper-plane"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- ═══ MESSAGING MODAL ═══ -->
+    <div id="messagingModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:11000;padding:20px;">
+      <div style="background:rgba(4,14,28,0.98);border:1px solid var(--border);width:100%;max-width:720px;height:640px;display:flex;flex-direction:column;">
+        <!-- Header -->
+        <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+          <span style="font-family:var(--hf);font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--text);display:flex;align-items:center;gap:10px;">
+            <i class="fas fa-comments" style="color:var(--muted);"></i>Messages
+          </span>
+          <button onclick="closeMessagingModal()" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:16px;padding:4px;transition:color .2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--dim)'"><i class="fas fa-times"></i></button>
         </div>
+        <!-- Body -->
+        <div style="display:flex;flex:1;overflow:hidden;">
+          <!-- Sidebar -->
+          <div style="width:220px;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;">
+            <div style="padding:10px;border-bottom:1px solid var(--border);">
+              <div style="position:relative;">
+                <i class="fas fa-search" style="position:absolute;left:9px;top:9px;color:var(--dim);font-size:11px;"></i>
+                <input id="msgSearchInput" type="text" placeholder="Search…" oninput="filterConversations()" style="width:100%;padding:7px 8px 7px 27px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:12px;outline:none;">
+              </div>
+            </div>
+            <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;gap:6px;">
+              <button onclick="showNewConversation()" style="flex:1;padding:7px 6px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25);color:#60a5fa;font-family:var(--bf);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:4px;">
+                <i class="fas fa-plus"></i> DM
+              </button>
+              <button onclick="showNewGroup()" style="flex:1;padding:7px 6px;background:rgba(167,139,250,.10);border:1px solid rgba(167,139,250,.22);color:#a78bfa;font-family:var(--bf);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:4px;">
+                <i class="fas fa-users"></i> Group
+              </button>
+            </div>
+            <div id="conversationList" style="flex:1;overflow-y:auto;"></div>
+          </div>
+
+          <!-- Chat area -->
+          <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+            <!-- Empty -->
+            <div id="chatEmpty" style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--dim);">
+              <i class="fas fa-comments" style="font-size:40px;opacity:.25;"></i>
+              <p style="font-size:13px;font-family:var(--bf);">Select a conversation or start a new one</p>
+            </div>
+            <!-- New DM form -->
+            <div id="newConvForm" class="hidden" style="flex:1;display:none;flex-direction:column;padding:16px;overflow-y:auto;">
+              <p style="font-family:var(--hf);font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;"><i class="fas fa-user" style="color:var(--muted);"></i>New Message</p>
+              <div style="margin-bottom:14px;">
+                <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">To</label>
+                <select id="newMsgRecipient" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;appearance:none;"><option value="">Select recipient…</option></select>
+              </div>
+              <div style="margin-bottom:14px;flex:1;">
+                <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">Message</label>
+                <textarea id="newMsgContent" style="width:100%;height:100px;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;resize:none;" placeholder="Write your message…"></textarea>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button onclick="sendNewMessage()" style="flex:1;padding:10px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25);color:#60a5fa;font-family:var(--bf);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fas fa-paper-plane"></i>Send</button>
+                <button onclick="cancelNewConv()" style="flex:1;padding:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--bf);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Cancel</button>
+              </div>
+              <div id="newMsgStatus" class="hidden" style="margin-top:8px;padding:10px;font-size:12px;font-family:var(--bf);text-align:center;border:1px solid;"></div>
+            </div>
+            <!-- New Group form -->
+            <div id="newGroupForm" class="hidden" style="flex:1;display:none;flex-direction:column;padding:16px;overflow-y:auto;">
+              <p style="font-family:var(--hf);font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;"><i class="fas fa-users" style="color:#a78bfa;"></i>New Group Chat</p>
+              <div style="margin-bottom:12px;">
+                <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">Group Name</label>
+                <input type="text" id="newGroupName" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;" placeholder="e.g. Planning Team">
+              </div>
+              <div style="margin-bottom:12px;">
+                <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">Add Members</label>
+                <div id="groupMemberCheckboxes" style="max-height:140px;overflow-y:auto;border:1px solid var(--border);background:rgba(255,255,255,0.03);padding:4px;"></div>
+              </div>
+              <div style="margin-bottom:12px;">
+                <label style="display:block;font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;">First Message</label>
+                <textarea id="newGroupMessage" style="width:100%;height:72px;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;resize:none;" placeholder="Write your first message…"></textarea>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button onclick="sendNewGroup()" style="flex:1;padding:10px;background:rgba(167,139,250,.10);border:1px solid rgba(167,139,250,.22);color:#a78bfa;font-family:var(--bf);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fas fa-users"></i>Create</button>
+                <button onclick="cancelNewConv()" style="flex:1;padding:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--bf);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Cancel</button>
+              </div>
+              <div id="newGroupStatus" class="hidden" style="margin-top:8px;padding:10px;font-size:12px;font-family:var(--bf);text-align:center;border:1px solid;"></div>
+            </div>
+            <!-- Active chat -->
+            <div id="activeChat" class="hidden" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+              <!-- Chat header -->
+              <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                <p id="chatPartnerName" style="font-family:var(--hf);font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text);"></p>
+                <div id="groupChatActions" class="hidden" style="display:flex;gap:2px;align-items:center;">
+                  <button onclick="showGroupMembers()" style="background:none;border:none;cursor:pointer;padding:5px 8px;color:var(--dim);font-size:11px;transition:color .2s;display:flex;align-items:center;gap:4px;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--dim)'"><i class="fas fa-users"></i><span>Members</span></button>
+                  <button id="renameGroupBtn" onclick="showRenameGroup()" class="hidden" style="background:none;border:none;cursor:pointer;padding:5px 8px;color:var(--dim);font-size:11px;transition:color .2s;display:flex;align-items:center;gap:4px;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--dim)'"><i class="fas fa-pen"></i><span>Rename</span></button>
+                  <button id="leaveGroupBtn" onclick="leaveGroup()" style="background:none;border:none;cursor:pointer;padding:5px 8px;color:#f87171;font-size:11px;transition:opacity .2s;display:flex;align-items:center;gap:4px;"><i class="fas fa-sign-out-alt"></i><span>Leave</span></button>
+                  <button id="deleteGroupBtn" onclick="deleteGroup()" class="hidden" style="background:none;border:none;cursor:pointer;padding:5px 8px;color:#f87171;font-size:11px;transition:opacity .2s;display:flex;align-items:center;gap:4px;"><i class="fas fa-trash-alt"></i><span>Delete</span></button>
+                </div>
+              </div>
+              <!-- Group members panel -->
+              <div id="groupMembersPanel" class="hidden" style="padding:8px 12px;border-bottom:1px solid var(--border);background:rgba(167,139,250,.06);flex-shrink:0;">
+                <p style="font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#a78bfa;margin-bottom:6px;">Members</p>
+                <div id="groupMembersList" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+              </div>
+              <!-- Rename panel -->
+              <div id="renameGroupPanel" class="hidden" style="padding:8px 12px;border-bottom:1px solid var(--border);background:rgba(96,165,250,.05);flex-shrink:0;">
+                <p style="font-family:var(--hf);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#60a5fa;margin-bottom:6px;">Rename Group</p>
+                <div style="display:flex;gap:6px;">
+                  <input type="text" id="renameGroupInput" maxlength="80" placeholder="New group name…" style="flex:1;padding:7px 10px;background:rgba(255,255,255,0.06);border:1px solid rgba(96,165,250,.3);color:var(--text);font-family:var(--bf);font-size:12px;outline:none;">
+                  <button onclick="submitRenameGroup()" style="padding:7px 14px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25);color:#60a5fa;font-family:var(--bf);font-size:11px;font-weight:700;cursor:pointer;">Save</button>
+                  <button onclick="hideRenameGroup()" style="padding:7px 10px;background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;">Cancel</button>
+                </div>
+                <p id="renameGroupStatus" class="hidden" style="font-size:11px;margin-top:5px;"></p>
+              </div>
+              <!-- In-chat search -->
+              <div id="msgInChatSearchBar" class="hidden" style="padding:8px 12px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.03);flex-shrink:0;">
+                <div style="position:relative;">
+                  <i class="fas fa-search" style="position:absolute;left:9px;top:9px;color:var(--dim);font-size:11px;"></i>
+                  <input id="msgInChatInput" type="text" placeholder="Search in conversation…" oninput="filterMessagesInChat()" style="width:100%;padding:7px 30px 7px 28px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:12px;outline:none;">
+                  <button onclick="closeMsgInChatSearch()" style="position:absolute;right:8px;top:8px;background:none;border:none;cursor:pointer;color:var(--dim);font-size:11px;"><i class="fas fa-times"></i></button>
+                </div>
+              </div>
+              <!-- Messages -->
+              <div id="chatMessagesPanel" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;"></div>
+              <!-- Input bar -->
+              <div style="padding:10px;border-top:1px solid var(--border);flex-shrink:0;">
+                <div id="emojiPicker" class="hidden" style="margin-bottom:8px;padding:8px;border:1px solid var(--border);background:rgba(4,14,28,.99);">
+                  <div style="display:flex;flex-wrap:wrap;gap:2px;max-height:100px;overflow-y:auto;"></div>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <button onclick="toggleEmojiPicker()" style="background:none;border:none;cursor:pointer;font-size:18px;opacity:.6;flex-shrink:0;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.6'">😊</button>
+                  <input type="text" id="internalChatInput" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendChatMessage()" style="flex:1;padding:9px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);font-family:var(--bf);font-size:13px;outline:none;">
+                  <button onclick="toggleMsgInChatSearch()" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:13px;flex-shrink:0;transition:color .2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--dim)'"><i class="fas fa-search"></i></button>
+                  <button onclick="sendChatMessage()" style="padding:9px 16px;background:rgba(255,255,255,0.10);border:1px solid var(--border);color:var(--text);cursor:pointer;transition:all .2s;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.10)'"><i class="fas fa-paper-plane"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="taskResModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[7000] flex items-center justify-center p-4">
@@ -2929,7 +2985,7 @@
 
 
         // --- SETTINGS ---
-        window._openSettingsModal = async function() {
+        window._openSettingsModal = async function() { document.getElementById('settingsModal').style.display='flex';
             document.getElementById('menuDropdown').classList.remove('open');
             try {
                 const res = await fetch('/api/user/profile'); const data = await res.json();
@@ -2939,13 +2995,13 @@
             } catch(e) {}
             document.getElementById('settingsModal').classList.remove('hidden');
         }
-        window._closeSettingsModal = function() { document.getElementById('settingsModal').classList.add('hidden'); document.getElementById('profileMsg').classList.add('hidden'); document.getElementById('passwordMsg').classList.add('hidden'); }
+        window._closeSettingsModal = function() { document.getElementById('settingsModal').classList.add('hidden'); document.getElementById('settingsModal').style.display='none'; document.getElementById('profileMsg').classList.add('hidden'); document.getElementById('passwordMsg').classList.add('hidden'); }
         async function saveProfileSettings() {
             const msgEl = document.getElementById('profileMsg'); msgEl.classList.add('hidden');
             try {
                 const res = await fetch('/api/user/profile', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ full_name: document.getElementById('settingsFullName').value, email: document.getElementById('settingsEmail').value }) });
                 const data = await res.json();
-                msgEl.textContent = data.message; msgEl.className = `text-sm text-center font-semibold rounded-lg py-2 ${data.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`; msgEl.classList.remove('hidden');
+                msgEl.textContent = data.message; msgEl.style.background = data.success ? 'rgba(52,211,153,.1)' : 'rgba(248,113,113,.1)'; msgEl.style.color = data.success ? '#34d399' : '#f87171'; msgEl.style.borderColor = data.success ? 'rgba(52,211,153,.25)' : 'rgba(248,113,113,.25)'; msgEl.classList.remove('hidden');
             } catch(e) { msgEl.textContent = 'Error'; msgEl.className = 'text-sm text-center font-semibold rounded-lg py-2 bg-red-100 text-red-700'; msgEl.classList.remove('hidden'); }
         }
         async function savePasswordSettings() {
@@ -2954,15 +3010,15 @@
             try {
                 const res = await fetch('/api/user/change-password', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({new_password: newPw}) });
                 const data = await res.json();
-                msgEl.textContent = data.message; msgEl.className = `text-sm text-center font-semibold rounded-lg py-2 ${data.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`; msgEl.classList.remove('hidden');
+                msgEl.textContent = data.message; msgEl.style.background = data.success ? 'rgba(52,211,153,.1)' : 'rgba(248,113,113,.1)'; msgEl.style.color = data.success ? '#34d399' : '#f87171'; msgEl.style.borderColor = data.success ? 'rgba(52,211,153,.25)' : 'rgba(248,113,113,.25)'; msgEl.classList.remove('hidden');
                 if (data.success) { document.getElementById('settingsNewPassword').value = ''; document.getElementById('settingsConfirmPassword').value = ''; }
             } catch(e) { msgEl.textContent = 'Error'; msgEl.className = 'text-sm text-center font-semibold rounded-lg py-2 bg-red-100 text-red-700'; msgEl.classList.remove('hidden'); }
         }
 
         // --- REVIEWS ---
         let _reviewRating = 0;
-        window._openReviewModal = function() { document.getElementById('reviewModal').classList.remove('hidden'); switchReviewTab('write'); }
-        window._closeReviewModal = function() { document.getElementById('reviewModal').classList.add('hidden'); resetReviewForm(); }
+        window._openReviewModal = function() { document.getElementById('reviewModal').classList.remove('hidden'); document.getElementById('reviewModal').style.display='flex'; switchReviewTab('write'); }
+        window._closeReviewModal = function() { document.getElementById('reviewModal').classList.add('hidden'); document.getElementById('reviewModal').style.display='none'; resetReviewForm(); }
         function switchReviewTab(tab) {
             const write = document.getElementById('reviewPanelWrite'); const read = document.getElementById('reviewPanelRead');
             const tabW = document.getElementById('reviewTabWrite'); const tabR = document.getElementById('reviewTabRead');
@@ -2978,12 +3034,12 @@
             }
         }
         function resetReviewForm() {
-            _reviewRating = 0; document.getElementById('reviewRating').value = 0; document.getElementById('reviewTitle').value = ''; document.getElementById('reviewBody').value = ''; document.getElementById('reviewAnon').checked = false; document.getElementById('reviewCategory').value = 'General'; document.querySelectorAll('.review-star').forEach(s => s.style.color = '#d1d5db'); document.getElementById('reviewMsg').classList.add('hidden');
+            _reviewRating = 0; document.getElementById('reviewRating').value = 0; document.getElementById('reviewTitle').value = ''; document.getElementById('reviewBody').value = ''; document.getElementById('reviewAnon').checked = false; document.getElementById('reviewCategory').value = 'General'; document.querySelectorAll('.review-star').forEach(s => s.style.color = 'var(--dim)'); document.getElementById('reviewMsg').classList.add('hidden');
         }
         document.querySelectorAll('.review-star').forEach(star => {
-            star.addEventListener('click', function() { _reviewRating = parseInt(this.dataset.val); document.getElementById('reviewRating').value = _reviewRating; document.querySelectorAll('.review-star').forEach(s => s.style.color = parseInt(s.dataset.val) <= _reviewRating ? '#f59e0b' : '#d1d5db'); });
-            star.addEventListener('mouseover', function() { const val = parseInt(this.dataset.val); document.querySelectorAll('.review-star').forEach(s => s.style.color = parseInt(s.dataset.val) <= val ? '#f59e0b' : '#d1d5db'); });
-            star.addEventListener('mouseout', function() { document.querySelectorAll('.review-star').forEach(s => s.style.color = parseInt(s.dataset.val) <= _reviewRating ? '#f59e0b' : '#d1d5db'); });
+            star.addEventListener('click', function() { _reviewRating = parseInt(this.dataset.val); document.getElementById('reviewRating').value = _reviewRating; document.querySelectorAll('.review-star').forEach(s => s.style.color = parseInt(s.dataset.val) <= _reviewRating ? '#fbbf24' : 'var(--dim)'); });
+            star.addEventListener('mouseover', function() { const val = parseInt(this.dataset.val); document.querySelectorAll('.review-star').forEach(s => s.style.color = parseInt(s.dataset.val) <= val ? '#fbbf24' : 'var(--dim)'); });
+            star.addEventListener('mouseout', function() { document.querySelectorAll('.review-star').forEach(s => s.style.color = parseInt(s.dataset.val) <= _reviewRating ? '#fbbf24' : 'var(--dim)'); });
         });
         async function submitReview() {
             const rating = parseInt(document.getElementById('reviewRating').value); const body = document.getElementById('reviewBody').value.trim();
@@ -2997,7 +3053,7 @@
                 else { showReviewMsg(data.error || 'Failed to submit.', 'error'); }
             } catch(e) { showReviewMsg('Network error.', 'error'); } finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Submit'; }
         }
-        function showReviewMsg(text, type) { const msg = document.getElementById('reviewMsg'); msg.textContent = text; msg.className = `text-sm text-center font-semibold rounded-lg py-2 ${type==='success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`; msg.classList.remove('hidden'); }
+        function showReviewMsg(text, type) { const msg = document.getElementById('reviewMsg'); msg.textContent = text; msg.style.background = type==='success' ? 'rgba(52,211,153,.1)' : 'rgba(248,113,113,.1)'; msg.style.color = type==='success' ? '#34d399' : '#f87171'; msg.style.borderColor = type==='success' ? 'rgba(52,211,153,.25)' : 'rgba(248,113,113,.25)'; msg.classList.remove('hidden'); }
         async function loadReviews() {
             const list = document.getElementById('reviewsList'); const cat = document.getElementById('reviewFilterCat').value;
             list.innerHTML = '<div class="text-center text-gray-400 text-sm py-8"><i class="fas fa-circle-notch fa-spin mr-2"></i>Loading...</div>';
@@ -3020,11 +3076,11 @@
         // --- MESSAGING ---
         let currentConversationId = null; let allMessages = []; let allConversations = []; let chatPollInterval = null;
         const EMOJIS = ['😀','😂','😍','🥰','😎','🤔','😅','😭','😤','🙏','👍','👎','❤️','🔥','✅','⚡','🎉','💯','🚀','👏','😊','🤣','😆','😁','😋','🤩','😇','😴','🤗','😏','😒','🙄','😑','🤐','😬','🥲','😓','😥','😢','😨','😰','😱','🤯','🤫','🫡','🫠','💀','👻'];
-        window._openMessagingModal = async function() {
+        window._openMessagingModal = async function() { document.getElementById('messagingModal').style.display='flex';
             try { document.getElementById('menuDropdown').classList.remove('open'); } catch(e) {}
             document.getElementById('messagingModal').classList.remove('hidden'); buildEmojiPicker(); await loadConversations(); await loadUsersForMessaging();
         }
-        window._closeMessagingModal = function() { document.getElementById('messagingModal').classList.add('hidden'); if (chatPollInterval) { clearInterval(chatPollInterval); chatPollInterval = null; } document.getElementById('emojiPicker').classList.add('hidden'); }
+        window._closeMessagingModal = function() { document.getElementById('messagingModal').classList.add('hidden'); document.getElementById('messagingModal').style.display='none'; if (chatPollInterval) { clearInterval(chatPollInterval); chatPollInterval = null; } document.getElementById('emojiPicker').classList.add('hidden'); }
         function buildEmojiPicker() {
             const picker = document.querySelector('#emojiPicker > div'); if (picker.childElementCount > 0) return;
             EMOJIS.forEach(e => { const btn = document.createElement('button'); btn.textContent = e; btn.className = 'hover:bg-gray-100 rounded p-0.5 cursor-pointer'; btn.onclick = () => insertEmoji(e); picker.appendChild(btn); });
@@ -3142,24 +3198,24 @@
         }
         async function sendNewGroup() {
             const name = document.getElementById('newGroupName').value.trim(); const content = document.getElementById('newGroupMessage').value.trim(); const statusEl = document.getElementById('newGroupStatus'); const memberIds = [...document.querySelectorAll('.group-member-cb:checked')].map(cb => parseInt(cb.value));
-            if (!name) { statusEl.textContent = 'Enter a group name.'; statusEl.className = 'mt-2 text-xs text-center font-semibold text-red-600'; statusEl.classList.remove('hidden'); return; }
-            if (memberIds.length === 0) { statusEl.textContent = 'Select at least one member.'; statusEl.className = 'mt-2 text-xs text-center font-semibold text-red-600';statusEl.classList.remove('hidden'); return; }
-            if (!content) { statusEl.textContent = 'Write a first message.'; statusEl.className = 'mt-2 text-xs text-center font-semibold text-red-600'; statusEl.classList.remove('hidden'); return; }
+            if (!name) { statusEl.textContent = 'Enter a group name.'; statusEl.style.color='#f87171'; statusEl.style.background='rgba(248,113,113,.1)'; statusEl.style.borderColor='rgba(248,113,113,.25)'; statusEl.classList.remove('hidden'); return; }
+            if (memberIds.length === 0) { statusEl.textContent = 'Select at least one member.'; statusEl.style.color='#f87171'; statusEl.style.background='rgba(248,113,113,.1)'; statusEl.style.borderColor='rgba(248,113,113,.25)';statusEl.classList.remove('hidden'); return; }
+            if (!content) { statusEl.textContent = 'Write a first message.'; statusEl.style.color='#f87171'; statusEl.style.background='rgba(248,113,113,.1)'; statusEl.style.borderColor='rgba(248,113,113,.25)'; statusEl.classList.remove('hidden'); return; }
             try {
                 const res = await fetch('/api/messages/group/new', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({title: name, member_ids: memberIds, content}) }); const data = await res.json();
                 if (data.success) { document.getElementById('newGroupName').value = ''; document.getElementById('newGroupMessage').value = ''; statusEl.classList.add('hidden'); await loadConversations(); openConversation(data.conversation_id, data.title, true); }
-                else { statusEl.textContent = data.message || 'Failed'; statusEl.className = 'mt-2 text-xs text-center font-semibold text-red-600'; statusEl.classList.remove('hidden'); }
-            } catch(e) { statusEl.textContent = 'Error creating group.'; statusEl.className = 'mt-2 text-xs text-center font-semibold text-red-600'; statusEl.classList.remove('hidden'); }
+                else { statusEl.textContent = data.message || 'Failed'; statusEl.style.color='#f87171'; statusEl.style.background='rgba(248,113,113,.1)'; statusEl.style.borderColor='rgba(248,113,113,.25)'; statusEl.classList.remove('hidden'); }
+            } catch(e) { statusEl.textContent = 'Error creating group.'; statusEl.style.color='#f87171'; statusEl.style.background='rgba(248,113,113,.1)'; statusEl.style.borderColor='rgba(248,113,113,.25)'; statusEl.classList.remove('hidden'); }
         }
         function cancelNewConv() { document.getElementById('newConvForm').classList.add('hidden'); document.getElementById('newGroupForm').classList.add('hidden'); document.getElementById('chatEmpty').classList.remove('hidden'); }
         async function sendNewMessage() {
             const recipientId = document.getElementById('newMsgRecipient').value; const content = document.getElementById('newMsgContent').value.trim(); const statusEl = document.getElementById('newMsgStatus');
-            if (!recipientId || !content) { statusEl.textContent = 'Select recipient and write a message.'; statusEl.className = 'mt-2 text-xs text-center font-semibold text-red-600'; statusEl.classList.remove('hidden'); return; }
+            if (!recipientId || !content) { statusEl.textContent = 'Select recipient and write a message.'; statusEl.style.color='#f87171'; statusEl.style.background='rgba(248,113,113,.1)'; statusEl.style.borderColor='rgba(248,113,113,.25)'; statusEl.classList.remove('hidden'); return; }
             try {
                 const res = await fetch('/api/messages/new', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({recipient_id: parseInt(recipientId), content}) }); const data = await res.json();
                 if (data.success) { document.getElementById('newMsgContent').value = ''; document.getElementById('newMsgRecipient').value = ''; statusEl.classList.add('hidden'); await loadConversations(); openConversation(data.conversation_id, data.partner_name, false); }
-                else { statusEl.textContent = data.message || 'Failed'; statusEl.className = 'mt-2 text-xs text-center font-semibold text-red-600'; statusEl.classList.remove('hidden'); }
-            } catch(e) { statusEl.textContent = 'Error sending message.'; statusEl.className = 'mt-2 text-xs text-center font-semibold text-red-600'; statusEl.classList.remove('hidden'); }
+                else { statusEl.textContent = data.message || 'Failed'; statusEl.style.color='#f87171'; statusEl.style.background='rgba(248,113,113,.1)'; statusEl.style.borderColor='rgba(248,113,113,.25)'; statusEl.classList.remove('hidden'); }
+            } catch(e) { statusEl.textContent = 'Error sending message.'; statusEl.style.color='#f87171'; statusEl.style.background='rgba(248,113,113,.1)'; statusEl.style.borderColor='rgba(248,113,113,.25)'; statusEl.classList.remove('hidden'); }
         }
         async function pollUnreadCount() {
             try {
