@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>3W</title>
+  <title>JEJAK</title>
 
   <link rel="icon" href="data:,">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -113,13 +113,13 @@
         table.dataTable tbody tr.selected td { font-weight: bold; color: #1e3a8a; border-top: 1px solid #93c5fd; border-bottom: 1px solid #93c5fd; }
 
         /* ── MAP / SIDEBAR LAYOUT ── */
-        #mapView, #mapContainer { position: absolute; top: 72px; bottom: 0; left: 0; right: 0; overflow: hidden; background: #f1f5f9; }
-        #sidebar { position: absolute; top: 0; left: 0; bottom: 0; width: 350px; background: #ffffff; color: #1e293b; z-index: 1000; padding: 20px; box-shadow: 1px 0 0 #e2e8f0, 4px 0 16px rgba(0,0,0,.06); display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+        #mapView, #mapContainer { position: absolute; top: 72px; bottom: 0; left: 0; right: 0; overflow: hidden; background: #020912; }
+        #sidebar { position: absolute; top: 0; left: 0; bottom: 0; width: 350px; background: rgba(2,9,18,0.97); color: #e8f0f8; z-index: 1000; padding: 0; box-shadow: none; display: flex; flex-direction: column; gap: 0; overflow: hidden; }
         #map { position: absolute; top: 0; right: 0; bottom: 0; left: 350px; z-index: 1; }
-        .control-group { background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
-        .control-label { font-size: 0.68rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing:.06em; margin-bottom: 6px; display: block; }
-        .light-input { width: 100%; background: #ffffff; border: 1px solid #d1d5db; padding: 7px 10px; border-radius: 5px; font-size: 0.84rem; outline: none; transition: border-color .2s; }
-        .light-input:focus { border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30,58,138,.08); }
+        .control-group { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 0; border: 1px solid rgba(255,255,255,0.08); }
+        .control-label { font-size: 0.68rem; font-weight: 700; color: #7eaac6; text-transform: uppercase; letter-spacing:.06em; margin-bottom: 6px; display: block; }
+        .light-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); padding: 7px 10px; border-radius: 0; font-size: 0.84rem; outline: none; color: #e8f0f8; transition: border-color .2s; }
+        .light-input:focus { border-color: rgba(255,255,255,0.28); box-shadow: none; }
 
         /* ── POPUP ── */
         .leaflet-popup-content-wrapper { background: #ffffff; color: #1e293b; border-radius: 6px; padding: 0; box-shadow: 0 8px 24px rgba(0,0,0,.12); overflow: hidden; }
@@ -184,13 +184,66 @@
         /* ── SIDEBAR COLLAPSE ── */
         #sidebar { transition: transform .3s cubic-bezier(.4,0,.2,1); }
         #sidebar.collapsed { transform: translateX(-100%); }
-        #sidebarToggle { position: absolute; left: 350px; top: 50%; transform: translateY(-50%); width: 22px; height: 44px; background: #0f2d52; border: none; border-radius: 0 6px 6px 0; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 2px 0 8px rgba(0,0,0,.12); transition: left .3s cubic-bezier(.4,0,.2,1), background .2s; }
-        #sidebarToggle:hover { background: #1e3a8a; width: 26px; }
+        #sidebarToggle { position: absolute; left: 350px; top: 50%; transform: translateY(-50%); width: 22px; height: 44px; background: rgba(2,9,18,0.95); border: none; border-radius: 0 4px 4px 0; border-right: 1px solid rgba(255,255,255,0.10); border-top: 1px solid rgba(255,255,255,0.10); border-bottom: 1px solid rgba(255,255,255,0.10); color: #7eaac6; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 1000; transition: left .3s cubic-bezier(.4,0,.2,1), color .2s; }
+        #sidebarToggle:hover { color: #e8f0f8; }
         #sidebarToggle.collapsed { left: 0; }
         #sidebarToggle i { transition: transform .2s; }
         #sidebarToggle.collapsed i { transform: rotate(180deg); }
         #map { transition: left .3s cubic-bezier(.4,0,.2,1); }
         #map.expanded { left: 0; }
+
+        /* ── DARK SIDEBAR OVERRIDES ── */
+        #sidebar {
+          background: rgba(2,9,18,0.97) !important;
+          border-right: 1px solid rgba(255,255,255,0.10) !important;
+          box-shadow: none !important;
+          color: #e8f0f8 !important;
+          overflow: hidden !important;
+        }
+        #sidebar .ctrl-scroll {
+          position: relative; z-index: 1;
+          height: 100%; overflow-y: auto;
+          padding: 20px 18px;
+          display: flex; flex-direction: column; gap: 14px;
+        }
+        #sidebar .control-group {
+          background: rgba(255,255,255,0.03) !important;
+          border: 1px solid rgba(255,255,255,0.08) !important;
+          border-radius: 0 !important; padding: 12px;
+        }
+        #sidebar .control-label {
+          font-size: 0.68rem !important; font-weight: 700 !important;
+          color: #7eaac6 !important; text-transform: uppercase !important;
+          letter-spacing: .08em !important; margin-bottom: 6px !important;
+          display: block !important;
+        }
+        #sidebar .light-input {
+          background: rgba(255,255,255,0.06) !important;
+          border: 1px solid rgba(255,255,255,0.10) !important;
+          color: #e8f0f8 !important; border-radius: 0 !important;
+          padding: 7px 10px; font-size: 0.84rem; outline: none;
+        }
+        #sidebar .light-input::placeholder { color: #3a5c75; }
+        #sidebar .light-input:focus { border-color: rgba(255,255,255,0.28) !important; box-shadow: none !important; }
+        #sidebar select.light-input option { background: #040e1c; color: #e8f0f8; }
+        /* Geo tool sub-elements */
+        #sidebar .geo-pick-btn { border-radius: 0 !important; font-size: 0.7rem !important; font-weight: 700 !important; padding: 3px 8px !important; border: 1px solid rgba(255,255,255,0.15) !important; cursor: pointer; }
+        #sidebar #geoResults { background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.10) !important; border-radius: 0 !important; }
+        #sidebar .geo-result-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.78rem; }
+        #sidebar .geo-result-label { color: #7eaac6; display: flex; align-items: center; gap: 5px; }
+        #sidebar .geo-result-value { font-weight: 700; }
+        /* Leaderboard / cluster lists */
+        #leaderboardList, #mrClusterList, #ooklaClusterList {
+          background: rgba(255,255,255,0.03) !important;
+          border: 1px solid rgba(255,255,255,0.08) !important;
+          border-radius: 0 !important; padding: 4px !important;
+        }
+        /* Geo pick status banner */
+        #geoPickStatus { background: rgba(37,99,235,0.12) !important; border: 1px solid rgba(37,99,235,0.25) !important; color: #93c5fd !important; border-radius: 0 !important; }
+        /* Coverage controls hint */
+        #sidebar .coverage-hint { background: rgba(96,165,250,0.07); border: 1px solid rgba(96,165,250,0.18); padding: 12px 14px; }
+        #sidebar .coverage-hint p { color: #93c5fd; font-size: 0.72rem; font-weight: 700; margin-bottom: 6px; }
+        #sidebar .coverage-hint li { color: #7eaac6; font-size: 0.68rem; }
 
         /* ── TOOL BUTTONS ── */
         #annotationBtn    { top: 10px; left: 370px; background: #1e3a8a; }
@@ -1277,119 +1330,173 @@
 
     <div id="sidebar">
 
-        <div>
-            <h1 class="text-xl font-bold flex items-center gap-3 text-gray-800 mb-1"><i class="fas fa-satellite text-blue-600"></i> 3W</h1>
-            <p class="text-xs text-gray-500">What • Where • When</p>
+      <!-- Globe canvas — sits behind all sidebar content -->
+      <canvas id="sidebarGlobeCanvas" style="position:absolute;bottom:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.35;"></canvas>
+
+      <!-- Scrollable content layer -->
+      <div class="ctrl-scroll">
+
+        <!-- Header -->
+        <div style="padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);">
+          <span style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:1.1rem;letter-spacing:3px;color:#fff;">JEJAK</span>
+          <p style="font-size:0.65rem;color:#3a5c75;margin-top:3px;font-family:'Raleway',sans-serif;letter-spacing:1.5px;text-transform:uppercase;">Coverage Intelligence</p>
         </div>
 
+        <!-- Search Site -->
         <div class="control-group relative">
-            <label class="control-label">Search Site</label>
-            <div class="flex gap-2">
-                <input type="text" id="siteSearchInput" placeholder="Enter Site ID..." class="light-input">
-                <button onclick="triggerZoom()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 rounded-lg"><i class="fas fa-search"></i></button>
-            </div>
-            <div id="siteSearchResults" class="autocomplete-results hidden"></div>
+          <label class="control-label"><i class="fas fa-search" style="margin-right:5px;"></i>Search Site</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="siteSearchInput" placeholder="Enter Site ID..." class="light-input">
+            <button onclick="triggerZoom()" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.15);color:#e8f0f8;padding:0 12px;cursor:pointer;flex-shrink:0;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.10)'"><i class="fas fa-search"></i></button>
+          </div>
+          <div id="siteSearchResults" class="autocomplete-results hidden"></div>
         </div>
 
+        <!-- Site Counts -->
         <div class="control-group">
-            <div class="grid grid-cols-2 gap-4 text-center">
-                <div><p class="text-[10px] text-gray-400 font-bold uppercase">Visible Sites</p><p id="siteCount" class="text-2xl font-bold text-gray-800">0</p></div>
-                <div><p class="text-[10px] text-gray-400 font-bold uppercase">Congested</p><p id="congCount" class="text-2xl font-bold text-red-600">0</p></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center;">
+            <div style="padding:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);">
+              <p style="font-size:0.62rem;color:#7eaac6;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Visible Sites</p>
+              <p id="siteCount" style="font-size:1.5rem;font-weight:900;color:#e8f0f8;font-family:'Raleway',sans-serif;">0</p>
             </div>
+            <div style="padding:8px;background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.18);">
+              <p style="font-size:0.62rem;color:#f87171;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Congested</p>
+              <p id="congCount" style="font-size:1.5rem;font-weight:900;color:#f87171;font-family:'Raleway',sans-serif;">0</p>
+            </div>
+          </div>
         </div>
 
+        <!-- Timeline & Region -->
         <div class="control-group">
-            <label class="control-label">Filter Timeline & Region</label>
-            <div class="flex gap-2">
-                <select id="weekSelect" onchange="updateFilters()" class="light-input flex-1"><option value="">Loading weeks...</option></select>
-                <select id="regionSelect" onchange="updateFilters()" class="light-input flex-1"><option value="All">All Regions</option></select>
-            </div>
+          <label class="control-label"><i class="fas fa-filter" style="margin-right:5px;"></i>Filter Timeline &amp; Region</label>
+          <div style="display:flex;gap:8px;">
+            <select id="weekSelect" onchange="updateFilters()" class="light-input" style="flex:1;"><option value="">Loading weeks...</option></select>
+            <select id="regionSelect" onchange="updateFilters()" class="light-input" style="flex:1;"><option value="All">All Regions</option></select>
+          </div>
         </div>
 
-        <div class="control-group flex-1 flex flex-col min-h-0 bg-white p-2">
-            <label class="control-label text-red-600 mb-1"><i class="fas fa-trophy mr-1"></i> Top 10 Congested Sectors</label>
-            <div id="leaderboardList" class="flex-1 overflow-y-auto bg-gray-50 border border-gray-100 rounded p-1 mb-3 max-h-32"></div>
+        <!-- Rankings -->
+        <div class="control-group" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+          <label class="control-label" style="color:#f87171;"><i class="fas fa-trophy" style="margin-right:4px;"></i>Top 10 Congested Sectors</label>
+          <div id="leaderboardList" style="overflow-y:auto;max-height:100px;margin-bottom:10px;font-size:0.72rem;"></div>
 
-            <label class="control-label text-blue-800 mb-1"><i class="fas fa-square mr-1"></i> Worst MR Clusters</label>
-            <div id="mrClusterList" class="flex-1 overflow-y-auto bg-gray-50 border border-gray-100 rounded p-1 mb-3 max-h-32"></div>
+          <label class="control-label" style="color:#60a5fa;"><i class="fas fa-square" style="margin-right:4px;"></i>Worst MR Clusters</label>
+          <div id="mrClusterList" style="overflow-y:auto;max-height:100px;margin-bottom:10px;font-size:0.72rem;"></div>
 
-            <label class="control-label text-purple-700 mb-1"><i class="fas fa-caret-up mr-1"></i> Worst Ookla Clusters</label>
-            <div id="ooklaClusterList" class="flex-1 overflow-y-auto bg-gray-50 border border-gray-100 rounded p-1 max-h-32"></div>
+          <label class="control-label" style="color:#a78bfa;"><i class="fas fa-caret-up" style="margin-right:4px;"></i>Worst Ookla Clusters</label>
+          <div id="ooklaClusterList" style="overflow-y:auto;max-height:100px;font-size:0.72rem;"></div>
         </div>
 
-        <div id="loading" class="hidden text-center text-blue-600 text-sm font-bold mt-4"><i class="fas fa-circle-notch fa-spin mr-2"></i> Loading Data...</div>
+        <div id="loading" class="hidden" style="text-align:center;color:#60a5fa;font-size:0.78rem;font-weight:700;padding:8px;"><i class="fas fa-circle-notch fa-spin" style="margin-right:6px;"></i>Loading Data...</div>
 
-        <!-- ══ GEO TOOLS ══ -->
-        <div class="control-group" style="border-color:#c4b5fd;">
-            <label class="control-label" style="color:#7c3aed;"><i class="fas fa-drafting-compass mr-1"></i> Geo Tools</label>
+        <!-- Geo Tools -->
+        <div class="control-group" style="border-color:rgba(167,139,250,0.25);">
+          <label class="control-label" style="color:#a78bfa;"><i class="fas fa-drafting-compass" style="margin-right:5px;"></i>Geo Tools</label>
 
-            <!-- Pick-mode status banner -->
-            <div id="geoPickStatus" class="hidden text-[10px] font-bold text-blue-700 mb-2 py-1 px-2 bg-blue-50 rounded flex items-center gap-1">
-                <i class="fas fa-crosshairs fa-spin"></i>
-                <span id="geoPickStatusText">Click map to set point</span>
+          <div id="geoPickStatus" class="hidden" style="font-size:0.68rem;font-weight:700;color:#93c5fd;margin-bottom:8px;padding:6px 8px;display:flex;align-items:center;gap:6px;">
+            <i class="fas fa-crosshairs fa-spin"></i>
+            <span id="geoPickStatusText">Click map to set point</span>
+          </div>
+
+          <!-- Point A -->
+          <div style="margin-bottom:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:0.62rem;font-weight:700;text-transform:uppercase;color:#60a5fa;display:flex;align-items:center;gap:5px;">
+                <span style="width:16px;height:16px;border-radius:50%;background:#2563eb;display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:900;">A</span>Point A
+              </span>
+              <button class="geo-pick-btn" style="background:rgba(37,99,235,0.15);color:#93c5fd;border:1px solid rgba(37,99,235,0.3) !important;" onclick="startGeoPickMode('A')">
+                <i class="fas fa-crosshairs" style="margin-right:3px;"></i>Pick
+              </button>
             </div>
-
-            <!-- Point A -->
-            <div class="mb-2">
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-[10px] font-bold uppercase flex items-center gap-1" style="color:#2563eb;">
-                        <span class="geo-label-tip">A</span> Point A
-                    </span>
-                    <button class="geo-pick-btn" style="background:#dbeafe;color:#1d4ed8;" onclick="startGeoPickMode('A')">
-                        <i class="fas fa-crosshairs mr-1"></i>Pick
-                    </button>
-                </div>
-                <div class="flex gap-1">
-                    <input id="geoLatA" type="number" placeholder="Lat" step="0.000001" class="light-input text-xs" oninput="runGeoCalc()">
-                    <input id="geoLngA" type="number" placeholder="Lng" step="0.000001" class="light-input text-xs" oninput="runGeoCalc()">
-                </div>
+            <div style="display:flex;gap:6px;">
+              <input id="geoLatA" type="number" placeholder="Lat" step="0.000001" class="light-input" style="font-size:0.75rem;" oninput="runGeoCalc()">
+              <input id="geoLngA" type="number" placeholder="Lng" step="0.000001" class="light-input" style="font-size:0.75rem;" oninput="runGeoCalc()">
             </div>
+          </div>
 
-            <!-- Point B -->
-            <div class="mb-2">
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-[10px] font-bold uppercase flex items-center gap-1" style="color:#dc2626;">
-                        <span class="geo-label-tip" style="background:#dc2626;">B</span> Point B
-                    </span>
-                    <button class="geo-pick-btn" style="background:#fee2e2;color:#b91c1c;" onclick="startGeoPickMode('B')">
-                        <i class="fas fa-crosshairs mr-1"></i>Pick
-                    </button>
-                </div>
-                <div class="flex gap-1">
-                    <input id="geoLatB" type="number" placeholder="Lat" step="0.000001" class="light-input text-xs" oninput="runGeoCalc()">
-                    <input id="geoLngB" type="number" placeholder="Lng" step="0.000001" class="light-input text-xs" oninput="runGeoCalc()">
-                </div>
+          <!-- Point B -->
+          <div style="margin-bottom:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:0.62rem;font-weight:700;text-transform:uppercase;color:#f87171;display:flex;align-items:center;gap:5px;">
+                <span style="width:16px;height:16px;border-radius:50%;background:#dc2626;display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:900;">B</span>Point B
+              </span>
+              <button class="geo-pick-btn" style="background:rgba(220,38,38,0.12);color:#f87171;border:1px solid rgba(220,38,38,0.3) !important;" onclick="startGeoPickMode('B')">
+                <i class="fas fa-crosshairs" style="margin-right:3px;"></i>Pick
+              </button>
             </div>
-
-            <!-- Results -->
-            <div id="geoResults" class="hidden bg-gray-50 rounded-lg p-2 border border-purple-100 mb-2">
-                <div class="geo-result-row">
-                    <span class="geo-result-label"><i class="fas fa-ruler" style="color:#7c3aed;"></i> Distance</span>
-                    <span id="geoDistResult" class="geo-result-value" style="color:#7c3aed;">—</span>
-                </div>
-                <div class="geo-result-row">
-                    <span class="geo-result-label"><i class="fas fa-location-arrow" style="color:#2563eb;"></i> Azimuth A→B</span>
-                    <span id="geoBearingResult" class="geo-result-value" style="color:#2563eb;">—</span>
-                </div>
-                <div class="geo-result-row">
-                    <span class="geo-result-label"><i class="fas fa-location-arrow" style="color:#dc2626;transform:rotate(180deg);display:inline-block;"></i> Back Bearing B→A</span>
-                    <span id="geoBackBearingResult" class="geo-result-value" style="color:#dc2626;">—</span>
-                </div>
+            <div style="display:flex;gap:6px;">
+              <input id="geoLatB" type="number" placeholder="Lat" step="0.000001" class="light-input" style="font-size:0.75rem;" oninput="runGeoCalc()">
+              <input id="geoLngB" type="number" placeholder="Lng" step="0.000001" class="light-input" style="font-size:0.75rem;" oninput="runGeoCalc()">
             </div>
+          </div>
 
-            <button onclick="clearGeoTools()" class="w-full text-[10px] bg-gray-100 hover:bg-gray-200 text-gray-600 py-1 rounded font-bold transition-colors">
-                <i class="fas fa-times mr-1"></i>Clear Points
-            </button>
+          <!-- Results -->
+          <div id="geoResults" class="hidden" style="margin-bottom:8px;">
+            <div class="geo-result-row"><span class="geo-result-label"><i class="fas fa-ruler" style="color:#a78bfa;"></i>Distance</span><span id="geoDistResult" class="geo-result-value" style="color:#a78bfa;">—</span></div>
+            <div class="geo-result-row"><span class="geo-result-label"><i class="fas fa-location-arrow" style="color:#60a5fa;"></i>Azimuth A→B</span><span id="geoBearingResult" class="geo-result-value" style="color:#60a5fa;">—</span></div>
+            <div class="geo-result-row"><span class="geo-result-label"><i class="fas fa-location-arrow" style="color:#f87171;transform:rotate(180deg);display:inline-block;"></i>Back Bearing B→A</span><span id="geoBackBearingResult" class="geo-result-value" style="color:#f87171;">—</span></div>
+          </div>
+
+          <button onclick="clearGeoTools()" style="width:100%;padding:5px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);color:#7eaac6;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:all .2s;" onmouseover="this.style.color='#e8f0f8'" onmouseout="this.style.color='#7eaac6'">
+            <i class="fas fa-times" style="margin-right:4px;"></i>Clear Points
+          </button>
         </div>
 
-        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-auto">
-            <p class="text-xs text-blue-800 font-semibold mb-2"><i class="fas fa-mouse-pointer mr-1"></i> Coverage Controls</p>
-            <ul class="text-[10px] text-blue-700 space-y-1 list-disc pl-3">
-                <li><b>Click Sidebar Cluster:</b> Show Spider-Web site distances.</li>
-                <li><b>Ctrl + Click Site:</b> Render specific tower cones.</li>
-            </ul>
+        <!-- Coverage Controls hint -->
+        <div class="coverage-hint" style="margin-top:auto;">
+          <p><i class="fas fa-mouse-pointer" style="margin-right:5px;"></i>Coverage Controls</p>
+          <ul style="list-style:disc;padding-left:14px;display:flex;flex-direction:column;gap:4px;">
+            <li><b style="color:#e8f0f8;">Click Sidebar Cluster:</b> Show Spider-Web site distances.</li>
+            <li><b style="color:#e8f0f8;">Ctrl + Click Site:</b> Render specific tower cones.</li>
+          </ul>
         </div>
-    </div>
+
+      </div><!-- /ctrl-scroll -->
+
+      <!-- Sidebar globe init -->
+      <script>
+      (function(){
+        function initSidebarGlobe(){
+          try {
+            var canvas = document.getElementById('sidebarGlobeCanvas');
+            if (!canvas || canvas._done) return; canvas._done = true;
+            var W = 350, H = canvas.parentElement.offsetHeight || 600;
+            canvas.width = W; canvas.height = H;
+            var renderer = new THREE.WebGLRenderer({canvas:canvas, alpha:true, antialias:true});
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+            renderer.setSize(W, H);
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(48, W/H, 0.1, 500);
+            camera.position.z = 4.2;
+            var G = new THREE.Group(); G.position.set(0.6, -0.4, 0); scene.add(G);
+            var R = 2.2;
+            G.add(new THREE.Mesh(new THREE.SphereGeometry(R,64,64), new THREE.MeshPhongMaterial({color:0x020912,emissive:0x05101e,specular:0x334455,shininess:12})));
+            G.add(new THREE.Mesh(new THREE.SphereGeometry(R+.01,32,32), new THREE.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:.06})));
+            function ring(lat,op){var phi=(90-lat)*Math.PI/180,ry=(R+.015)*Math.cos(phi),rr=(R+.015)*Math.sin(phi),pts=[];for(var i=0;i<=120;i++){var t=(i/120)*Math.PI*2;pts.push(new THREE.Vector3(Math.cos(t)*rr,ry,Math.sin(t)*rr));}G.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:op})));}
+            ring(0,.3);ring(30,.14);ring(-30,.14);ring(60,.07);ring(-60,.07);
+            var cities=[[3.14,101.68],[1.35,103.82],[13.75,100.52],[21.03,105.85],[35.68,139.69],[51.51,-0.12],[40.71,-74.0],[28.61,77.23],[55.75,37.62]];
+            var dm=new THREE.MeshBasicMaterial({color:0xffffff}),dg=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.18});
+            cities.forEach(function(c){var phi=(90-c[0])*Math.PI/180,theta=(c[1]+180)*Math.PI/180,pos=new THREE.Vector3(-(R+.05)*Math.sin(phi)*Math.cos(theta),(R+.05)*Math.cos(phi),(R+.05)*Math.sin(phi)*Math.sin(theta));var d=new THREE.Mesh(new THREE.SphereGeometry(.02,8,8),dm);d.position.copy(pos);G.add(d);var g=new THREE.Mesh(new THREE.SphereGeometry(.04,8,8),dg);g.position.copy(pos);G.add(g);});
+            scene.add(new THREE.AmbientLight(0x1a2233,2.5));
+            var dl=new THREE.DirectionalLight(0xffffff,.6);dl.position.set(4,3,3);scene.add(dl);
+            (function tick(){requestAnimationFrame(tick);G.rotation.y+=0.0016;renderer.render(scene,camera);})();
+          } catch(e){ console.warn('Sidebar globe error:',e); }
+        }
+        // Init after map tab is shown (sidebar is in mapView)
+        var _tried = false;
+        var orig = window.switchMainTab;
+        window.switchMainTab = function(tab){
+          if(orig) orig(tab);
+          if(!_tried && tab==='map'){ _tried=true; setTimeout(initSidebarGlobe, 100); }
+        };
+        // Also try on load if map is default
+        document.addEventListener('DOMContentLoaded', function(){
+          setTimeout(initSidebarGlobe, 300);
+        });
+      })();
+      </script>
+
+    </div><!-- /sidebar -->
 
     <button id="splitScreenBtn" class="tool-icon-btn" onclick="toggleSplitScreen()" title="Split Screen — Actual vs Forecast">
         <i class="fas fa-columns"></i>
@@ -1465,7 +1572,7 @@
         <i class="fas fa-tasks"></i>
         <span id="tasksBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-0.5 font-bold">0</span>
     </button>
-    <button id="dashboardBtn" class="tool-icon-btn" onclick="openMetabaseDashboard()" title="3W Dashboard">
+    <button id="dashboardBtn" class="tool-icon-btn" onclick="openMetabaseDashboard()" title="JEJAK Dashboard">
         <i class="fas fa-chart-pie"></i>
     </button>
 
@@ -1905,10 +2012,10 @@
                     <label class="control-label">Legend</label>
                     <div style="font-size:0.72rem; color:#6b7280; display:flex; flex-direction:column; gap:3px;">
                         <div><span style="color:#2563eb;">●</span> Site 1 &nbsp; <span style="color:#f59e0b;">●</span> Site 2 &nbsp; <span style="color:#7c3aed;">●</span> Site 3</div>
-                        <div><span style="color:#16a34a;">✦</span> Centroid / Midpoint</div>
+                        <div><i class="fas fa-circle" style="color:#16a34a;font-size:8px;margin-right:4px;"></i> Centroid / Midpoint</div>
                         <div><span style="color:rgba(22,163,74,0.5);">◯</span> Suspected Buffer Zone</div>
                         <div><span style="color:#dc2626;">■</span> Commercial / Industrial Buildings</div>
-                        <div><span style="color:#ea580c;">★</span> Electrical Substations</div>
+                        <div><i class="fas fa-bolt" style="color:#ea580c;font-size:9px;margin-right:4px;"></i> Electrical Substations</div>
                     </div>
                 </div>
             </div>
@@ -2294,7 +2401,7 @@
     <div id="metabaseModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center" style="z-index:11000; padding-top:80px;">
             <div class="bg-white rounded-xl shadow-2xl w-[95vw] h-[95vh] flex flex-col overflow-hidden">
                 <div class="bg-gray-800 text-white p-3 flex justify-between items-center flex-shrink-0">
-                    <h3 class="font-bold text-lg"><i class="fas fa-chart-pie mr-2"></i> 3W Dashboard</h3>
+                    <h3 class="font-bold text-lg"><i class="fas fa-chart-pie mr-2"></i> JEJAK Dashboard</h3>
                     <button onclick="closeMetabaseDashboard()" class="text-gray-300 hover:text-white text-xl transition-colors">
                         <i class="fas fa-times"></i>
                     </button>
@@ -2538,12 +2645,12 @@
 
     <div id="chatPanel" class="hidden fixed bottom-20 right-8 w-[600px] bg-white shadow-2xl rounded-2xl border border-gray-200 flex-col z-[6000] overflow-hidden">
         <div class="bg-blue-600 p-3 text-white font-bold flex justify-between items-center">
-            <span class="flex items-center gap-2"><i class="fas fa-robot"></i> 3W AI Agent</span>
+            <span class="flex items-center gap-2"><i class="fas fa-robot"></i> JEJAK AI Agent</span>
             <button onclick="toggleChat()" class="hover:text-blue-200"><i class="fas fa-times"></i></button>
         </div>
         <div id="chatMessages" class="h-[550px] overflow-y-auto p-4 flex flex-col gap-3 bg-gray-50 text-sm">
             <div class="self-start bg-white border border-gray-200 text-gray-800 p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm max-w-[95%] w-full">
-                Hello! I am your 3W capacity planning assistant. Ask me to find a site or analyze congestion.
+                Hello! I am your JEJAK capacity planning assistant. Ask me to find a site or analyze congestion.
             </div>
         </div>
         <form onsubmit="handleChatSubmit(event)" class="p-3 border-t border-gray-200 bg-white flex gap-2">
