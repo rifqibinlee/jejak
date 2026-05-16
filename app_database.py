@@ -222,7 +222,24 @@ def run_setup():
                 """, (cat, name, p, pmin, pmax))
             print("  [OK] Default CAPEX Pricing seeded.")
 
-        # --- 6. POSTGIS + GEOSERVER DEMO LAYER (optional extension) ---
+        # --- 6. ATOM MODULE: Run History Table ---
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS atom_runs (
+                id            SERIAL PRIMARY KEY,
+                eps           DOUBLE PRECISION NOT NULL,
+                min_pts       INTEGER NOT NULL,
+                n_clusters    INTEGER NOT NULL DEFAULT 0,
+                n_noise       INTEGER NOT NULL DEFAULT 0,
+                total_points  INTEGER NOT NULL DEFAULT 0,
+                region        TEXT DEFAULT 'All',
+                week          TEXT DEFAULT 'All',
+                initiated_by  TEXT DEFAULT 'system',
+                ran_at        TIMESTAMP DEFAULT NOW()
+            );
+        """)
+        print("  [OK] ATOM atom_runs table created.")
+
+        # --- 7. POSTGIS + GEOSERVER DEMO LAYER (optional extension) ---
         try:
             cursor.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
             cursor.execute("""

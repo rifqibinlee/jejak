@@ -124,6 +124,23 @@
         /* Add this right after #reviewBtn */
         #dashboardBtn { top: 10px; left: 682px; background: #0ea5e9; }
         #sidebar.collapsed ~ #dashboardBtn { left: 342px !important; }
+
+        /* ATOM Button */
+        #atomBtn { top: 10px; left: 734px; background: linear-gradient(135deg, #7c3aed, #4f46e5); }
+        #sidebar.collapsed ~ #atomBtn { left: 394px !important; }
+
+        /* ATOM Panel */
+        .atom-panel-header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .atom-cluster-card { background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; cursor: pointer; transition: all 0.2s; border-left: 4px solid #7c3aed; display: flex; align-items: center; gap: 10px; }
+        .atom-cluster-card:hover { background: #ede9fe; box-shadow: 0 2px 8px rgba(124,58,237,0.15); }
+        .atom-cluster-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+        .atom-param-chip { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 4px 10px; font-size: 0.72rem; font-weight: 800; }
+        .atom-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: atom-spin 0.7s linear infinite; }
+        @keyframes atom-spin { to { transform: rotate(360deg); } }
+
+        /* ATOM hull popup */
+        .atom-popup-header { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; padding: 12px 16px; border-radius: 8px 8px 0 0; }
+        .atom-popup-body   { padding: 12px 16px; background: white; min-width: 220px; }
         
         /* Add this to force the embedded iframe to fill the container */
         #metabaseEmbedContainer iframe { width: 100%; height: 100%; border: none; }        
@@ -292,6 +309,83 @@
     <button id="dashboardBtn" class="tool-icon-btn" onclick="openMetabaseDashboard()" title="NetAlytics Dashboard">
         <i class="fas fa-chart-pie"></i>
     </button>
+    <button id="atomBtn" class="tool-icon-btn" onclick="toggleAtomPanel()" title="ATOM — Coverage Gap Clustering">
+        <i class="fas fa-atom"></i>
+    </button>
+
+    <!-- ===== ATOM SLIDING PANEL ===== -->
+    <div id="atomPanel" class="sliding-panel" style="width:380px;">
+        <div class="panel-resize-handle" id="atomResizeHandle"></div>
+
+        <div class="atom-panel-header">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <i class="fas fa-atom text-purple-200"></i>
+                    <span class="font-black text-base tracking-wide">ATOM</span>
+                    <span class="text-xs text-purple-200 font-semibold">Coverage Clustering</span>
+                </div>
+                <div id="atomParamChips" class="flex gap-2 flex-wrap"></div>
+            </div>
+            <button onclick="toggleAtomPanel()" class="text-purple-200 hover:text-white text-lg transition-colors"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Run Controls -->
+        <div class="p-3 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+            <div class="flex gap-2 mb-2">
+                <select id="atomRegionSelect" class="light-input flex-1 text-xs">
+                    <option value="All">All Regions</option>
+                </select>
+                <select id="atomWeekSelect" class="light-input flex-1 text-xs">
+                    <option value="">All Weeks</option>
+                </select>
+            </div>
+            <button id="atomRunBtn" onclick="runAtom()"
+                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black py-2 rounded-lg text-sm flex items-center justify-center gap-2 transition-all shadow-md">
+                <i class="fas fa-play"></i> Run ATOM Analysis
+            </button>
+        </div>
+
+        <!-- Stats bar -->
+        <div id="atomStatsBar" class="hidden px-3 py-2 border-b border-purple-100 bg-purple-50 flex gap-4 text-center flex-shrink-0">
+            <div class="flex-1"><div id="atomStatClusters" class="text-xl font-black text-purple-700">—</div><div class="text-[10px] text-purple-500 font-bold uppercase">Clusters</div></div>
+            <div class="flex-1"><div id="atomStatPoints" class="text-xl font-black text-indigo-700">—</div><div class="text-[10px] text-indigo-500 font-bold uppercase">MR Points</div></div>
+            <div class="flex-1"><div id="atomStatNoise" class="text-xl font-black text-gray-600">—</div><div class="text-[10px] text-gray-400 font-bold uppercase">Noise</div></div>
+        </div>
+
+        <!-- Layer toggles -->
+        <div id="atomLayerToggles" class="hidden px-3 py-2 border-b border-gray-100 flex gap-2 flex-shrink-0">
+            <button id="atomToggleHulls" onclick="toggleAtomHulls()"
+                class="flex-1 text-xs font-bold py-1 px-2 rounded border border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors">
+                <i class="fas fa-draw-polygon mr-1"></i>Hulls
+            </button>
+            <button id="atomTogglePoints" onclick="toggleAtomPoints()"
+                class="flex-1 text-xs font-bold py-1 px-2 rounded border border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors">
+                <i class="fas fa-circle mr-1"></i>Points
+            </button>
+            <button onclick="clearAtomLayers()"
+                class="flex-1 text-xs font-bold py-1 px-2 rounded border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
+                <i class="fas fa-trash mr-1"></i>Clear
+            </button>
+        </div>
+
+        <!-- Cluster list -->
+        <div class="flex-1 overflow-y-auto p-3">
+            <div id="atomClusterList">
+                <div class="text-center text-gray-400 py-12">
+                    <i class="fas fa-atom text-4xl mb-3 block text-purple-200"></i>
+                    <p class="text-sm font-semibold text-gray-500">Run ATOM to detect coverage gaps</p>
+                    <p class="text-xs text-gray-400 mt-1">AutoDBSCAN will auto-tune parameters</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- History footer -->
+        <div class="p-3 border-t border-gray-100 bg-gray-50 flex-shrink-0">
+            <button onclick="loadAtomHistory()" class="w-full text-xs text-indigo-600 font-bold hover:text-indigo-800 transition-colors">
+                <i class="fas fa-history mr-1"></i> View Run History
+            </button>
+        </div>
+    </div>
 
     <div id="annotationPanel" class="sliding-panel">
         <div class="panel-resize-handle" id="annotationResizeHandle" title="Drag to resize"></div>
@@ -2694,6 +2788,255 @@
             document.getElementById('metabaseModal').classList.add('hidden');
             document.getElementById('metabaseEmbedContainer').innerHTML = ''; // Clean up iframe memory
         }
+
+
+        // =====================================================================
+        // ATOM — Automated Telecommunication Opportunity Mapping
+        // =====================================================================
+
+        var atomHullLayer   = null;   // L.geoJSON — convex hull polygons
+        var atomPointLayer  = null;   // L.geoJSON — individual MR points
+        var atomHullsOn     = true;
+        var atomPointsOn    = false;  // points off by default (heavy render)
+
+        function toggleAtomPanel() {
+            const panel = document.getElementById('atomPanel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                _atomSyncFilters();
+            }
+        }
+
+        // Mirror the main sidebar's region/week into the ATOM selects
+        function _atomSyncFilters() {
+            const mainWeek   = document.getElementById('weekSelect').value;
+            const mainRegion = document.getElementById('regionSelect').value;
+            const atomWeek   = document.getElementById('atomWeekSelect');
+            const atomRegion = document.getElementById('atomRegionSelect');
+
+            // Sync week options
+            const mainWeekOpts = document.getElementById('weekSelect').options;
+            atomWeek.innerHTML = '<option value="">All Weeks</option>';
+            Array.from(mainWeekOpts).forEach(o => {
+                if (o.value) atomWeek.innerHTML += `<option value="${o.value}" ${o.value === mainWeek ? 'selected' : ''}>${o.text}</option>`;
+            });
+
+            // Sync region options
+            const mainRegOpts = document.getElementById('regionSelect').options;
+            atomRegion.innerHTML = '<option value="All">All Regions</option>';
+            Array.from(mainRegOpts).forEach(o => {
+                if (o.value && o.value !== 'All') atomRegion.innerHTML += `<option value="${o.value}" ${o.value === mainRegion ? 'selected' : ''}>${o.text}</option>`;
+            });
+        }
+
+        async function runAtom() {
+            const btn    = document.getElementById('atomRunBtn');
+            const region = document.getElementById('atomRegionSelect').value;
+            const week   = document.getElementById('atomWeekSelect').value || null;
+
+            // Show spinner
+            btn.disabled = true;
+            btn.innerHTML = '<span class="atom-spinner"></span> Running AutoDBSCAN...';
+
+            // Clear previous layers
+            clearAtomLayers();
+            document.getElementById('atomClusterList').innerHTML = `
+                <div class="text-center text-purple-400 py-8">
+                    <span class="atom-spinner" style="width:32px;height:32px;border-width:3px;border-color:rgba(124,58,237,0.3);border-top-color:#7c3aed;display:inline-block;"></span>
+                    <p class="text-sm font-semibold text-purple-500 mt-3">Running KNN + DBSCAN...</p>
+                </div>`;
+
+            try {
+                const res  = await fetch('/api/atom/run', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ region, week }),
+                });
+                const data = await res.json();
+
+                if (!data.success) {
+                    showAtomError(data.error || 'Pipeline failed');
+                    return;
+                }
+
+                renderAtomResults(data);
+
+            } catch (err) {
+                showAtomError('Network error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play"></i> Run ATOM Analysis';
+            }
+        }
+
+        function renderAtomResults(data) {
+            const { params, n_clusters, n_noise, total_points, cluster_summaries, geojson, points_geojson } = data;
+
+            // ── Param chips in header ──────────────────────────────────────
+            document.getElementById('atomParamChips').innerHTML = `
+                <span class="atom-param-chip">ε&nbsp;${params.eps}</span>
+                <span class="atom-param-chip">minPts&nbsp;${params.min_pts}</span>
+                <span class="atom-param-chip">${params.point_count.toLocaleString()} pts</span>`;
+
+            // ── Stats bar ─────────────────────────────────────────────────
+            document.getElementById('atomStatClusters').textContent = n_clusters;
+            document.getElementById('atomStatPoints').textContent   = total_points.toLocaleString();
+            document.getElementById('atomStatNoise').textContent    = n_noise.toLocaleString();
+            document.getElementById('atomStatsBar').classList.remove('hidden');
+            document.getElementById('atomLayerToggles').classList.remove('hidden');
+
+            // ── Hull layer ────────────────────────────────────────────────
+            atomHullLayer = L.geoJSON(geojson, {
+                style: function(feature) {
+                    const c = feature.properties.color || '#7c3aed';
+                    return {
+                        color:       c,
+                        fillColor:   c,
+                        fillOpacity: 0.18,
+                        weight:      2,
+                        dashArray:   '4 3',
+                    };
+                },
+                onEachFeature: function(feature, layer) {
+                    const p = feature.properties;
+                    layer.bindPopup(`
+                        <div class="atom-popup-header">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span style="width:12px;height:12px;border-radius:50%;background:${p.color};display:inline-block;"></span>
+                                <strong>Cluster ${p.cluster_id}</strong>
+                            </div>
+                        </div>
+                        <div class="atom-popup-body">
+                            <div style="font-size:0.78rem;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                                <div><span style="color:#6b7280;font-size:0.65rem;font-weight:700;text-transform:uppercase;">MR Points</span><br><strong>${p.point_count}</strong></div>
+                                <div><span style="color:#6b7280;font-size:0.65rem;font-weight:700;text-transform:uppercase;">Avg RSRP</span><br><strong style="color:#dc2626;">${p.avg_rsrp ?? 'N/A'} dBm</strong></div>
+                            </div>
+                        </div>`, { maxWidth: 260 });
+                    layer.on('mouseover', function() { layer.setStyle({ fillOpacity: 0.38, weight: 3 }); });
+                    layer.on('mouseout',  function() { layer.setStyle({ fillOpacity: 0.18, weight: 2 }); });
+                }
+            });
+            if (atomHullsOn) atomHullLayer.addTo(map);
+
+            // ── Point layer ───────────────────────────────────────────────
+            if (points_geojson && points_geojson.features && points_geojson.features.length > 0) {
+                atomPointLayer = L.geoJSON(points_geojson, {
+                    pointToLayer: function(feature, latlng) {
+                        const c = feature.properties.color || '#7c3aed';
+                        return L.circleMarker(latlng, {
+                            radius:      5,
+                            fillColor:   c,
+                            color:       '#fff',
+                            weight:      1,
+                            fillOpacity: 0.85,
+                        });
+                    },
+                    onEachFeature: function(feature, layer) {
+                        const p = feature.properties;
+                        if (p.cluster_id === -1) return;
+                        layer.bindTooltip(`Cluster ${p.cluster_id} | ${p.rsrp ?? '?'} dBm`, { direction: 'top', offset: [0, -6] });
+                    }
+                });
+                if (atomPointsOn) atomPointLayer.addTo(map);
+            }
+
+            // ── Cluster list in panel ─────────────────────────────────────
+            if (cluster_summaries.length === 0) {
+                document.getElementById('atomClusterList').innerHTML = `
+                    <div class="text-center text-gray-400 py-8">
+                        <i class="fas fa-check-circle text-3xl text-green-300 mb-2 block"></i>
+                        <p class="text-sm font-semibold">No clusters found.</p>
+                        <p class="text-xs text-gray-400 mt-1">No significant bad-signal zones detected.</p>
+                    </div>`;
+                return;
+            }
+
+            document.getElementById('atomClusterList').innerHTML = cluster_summaries.map(c => `
+                <div class="atom-cluster-card" onclick="map.flyTo([${c.center_lat},${c.center_lng}], 14, {animate:true,duration:1.2})">
+                    <div class="atom-cluster-dot" style="background:${c.color};"></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-black text-gray-800">Cluster ${c.cluster_id}</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:${c.color}22;color:${c.color};">${c.point_count} pts</span>
+                        </div>
+                        <div class="text-[10px] text-gray-500 mt-0.5">Avg RSRP: <strong style="color:#dc2626;">${c.avg_rsrp ?? 'N/A'} dBm</strong></div>
+                    </div>
+                    <i class="fas fa-crosshairs text-gray-300 text-xs"></i>
+                </div>`).join('');
+
+            // Zoom map to fit all hulls
+            if (atomHullLayer) {
+                try { map.fitBounds(atomHullLayer.getBounds(), { padding: [50, 50], maxZoom: 14 }); } catch(e) {}
+            }
+        }
+
+        function toggleAtomHulls() {
+            atomHullsOn = !atomHullsOn;
+            const btn = document.getElementById('atomToggleHulls');
+            if (atomHullLayer) {
+                atomHullsOn ? atomHullLayer.addTo(map) : map.removeLayer(atomHullLayer);
+            }
+            btn.style.opacity = atomHullsOn ? '1' : '0.45';
+        }
+
+        function toggleAtomPoints() {
+            atomPointsOn = !atomPointsOn;
+            const btn = document.getElementById('atomTogglePoints');
+            if (atomPointLayer) {
+                atomPointsOn ? atomPointLayer.addTo(map) : map.removeLayer(atomPointLayer);
+            }
+            btn.style.opacity = atomPointsOn ? '1' : '0.45';
+        }
+
+        function clearAtomLayers() {
+            if (atomHullLayer)  { map.removeLayer(atomHullLayer);  atomHullLayer  = null; }
+            if (atomPointLayer) { map.removeLayer(atomPointLayer); atomPointLayer = null; }
+            document.getElementById('atomStatsBar').classList.add('hidden');
+            document.getElementById('atomLayerToggles').classList.add('hidden');
+            document.getElementById('atomParamChips').innerHTML = '';
+        }
+
+        function showAtomError(msg) {
+            document.getElementById('atomClusterList').innerHTML = `
+                <div class="text-center text-red-400 py-8">
+                    <i class="fas fa-exclamation-triangle text-3xl mb-2 block"></i>
+                    <p class="text-sm font-semibold">${msg}</p>
+                </div>`;
+        }
+
+        async function loadAtomHistory() {
+            try {
+                const res  = await fetch('/api/atom/history');
+                const runs = await res.json();
+                if (!runs.length) { alert('No previous ATOM runs found.'); return; }
+                const lines = runs.map(r =>
+                    `#${r.id} | ${new Date(r.ran_at).toLocaleString()} | ${r.n_clusters} clusters | ε=${r.eps} minPts=${r.min_pts} | ${r.total_points} pts | by ${r.initiated_by}`
+                ).join('\n');
+                alert('Recent ATOM Runs:\n\n' + lines);
+            } catch (e) {
+                alert('Could not load history: ' + e.message);
+            }
+        }
+
+        // Panel resize handle (matches existing panel resize pattern)
+        (function() {
+            const handle = document.getElementById('atomResizeHandle');
+            const panel  = document.getElementById('atomPanel');
+            if (!handle || !panel) return;
+            let dragging = false, startX, startW;
+            handle.addEventListener('mousedown', e => {
+                dragging = true; startX = e.clientX; startW = panel.offsetWidth;
+                handle.classList.add('dragging'); e.preventDefault();
+            });
+            document.addEventListener('mousemove', e => {
+                if (!dragging) return;
+                const delta = startX - e.clientX;
+                panel.style.width = Math.max(300, Math.min(600, startW + delta)) + 'px';
+            });
+            document.addEventListener('mouseup', () => { dragging = false; handle.classList.remove('dragging'); });
+        })();
+
+        // ── End ATOM ──────────────────────────────────────────────────────────
 
 
     </script>

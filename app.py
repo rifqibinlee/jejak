@@ -16,6 +16,7 @@ import orjson
 # --- AI AGENT IMPORT ---
 from agent import run_netalytics_agent
 from genset_pipeline import route_substations
+from atom_pipeline import run_atom_pipeline, get_recent_runs
 from geoserver_integration import (
     catalog_payload,
     geoserver_enabled,
@@ -2366,6 +2367,53 @@ def get_metabase_embed():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# =============================================================================
+# ATOM — Automated Telecommunication Opportunity Mapping
+# =============================================================================
+
+@app.route('/api/atom/run', methods=['POST'])
+@api_login_required
+def atom_run():
+    """
+    Trigger a full ATOM pipeline run.
+    Accepts optional JSON body: { "region": "KL", "week": "12" }
+    Returns GeoJSON clusters + hull polygons + auto-tuned DBSCAN params.
+    """
+    data    = request.get_json(silent=True) or {}
+    region  = data.get('region', 'All')
+    week    = data.get('week')
+    username = session.get('username', 'system')
+
+    print(f"[ATOM] Run triggered by '{username}' — region={region}, week={week}")
+
+    try:
+        result = run_atom_pipeline(
+            region=region,
+            week=week,
+            initiated_by=username,
+        )
+        if 'error' in result:
+            return jsonify({'success': False, 'error': result['error']}), 400
+
+        return jsonify({'success': True, **result})
+
+    except Exception as e:
+        import traceback as tb
+        tb.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/atom/history')
+@api_login_required
+def atom_history():
+    """Return the last 10 ATOM runs from PostgreSQL."""
+    try:
+        runs = get_recent_runs(limit=10)
+        return jsonify(runs)
+    except Exception as e:
+        return jsonify([]), 500
 
 
 if __name__ == '__main__':

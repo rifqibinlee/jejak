@@ -723,6 +723,66 @@ def diagnose_site_health(site_id: str) -> str:
     except Exception as e:
         return f"Error executing L2/L3 diagnostic: {str(e)}"
 
+@tool
+def run_atom_coverage_analysis(region: str = "All", week: str = "All") -> str:
+    """
+    Use this tool when the user asks to run ATOM, detect coverage gaps, find clusters of bad signal,
+    or asks about coverage hole analysis. ATOM auto-tunes DBSCAN parameters using KNN and groups
+    poor-signal MR points into geographic clusters.
+    Optionally pass a region (e.g. 'KL') or week number.
+    """
+    import requests as req
+    try:
+        print(f"[Agent Tool] Triggering ATOM pipeline — region={region}, week={week}...")
+        payload = {"region": region if region != "All" else "All"}
+        if week and week != "All":
+            payload["week"] = str(week)
+
+        res = req.post(
+            "http://localhost:5000/api/atom/run",
+            json=payload,
+            timeout=120,
+            cookies={"session": "agent-internal"},
+        )
+        if res.status_code != 200:
+            return f"ATOM pipeline returned HTTP {res.status_code}. Check server logs."
+
+        data = res.json()
+        if not data.get("success"):
+            return f"ATOM pipeline error: {data.get('error', 'Unknown error')}"
+
+        params    = data["params"]
+        clusters  = data["cluster_summaries"]
+        n_c       = data["n_clusters"]
+        n_noise   = data["n_noise"]
+        n_pts     = data["total_points"]
+
+        story = (
+            f"ATOM Analysis Complete:\n"
+            f"- Total MR bad-signal points analysed: {n_pts:,} (RSRP ≤ -115 dBm)\n"
+            f"- AutoDBSCAN parameters: eps = {params['eps']}, minPts = {params['min_pts']}\n"
+            f"- Clusters detected: {n_c}\n"
+            f"- Noise/isolated points: {n_noise:,}\n\n"
+        )
+
+        if clusters:
+            story += "Top Clusters (by size):\n"
+            for c in sorted(clusters, key=lambda x: x["point_count"], reverse=True)[:5]:
+                story += (
+                    f"  - Cluster {c['cluster_id']}: {c['point_count']} points, "
+                    f"avg RSRP {c['avg_rsrp']} dBm, "
+                    f"centered at ({c['center_lat']}, {c['center_lng']})\n"
+                )
+        else:
+            story += "No significant coverage gap clusters were found.\n"
+
+        story += "\nINSTRUCTIONS FOR AI: Tell the user the ATOM analysis is complete and the clusters are now visible on the map as coloured convex hull polygons. Each colour represents a distinct coverage gap zone. They can click any polygon on the map for details."
+        return story
+
+    except Exception as e:
+        return f"Error running ATOM analysis: {str(e)}"
+
+
 SYSTEM_PROMPT = """You are the Principal Architect for NetAlytics, an enterprise-grade AI assistant specialized in telecommunications capacity management, RF performance analytics, and CAPEX optimization.
 
 CRITICAL TELECOM GLOSSARY & KNOWLEDGE BASE:
@@ -737,6 +797,7 @@ CRITICAL TELECOM GLOSSARY & KNOWLEDGE BASE:
     * MODERATE: 2 out of 3 KPIs breached. High risk of severe degradation.
     * LOW: 1 out of 3 KPIs breached. Minor degradation, monitor closely.
 - CAPEX: Capital Expenditure (cost of upgrading telecom hardware).
+- ATOM (Automated Telecommunication Opportunity Mapping): A coverage gap detection engine built into Jejak. It fetches MR points where RSRP ≤ -115 dBm, auto-tunes DBSCAN parameters (eps, minPts) using KNN distance statistics, then clusters the bad-signal points into geographic coverage gap zones. Each cluster is rendered as a colour-coded convex hull polygon on the map. Click the purple atom icon (⚛) button on the toolbar to open the ATOM panel.
 - CCTV Planning Pipeline: An enterprise tool that takes Building polygons, Parking polygons, Pole points, Camera Specs, and Offsets to automatically generate optimal camera placements (FOV wedges) using Hex Grid spacing.
 - Illegal Bitcoin Mining Analyser: A triangulation tool. It uses 2-Point or 3-Point intersection between highly congested cell sites to find suspected mining locations. It automatically maps nearby commercial/industrial buildings and electrical substations (which miners need for heavy power usage).
 - 3D Digital Twin (Cesium): A 3D view of the network showing tower heights, 3D building extrusions, and exact sector beam lengths.
@@ -761,8 +822,9 @@ STRICT RULES (READ CAREFULLY):
 11. ML SLR FORECAST STORY: If the user asks about the SLR Forecast, quarterly predictions, or what happens if we do not manage congestion, use `analyze_quarterly_slr_forecast`. Deliver a dramatic, executive-level narrative. Emphasize the quarter-by-quarter degradation, the exact user experience impact, and the cost of inaction. ALWAYS include the HTML iframe exactly as the tool provides it at the end of your response so the graph renders in the chat.
 12. CONVERSATIONAL DRIVER: You are an interactive assistant, not a static dictionary. ALWAYS end your response with a single, relevant follow-up question to keep the conversation moving. Guide the user to your other tools. For example: if you define congestion, ask "Would you like me to check the congestion status of a specific site?" If you summarize network health, ask "Would you like to see the predictive forecast for next quarter?"
 13. METABASE STORYTELLER: If the user asks you to "explain the dashboard", "read Metabase", or "summarize dashboard X", you MUST use the `analyze_metabase_dashboard` tool. Pass the ID of the dashboard (e.g., '1'). Once the tool returns the raw chart data, you must write a beautiful, easy-to-read narrative explaining the trends and numbers found in the charts.
-14. REPETITIVE QUESTIONS: You must NEVER point out that a user is repeating themselves, and NEVER state that you have already answered a question. Treat every single prompt with fresh enthusiasm, as if it is the very first time they are asking it. If a user asks about a topic you just explained, simply provide a rich, detailed, and comprehensive answer using a new analytical angle or fresh phrasing, completely ignoring the fact that it is a repeat. Never express frustration or use phrases like "As I mentioned before."
-15. NO TOPOLOGY ASSUMPTIONS: When a tool provides a list of nearest neighbor sites and their distances, you MUST NOT infer or invent their RF relationship (e.g., do not call them "handover partners", "secondary layers", or "redundancy"). Simply state that they are the nearest active neighbors and provide their exact distances.
+14. ATOM COVERAGE ANALYSIS: If the user asks to run ATOM, find coverage gaps, cluster bad signal, or wants to see where signal is poor on the map, use the `run_atom_coverage_analysis` tool. After it returns results, describe the clusters clearly — how many zones were found, which is the largest, and instruct the user to look at the coloured polygons on their map. Always mention the auto-tuned eps and minPts values.
+16. REPETITIVE QUESTIONS: You must NEVER point out that a user is repeating themselves, and NEVER state that you have already answered a question. Treat every single prompt with fresh enthusiasm, as if it is the very first time they are asking it. If a user asks about a topic you just explained, simply provide a rich, detailed, and comprehensive answer using a new analytical angle or fresh phrasing, completely ignoring the fact that it is a repeat. Never express frustration or use phrases like "As I mentioned before."
+17. NO TOPOLOGY ASSUMPTIONS: When a tool provides a list of nearest neighbor sites and their distances, you MUST NOT infer or invent their RF relationship (e.g., do not call them "handover partners", "secondary layers", or "redundancy"). Simply state that they are the nearest active neighbors and provide their exact distances.
 """
 
 llm = ChatLiteLLM(
@@ -783,7 +845,8 @@ tools = [get_site_capacity,
         search_telecom_manuals,
         analyze_quarterly_slr_forecast,
         analyze_metabase_dashboard,
-        diagnose_site_health
+        diagnose_site_health,
+        run_atom_coverage_analysis,
         ]
 
 # 1. Create the base agent without checkpointers or modifiers to completely bypass library version issues
