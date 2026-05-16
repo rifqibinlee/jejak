@@ -1688,6 +1688,20 @@
                 <span style="font-size:0.65rem; color:#6b7280; font-weight:400;">ATOM clustering</span>
             </div>
         </button>
+
+        <!-- NOVA button -->
+        <button id="novaBtn" onclick="toggleNovaPanel()" title="NOVA — New tower site candidates"
+                style="display:flex; align-items:center; gap:8px; padding:0 14px; height:72px; background:#fff; border:1.5px solid #cbd5e1; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.13); cursor:pointer; transition:all 0.2s; flex-shrink:0;"
+                onmouseover="this.style.borderColor='#16a34a';this.style.boxShadow='0 4px 14px rgba(22,163,74,0.18)'"
+                onmouseout="this.style.borderColor='#cbd5e1';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.13)'">
+            <div style="width:36px; height:36px; background:linear-gradient(135deg,#15803d,#16a34a); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <i class="fas fa-broadcast-tower" style="color:white; font-size:0.95rem;"></i>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:1px;">
+                <span style="line-height:1.2; font-size:0.78rem; font-weight:700; color:#374151;">NOVA</span>
+                <span style="font-size:0.65rem; color:#6b7280; font-weight:400;">Site candidates</span>
+            </div>
+        </button>
     </div>
 
     <!-- Ghost that follows the cursor while dragging -->
@@ -2141,6 +2155,107 @@
         </div>
         <div class="p-3 border-t border-gray-100 bg-gray-50 flex-shrink-0">
             <button type="button" onclick="loadAtomHistoryJeak()" class="w-full text-[10px] text-indigo-700 font-bold hover:underline">History (last runs)</button>
+        </div>
+    </div>
+
+    <!-- NOVA — New tower site candidate finder -->
+    <div id="novaPanel" class="sliding-panel" style="width:400px; display:none;">
+        <div class="panel-resize-handle" id="novaResizeHandle" title="Drag to resize"></div>
+        <div style="background:linear-gradient(135deg,#15803d,#16a34a); color:white; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+            <div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                    <i class="fas fa-broadcast-tower"></i>
+                    <span style="font-weight:900; font-size:0.9rem; letter-spacing:0.05em;">NOVA</span>
+                    <span style="font-size:0.65rem; font-weight:600; opacity:.9;">New tower site candidates</span>
+                </div>
+                <div id="novaParamChips" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+            </div>
+            <button type="button" onclick="toggleNovaPanel()" style="color:white; background:none; border:none; font-size:1.2rem; cursor:pointer; opacity:.8;">&times;</button>
+        </div>
+
+        <!-- Pin complaint point -->
+        <div style="padding:10px 12px; border-bottom:1px solid #e5e7eb; background:#f0fdf4; flex-shrink:0;">
+            <p style="font-size:0.65rem; font-weight:700; color:#166534; text-transform:uppercase; margin:0 0 6px;">1. Set complaint location</p>
+            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <button type="button" id="novaPinBtn" onclick="novaPinMode()"
+                        style="flex:1; min-width:120px; background:linear-gradient(135deg,#15803d,#16a34a); color:white; border:none; border-radius:8px; padding:8px 10px; font-size:0.72rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fas fa-map-pin"></i> <span id="novaPinBtnTxt">Click map to pin</span>
+                </button>
+                <button type="button" onclick="novaClearPin()" title="Clear pin"
+                        style="background:#fff; border:1.5px solid #d1d5db; border-radius:8px; padding:7px 10px; font-size:0.72rem; color:#374151; cursor:pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="novaPinInfo" style="margin-top:6px; font-size:0.68rem; color:#374151; display:none; background:#dcfce7; border-radius:6px; padding:5px 8px;">
+                <i class="fas fa-map-marker-alt" style="color:#16a34a;"></i>
+                <span id="novaPinCoords">—</span>
+            </div>
+        </div>
+
+        <!-- Radius slider -->
+        <div style="padding:10px 12px; border-bottom:1px solid #e5e7eb; background:#fafafa; flex-shrink:0;">
+            <p style="font-size:0.65rem; font-weight:700; color:#374151; text-transform:uppercase; margin:0 0 6px;">2. Search radius</p>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <input type="range" id="novaRadiusSlider" min="100" max="5000" step="100" value="500"
+                       oninput="novaUpdateRadius(this.value)"
+                       style="flex:1; accent-color:#16a34a;">
+                <span id="novaRadiusLabel" style="font-size:0.78rem; font-weight:800; color:#15803d; min-width:55px; text-align:right;">500 m</span>
+            </div>
+            <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+                <button type="button" onclick="novaSetRadius(100)"  style="font-size:0.6rem; padding:3px 8px; border-radius:5px; border:1px solid #86efac; background:#f0fdf4; color:#15803d; cursor:pointer; font-weight:700;">100m</button>
+                <button type="button" onclick="novaSetRadius(250)"  style="font-size:0.6rem; padding:3px 8px; border-radius:5px; border:1px solid #86efac; background:#f0fdf4; color:#15803d; cursor:pointer; font-weight:700;">250m</button>
+                <button type="button" onclick="novaSetRadius(500)"  style="font-size:0.6rem; padding:3px 8px; border-radius:5px; border:1px solid #86efac; background:#f0fdf4; color:#15803d; cursor:pointer; font-weight:700;">500m</button>
+                <button type="button" onclick="novaSetRadius(1000)" style="font-size:0.6rem; padding:3px 8px; border-radius:5px; border:1px solid #86efac; background:#f0fdf4; color:#15803d; cursor:pointer; font-weight:700;">1 km</button>
+                <button type="button" onclick="novaSetRadius(2000)" style="font-size:0.6rem; padding:3px 8px; border-radius:5px; border:1px solid #86efac; background:#f0fdf4; color:#15803d; cursor:pointer; font-weight:700;">2 km</button>
+            </div>
+        </div>
+
+        <!-- Top-K -->
+        <div style="padding:8px 12px; border-bottom:1px solid #e5e7eb; background:#fafafa; display:flex; align-items:center; gap:10px; flex-shrink:0;">
+            <p style="font-size:0.65rem; font-weight:700; color:#374151; text-transform:uppercase; margin:0; flex:1;">3. Max candidates</p>
+            <select id="novaTopK" style="border:1.5px solid #d1d5db; border-radius:6px; padding:4px 8px; font-size:0.75rem; font-weight:700; color:#374151;">
+                <option value="3" selected>Top 3 (A B C)</option>
+                <option value="5">Top 5</option>
+                <option value="8">Top 8</option>
+            </select>
+        </div>
+
+        <!-- Run button -->
+        <div style="padding:10px 12px; border-bottom:1px solid #e5e7eb; flex-shrink:0;">
+            <button type="button" id="novaRunBtn" onclick="runNovaJeak()"
+                    style="width:100%; background:linear-gradient(135deg,#15803d,#16a34a); color:white; border:none; border-radius:8px; padding:10px; font-size:0.78rem; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fas fa-play"></i> Run NOVA Analysis
+            </button>
+            <div id="novaError" style="display:none; margin-top:6px; padding:6px 10px; background:#fef2f2; border-radius:6px; font-size:0.7rem; color:#dc2626; font-weight:600;"></div>
+        </div>
+
+        <!-- Stats bar -->
+        <div id="novaStatsBar" style="display:none; padding:8px 12px; border-bottom:1px solid #bbf7d0; background:#f0fdf4; flex-shrink:0; display:flex; gap:4px; text-align:center;">
+            <div style="flex:1;"><div id="novaStatSites" style="font-size:1.1rem; font-weight:900; color:#15803d;">—</div><div style="font-size:0.6rem; color:#166534; font-weight:700; text-transform:uppercase;">Sites</div></div>
+            <div style="flex:1;"><div id="novaStatNPs" style="font-size:1.1rem; font-weight:900; color:#15803d;">—</div><div style="font-size:0.6rem; color:#166534; font-weight:700; text-transform:uppercase;">NPs in radius</div></div>
+            <div style="flex:1;"><div id="novaStatCandidates" style="font-size:1.1rem; font-weight:900; color:#16a34a;">—</div><div style="font-size:0.6rem; color:#166534; font-weight:700; text-transform:uppercase;">Candidates</div></div>
+        </div>
+
+        <!-- Layer toggles -->
+        <div id="novaLayerToggles" style="display:none; padding:6px 12px; border-bottom:1px solid #e5e7eb; gap:6px; flex-shrink:0; flex-wrap:wrap;">
+            <button type="button" id="novaToggleDelaunay" onclick="toggleNovaDelaunayJeak()" style="font-size:0.65rem; font-weight:700; padding:4px 10px; border-radius:6px; border:1px solid #86efac; background:#f0fdf4; color:#15803d; cursor:pointer;">Delaunay mesh</button>
+            <button type="button" id="novaToggleCandidates" onclick="toggleNovaCandidatesJeak()" style="font-size:0.65rem; font-weight:700; padding:4px 10px; border-radius:6px; border:1px solid #86efac; background:#f0fdf4; color:#15803d; cursor:pointer;">Candidates</button>
+            <button type="button" onclick="clearNovaLayersJeak()" style="font-size:0.65rem; font-weight:700; padding:4px 10px; border-radius:6px; border:1px solid #d1d5db; background:#f9fafb; color:#374151; cursor:pointer;">Clear</button>
+        </div>
+
+        <!-- Candidate list -->
+        <div style="flex:1; overflow-y:auto; padding:10px 12px;">
+            <div id="novaCandidateList">
+                <div style="text-align:center; color:#9ca3af; padding:32px 16px;">
+                    <i class="fas fa-broadcast-tower" style="font-size:2rem; margin-bottom:8px; display:block; opacity:.4;"></i>
+                    <p style="font-size:0.75rem; font-weight:600; color:#374151;">Pin a complaint, set radius, then run NOVA</p>
+                    <p style="font-size:0.65rem; color:#9ca3af; margin-top:4px;">Shows best nominal points as new tower candidates</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding:8px 12px; border-top:1px solid #e5e7eb; background:#f9fafb; flex-shrink:0;">
+            <button type="button" onclick="loadNovaHistoryJeak()" style="width:100%; font-size:0.65rem; color:#15803d; font-weight:700; background:none; border:none; cursor:pointer; text-decoration:underline;">History (last runs)</button>
         </div>
     </div>
 
@@ -9084,6 +9199,309 @@ out center;`;
             panel.style.width = Math.max(300, Math.min(580, sw - (ev.clientX - sx))) + 'px';
         });
         document.addEventListener('mouseup', function() { drag = false; handle.classList.remove('dragging'); });
+    })();
+
+    // ═══════════════════════════════════════════════════════════════
+    //  NOVA — New tower site candidate finder
+    // ═══════════════════════════════════════════════════════════════
+
+    var _novaOpen = false;
+    var _novaPinLat = null, _novaPinLng = null;
+    var _novaPinning = false;
+    var _novaPinMarker = null;
+    var _novaCircleLayer = null;
+    var _novaDelaunayLayer = null;
+    var _novaCandidateLayer = null;
+    var _novaDelaunayOn = true;
+    var _novaCandidatesOn = true;
+    var _novaRadiusM = 500;
+
+    function toggleNovaPanel() {
+        _novaOpen = !_novaOpen;
+        var p = document.getElementById('novaPanel');
+        if (p) p.style.right = _novaOpen ? '0' : '-420px';
+    }
+
+    function novaTargetMap() {
+        return (typeof mhMap !== 'undefined' && mhMap) ? mhMap : null;
+    }
+
+    function novaUpdateRadius(val) {
+        _novaRadiusM = parseInt(val);
+        var lbl = document.getElementById('novaRadiusLabel');
+        if (lbl) lbl.textContent = _novaRadiusM >= 1000 ? (_novaRadiusM / 1000).toFixed(1) + ' km' : _novaRadiusM + ' m';
+        // Redraw circle if pin exists
+        if (_novaPinLat !== null) _novaDrawCircle(_novaPinLat, _novaPinLng, _novaRadiusM);
+    }
+
+    function novaSetRadius(m) {
+        _novaRadiusM = m;
+        var slider = document.getElementById('novaRadiusSlider');
+        if (slider) { slider.value = m; }
+        novaUpdateRadius(m);
+    }
+
+    function novaPinMode() {
+        var LMap = novaTargetMap();
+        if (!LMap) { alert('Open the Coverage Map tab first.'); return; }
+        _novaPinning = !_novaPinning;
+        var btn = document.getElementById('novaPinBtnTxt');
+        if (_novaPinning) {
+            if (btn) btn.textContent = 'Click on map…';
+            LMap.getContainer().style.cursor = 'crosshair';
+            LMap.once('click', function(e) {
+                _novaPinning = false;
+                if (btn) btn.textContent = 'Click map to pin';
+                LMap.getContainer().style.cursor = '';
+                _novaSetPin(e.latlng.lat, e.latlng.lng);
+            });
+        } else {
+            if (btn) btn.textContent = 'Click map to pin';
+            LMap.getContainer().style.cursor = '';
+        }
+    }
+
+    function _novaSetPin(lat, lng) {
+        _novaPinLat = lat;
+        _novaPinLng = lng;
+        var LMap = novaTargetMap();
+        if (!LMap) return;
+
+        if (_novaPinMarker) { LMap.removeLayer(_novaPinMarker); }
+        _novaPinMarker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: '',
+                html: '<div style="width:28px;height:28px;background:#ef4444;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>',
+                iconSize: [28, 28],
+                iconAnchor: [14, 28],
+            })
+        }).addTo(LMap).bindPopup('<b style="color:#dc2626;">Complaint location</b><br>' + lat.toFixed(5) + ', ' + lng.toFixed(5));
+
+        var info = document.getElementById('novaPinInfo');
+        var coords = document.getElementById('novaPinCoords');
+        if (info) info.style.display = 'block';
+        if (coords) coords.textContent = lat.toFixed(5) + ', ' + lng.toFixed(5);
+
+        _novaDrawCircle(lat, lng, _novaRadiusM);
+        LMap.setView([lat, lng], Math.max(LMap.getZoom(), 14));
+    }
+
+    function _novaDrawCircle(lat, lng, radiusM) {
+        var LMap = novaTargetMap();
+        if (!LMap) return;
+        if (_novaCircleLayer) { LMap.removeLayer(_novaCircleLayer); }
+        _novaCircleLayer = L.circle([lat, lng], {
+            radius: radiusM,
+            color: '#16a34a', weight: 2,
+            fillColor: '#22c55e', fillOpacity: 0.08,
+            dashArray: '6 4',
+        }).addTo(LMap);
+    }
+
+    function novaClearPin() {
+        var LMap = novaTargetMap();
+        _novaPinLat = null; _novaPinLng = null;
+        if (_novaPinMarker && LMap) { LMap.removeLayer(_novaPinMarker); _novaPinMarker = null; }
+        if (_novaCircleLayer && LMap) { LMap.removeLayer(_novaCircleLayer); _novaCircleLayer = null; }
+        var info = document.getElementById('novaPinInfo');
+        if (info) info.style.display = 'none';
+        clearNovaLayersJeak();
+    }
+
+    async function runNovaJeak() {
+        if (_novaPinLat === null) {
+            novaShowError('Pin a complaint location on the map first.');
+            return;
+        }
+        var topK = parseInt(document.getElementById('novaTopK').value) || 3;
+        var btn  = document.getElementById('novaRunBtn');
+        var list = document.getElementById('novaCandidateList');
+        var errEl = document.getElementById('novaError');
+        if (errEl) errEl.style.display = 'none';
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Running NOVA…'; }
+        if (list) list.innerHTML = '<div style="text-align:center;padding:24px;color:#16a34a;font-size:0.75rem;font-weight:700;"><i class="fas fa-circle-notch fa-spin" style="font-size:1.5rem;"></i><div style="margin-top:8px;">Generating candidates…</div></div>';
+
+        try {
+            var res = await fetch('/api/nova/run', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    complaint_lat: _novaPinLat,
+                    complaint_lng: _novaPinLng,
+                    radius_m: _novaRadiusM,
+                    top_k: topK,
+                }),
+            });
+            var data = await res.json();
+            if (!data.success) { novaShowError(data.error || 'Pipeline failed'); return; }
+            novaRenderResultsJeak(data);
+        } catch (e) {
+            novaShowError(e.message || 'Network error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-play"></i> Run NOVA Analysis'; }
+        }
+    }
+
+    function novaRenderResultsJeak(data) {
+        var LMap = novaTargetMap();
+        clearNovaLayersJeak();
+        var meta = data.meta || {};
+
+        // Update stats bar
+        var sb = document.getElementById('novaStatsBar');
+        if (sb) sb.style.display = 'flex';
+        var el = function(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; };
+        el('novaStatSites',      meta.n_sites      || 0);
+        el('novaStatNPs',        meta.n_nps         || 0);
+        el('novaStatCandidates', meta.n_candidates  || 0);
+
+        // Param chips
+        var chips = document.getElementById('novaParamChips');
+        if (chips) chips.innerHTML = '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:3px 8px;font-size:.68rem;font-weight:800;">r=' + _novaRadiusM + 'm</span>';
+
+        // Show layer toggles
+        var lt = document.getElementById('novaLayerToggles');
+        if (lt) lt.style.display = 'flex';
+
+        // Delaunay mesh layer
+        if (data.delaunay_geojson && LMap) {
+            _novaDelaunayLayer = L.geoJSON(data.delaunay_geojson, {
+                style: { color: '#86efac', weight: 1, fillOpacity: 0.04, dashArray: '3 4' },
+            }).addTo(LMap);
+        }
+
+        // Candidate markers
+        if (data.geojson && LMap) {
+            _novaCandidateLayer = L.geoJSON(data.geojson, {
+                filter: function(f) { return f.properties.type === 'candidate'; },
+                pointToLayer: function(f, latlng) {
+                    var p = f.properties;
+                    return L.marker(latlng, {
+                        icon: L.divIcon({
+                            className: '',
+                            html: '<div style="width:34px;height:34px;background:' + p.color + ';border-radius:50%;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:900;color:white;">' + p.label + '</div>',
+                            iconSize: [34, 34],
+                            iconAnchor: [17, 17],
+                        })
+                    });
+                },
+                onEachFeature: function(f, layer) {
+                    var p = f.properties;
+                    var rsrp = p.avg_rsrp !== null ? p.avg_rsrp + ' dBm' : 'N/A';
+                    layer.bindPopup(
+                        '<div style="font-family:Inter,sans-serif;min-width:180px;">' +
+                        '<div style="background:' + p.color + ';color:white;padding:8px 12px;border-radius:8px 8px 0 0;font-weight:900;font-size:1rem;margin:-8px -8px 8px;">Candidate ' + p.label + '</div>' +
+                        '<table style="font-size:0.72rem;width:100%;border-collapse:collapse;">' +
+                        '<tr><td style="color:#6b7280;padding:2px 0;">Rank</td><td style="font-weight:700;">#' + p.rank + '</td></tr>' +
+                        '<tr><td style="color:#6b7280;padding:2px 0;">Distance</td><td style="font-weight:700;">' + p.dist_m + ' m</td></tr>' +
+                        '<tr><td style="color:#6b7280;padding:2px 0;">Signal pts</td><td style="font-weight:700;">' + p.signal_count + '</td></tr>' +
+                        '<tr><td style="color:#6b7280;padding:2px 0;">Signal weight</td><td style="font-weight:700;">' + p.signal_weight_sum + '</td></tr>' +
+                        '<tr><td style="color:#6b7280;padding:2px 0;">Avg RSRP</td><td style="font-weight:700;">' + rsrp + '</td></tr>' +
+                        '</table></div>'
+                    );
+                },
+            }).addTo(LMap);
+        }
+
+        // Candidate list in panel
+        var list = document.getElementById('novaCandidateList');
+        if (!list) return;
+        var candidates = data.candidates || [];
+        if (!candidates.length) {
+            list.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:24px;font-size:0.75rem;">No candidates found. Try increasing radius.</div>';
+            return;
+        }
+        list.innerHTML = candidates.map(function(c) {
+            var rsrp = c.avg_rsrp !== null ? c.avg_rsrp + ' dBm' : '—';
+            var signalBadge = c.signal_count > 0
+                ? '<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:0.6rem;font-weight:700;">' + c.signal_count + ' poor-signal pts</span>'
+                : '<span style="background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 6px;font-size:0.6rem;">No signal data</span>';
+            return '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;border-left:4px solid ' + c.color + ';" onclick="novaFlyToCandidate(' + c.lat + ',' + c.lng + ')">' +
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+                '<div style="width:26px;height:26px;background:' + c.color + ';border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:0.8rem;flex-shrink:0;">' + c.label + '</div>' +
+                '<div style="flex:1;">' +
+                '<div style="font-size:0.75rem;font-weight:800;color:#166534;">Candidate ' + c.label + ' <span style="color:#6b7280;font-weight:400;font-size:0.65rem;">' + c.dist_m + ' m away</span></div>' +
+                '<div style="font-size:0.62rem;color:#374151;">Avg RSRP: ' + rsrp + ' · Weight sum: ' + c.signal_weight_sum + '</div>' +
+                '</div></div>' +
+                signalBadge +
+                '</div>';
+        }).join('');
+    }
+
+    function novaFlyToCandidate(lat, lng) {
+        var LMap = novaTargetMap();
+        if (LMap) LMap.setView([lat, lng], Math.max(LMap.getZoom(), 15));
+    }
+
+    function toggleNovaDelaunayJeak() {
+        var LMap = novaTargetMap();
+        if (!_novaDelaunayLayer || !LMap) return;
+        _novaDelaunayOn = !_novaDelaunayOn;
+        if (_novaDelaunayOn) { LMap.addLayer(_novaDelaunayLayer); }
+        else { LMap.removeLayer(_novaDelaunayLayer); }
+        var btn = document.getElementById('novaToggleDelaunay');
+        if (btn) btn.style.opacity = _novaDelaunayOn ? '1' : '0.4';
+    }
+
+    function toggleNovaCandidatesJeak() {
+        var LMap = novaTargetMap();
+        if (!_novaCandidateLayer || !LMap) return;
+        _novaCandidatesOn = !_novaCandidatesOn;
+        if (_novaCandidatesOn) { LMap.addLayer(_novaCandidateLayer); }
+        else { LMap.removeLayer(_novaCandidateLayer); }
+        var btn = document.getElementById('novaToggleCandidates');
+        if (btn) btn.style.opacity = _novaCandidatesOn ? '1' : '0.4';
+    }
+
+    function clearNovaLayersJeak() {
+        var LMap = novaTargetMap();
+        if (LMap) {
+            if (_novaDelaunayLayer)  { LMap.removeLayer(_novaDelaunayLayer);  _novaDelaunayLayer  = null; }
+            if (_novaCandidateLayer) { LMap.removeLayer(_novaCandidateLayer); _novaCandidateLayer = null; }
+        }
+        var lt = document.getElementById('novaLayerToggles');
+        if (lt) lt.style.display = 'none';
+        var sb = document.getElementById('novaStatsBar');
+        if (sb) sb.style.display = 'none';
+        var list = document.getElementById('novaCandidateList');
+        if (list) list.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:32px 16px;"><i class="fas fa-broadcast-tower" style="font-size:2rem;margin-bottom:8px;display:block;opacity:.4;"></i><p style="font-size:0.75rem;font-weight:600;color:#374151;">Pin a complaint, set radius, then run NOVA</p></div>';
+    }
+
+    function novaShowError(msg) {
+        var errEl = document.getElementById('novaError');
+        if (errEl) { errEl.textContent = '⚠ ' + (msg || 'Error'); errEl.style.display = 'block'; }
+        var list = document.getElementById('novaCandidateList');
+        if (list) list.innerHTML = '<div style="text-align:center;color:#dc2626;padding:24px;font-size:0.75rem;font-weight:600;"><i class="fas fa-exclamation-triangle"></i> ' + String(msg || 'Error') + '</div>';
+    }
+
+    async function loadNovaHistoryJeak() {
+        try {
+            var res = await fetch('/api/nova/history');
+            var runs = await res.json();
+            if (!runs.length) { alert('No NOVA runs in the database yet.'); return; }
+            alert(runs.map(function(r) {
+                return '#' + r.id + ' · ' + (r.ran_at || '') +
+                    ' · r=' + r.radius_m + 'm · candidates=' + r.n_candidates +
+                    ' · by=' + r.initiated_by;
+            }).join('\n'));
+        } catch (err) { alert('Could not load history: ' + err.message); }
+    }
+
+    // NOVA panel slide-in registration (mirrors ATOM pattern)
+    (function initNovaPanelStyleJeak() {
+        var p = document.getElementById('novaPanel');
+        if (!p) return;
+        p.style.position = 'fixed';
+        p.style.top = '72px';
+        p.style.right = '-420px';
+        p.style.bottom = '0';
+        p.style.display = 'flex';
+        p.style.flexDirection = 'column';
+        p.style.zIndex = '1200';
+        p.style.background = '#ffffff';
+        p.style.boxShadow = '-4px 0 24px rgba(0,0,0,0.15)';
+        p.style.transition = 'right 0.3s ease';
+        p.style.overflowY = 'hidden';
     })();
 
 

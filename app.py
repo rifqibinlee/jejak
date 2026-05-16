@@ -17,6 +17,7 @@ import orjson
 from agent import run_netalytics_agent
 from genset_pipeline import route_substations
 from atom_pipeline import run_atom_pipeline, get_recent_runs
+from nova_pipeline import run_nova_pipeline, get_nova_recent_runs
 from geoserver_integration import (
     catalog_payload,
     geoserver_enabled,
@@ -2413,6 +2414,63 @@ def atom_history():
         runs = get_recent_runs(limit=10)
         return jsonify(runs)
     except Exception as e:
+        return jsonify([]), 500
+
+
+@app.route('/api/nova/run', methods=['POST'])
+@api_login_required
+def nova_run():
+    """
+    Trigger NOVA pipeline.
+    Body: { "complaint_lat": float, "complaint_lng": float,
+            "radius_m": float (default 500), "top_k": int (default 3) }
+    Returns ranked candidate NPs + GeoJSON for map rendering.
+    """
+    data     = request.get_json(silent=True) or {}
+    username = session.get('username', 'system')
+
+    try:
+        complaint_lat = float(data.get('complaint_lat', 0))
+        complaint_lng = float(data.get('complaint_lng', 0))
+        radius_m      = float(data.get('radius_m', 500))
+        top_k         = int(data.get('top_k', 3))
+    except (TypeError, ValueError) as e:
+        return jsonify({'success': False, 'error': f'Invalid parameters: {e}'}), 400
+
+    if not (-90 <= complaint_lat <= 90) or not (-180 <= complaint_lng <= 180):
+        return jsonify({'success': False, 'error': 'complaint_lat/lng out of range'}), 400
+
+    if radius_m <= 0 or radius_m > 50_000:
+        return jsonify({'success': False, 'error': 'radius_m must be 1–50000'}), 400
+
+    print(f"[NOVA] Run triggered by '{username}' — "
+          f"({complaint_lat},{complaint_lng}), r={radius_m}m, top_k={top_k}")
+
+    try:
+        result = run_nova_pipeline(
+            complaint_lat=complaint_lat,
+            complaint_lng=complaint_lng,
+            radius_m=radius_m,
+            top_k=top_k,
+            initiated_by=username,
+        )
+        if 'error' in result:
+            return jsonify({'success': False, **result}), 400
+        return jsonify({'success': True, **result})
+    except Exception as e:
+        import traceback as tb
+        tb.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/nova/history')
+@api_login_required
+def nova_history():
+    """Return the last 10 NOVA runs from PostgreSQL."""
+    try:
+        runs = get_nova_recent_runs(limit=10)
+        return jsonify(runs)
+    except Exception:
         return jsonify([]), 500
 
 

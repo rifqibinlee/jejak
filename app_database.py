@@ -239,7 +239,24 @@ def run_setup():
         """)
         print("  [OK] ATOM atom_runs table created.")
 
-        # --- 7. POSTGIS + GEOSERVER DEMO LAYER (optional extension) ---
+        # --- 7. NOVA MODULE: Run History Table ---
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS nova_runs (
+                id            SERIAL PRIMARY KEY,
+                complaint_lat DOUBLE PRECISION NOT NULL,
+                complaint_lng DOUBLE PRECISION NOT NULL,
+                radius_m      DOUBLE PRECISION NOT NULL DEFAULT 500,
+                top_k         INTEGER NOT NULL DEFAULT 3,
+                n_sites       INTEGER NOT NULL DEFAULT 0,
+                n_nps         INTEGER NOT NULL DEFAULT 0,
+                n_candidates  INTEGER NOT NULL DEFAULT 0,
+                initiated_by  TEXT DEFAULT 'system',
+                ran_at        TIMESTAMP DEFAULT NOW()
+            );
+        """)
+        print("  [OK] NOVA nova_runs table created.")
+
+        # --- 8. POSTGIS + GEOSERVER DEMO LAYER (optional extension) ---
         try:
             cursor.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
             cursor.execute("""
