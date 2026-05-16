@@ -2159,7 +2159,7 @@
     </div>
 
     <!-- NOVA — New tower site candidate finder -->
-    <div id="novaPanel" class="sliding-panel" style="width:400px; display:none;">
+    <div id="novaPanel" class="sliding-panel" style="width:400px;">
         <div class="panel-resize-handle" id="novaResizeHandle" title="Drag to resize"></div>
         <div style="background:linear-gradient(135deg,#15803d,#16a34a); color:white; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
             <div>
@@ -9217,9 +9217,11 @@ out center;`;
     var _novaRadiusM = 500;
 
     function toggleNovaPanel() {
-        _novaOpen = !_novaOpen;
         var p = document.getElementById('novaPanel');
-        if (p) p.style.right = _novaOpen ? '0' : '-420px';
+        if (!p) return;
+        _novaOpen = !_novaOpen;
+        if (_novaOpen) { p.classList.add('open'); }
+        else { p.classList.remove('open'); }
     }
 
     function novaTargetMap() {
@@ -9524,22 +9526,6 @@ out center;`;
         } catch (err) { novaShowError('Reload failed: ' + err.message); }
     }
 
-    // NOVA panel slide-in registration (mirrors ATOM pattern)
-    (function initNovaPanelStyleJeak() {
-        var p = document.getElementById('novaPanel');
-        if (!p) return;
-        p.style.position = 'fixed';
-        p.style.top = '72px';
-        p.style.right = '-420px';
-        p.style.bottom = '0';
-        p.style.display = 'flex';
-        p.style.flexDirection = 'column';
-        p.style.zIndex = '1200';
-        p.style.background = '#ffffff';
-        p.style.boxShadow = '-4px 0 24px rgba(0,0,0,0.15)';
-        p.style.transition = 'right 0.3s ease';
-        p.style.overflowY = 'hidden';
-    })();
 
 
     </script>
