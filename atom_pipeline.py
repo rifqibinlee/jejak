@@ -17,6 +17,7 @@ Architecture:
 
 import os
 import json
+from typing import Optional
 import numpy as np
 import pandas as pd
 import awswrangler as wr
@@ -131,23 +132,21 @@ def run_atom_pipeline(region: str = 'All', week: str = None, initiated_by: str =
     session = _aws_session()
 
     # ── 1. Fetch data ────────────────────────────────────────────────────────
+    # coverage_holes_clustered only has: latitude, longitude, signal_strength,
+    # cluster_id, serving_cell, data_source — no week/region columns.
     sql = f"""
         SELECT
-            CAST(latitude      AS DOUBLE) AS lat,
-            CAST(longitude     AS DOUBLE) AS lng,
-            CAST(signal_strength AS DOUBLE) AS rsrp,
-            CAST(serving_cell  AS VARCHAR) AS serving_cell
+            CAST(latitude        AS DOUBLE)  AS lat,
+            CAST(longitude       AS DOUBLE)  AS lng,
+            CAST(signal_strength AS DOUBLE)  AS rsrp,
+            CAST(serving_cell    AS VARCHAR) AS serving_cell
         FROM coverage_holes_clustered
-        WHERE data_source = 'MR'
+        WHERE UPPER(TRIM(CAST(data_source AS VARCHAR))) = 'MR'
           AND CAST(signal_strength AS DOUBLE) <= {RSRP_THRESHOLD}
           AND latitude  IS NOT NULL
           AND longitude IS NOT NULL
+        LIMIT 50000
     """
-    if region and region != 'All':
-        sql += f" AND UPPER(TRIM(CAST(region AS VARCHAR))) = '{region.upper().strip()}'"
-    if week:
-        sql += f" AND CAST(week AS VARCHAR) = '{week}'"
-    sql += " LIMIT 50000"
 
     print(f"[ATOM] Fetching MR data from Athena...")
     try:
@@ -299,7 +298,7 @@ def run_atom_pipeline(region: str = 'All', week: str = None, initiated_by: str =
 
 # ── Persistence ───────────────────────────────────────────────────────────────
 
-def _save_run(params, n_clusters, n_noise, total_points, region, week, initiated_by) -> int | None:
+def _save_run(params, n_clusters, n_noise, total_points, region, week, initiated_by) -> Optional[int]:
     """Write ATOM run summary to atom_runs table."""
     try:
         conn   = psycopg2.connect(**DB_CONFIG)
