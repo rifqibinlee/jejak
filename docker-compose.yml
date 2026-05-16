@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # --- GEOSERVER: Spatial Tile & WMS/WFS Server ---
   geoserver:
@@ -101,6 +99,7 @@ services:
   vibe:
     build: .
     container_name: vibe
+    restart: always
     command: gunicorn --preload --workers 1 --threads 8 --timeout 300 --access-logfile - --error-logfile - --bind 0.0.0.0:5000 app:app
     ports:
       - "5000:5000"
