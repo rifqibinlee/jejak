@@ -9478,13 +9478,50 @@ out center;`;
         try {
             var res = await fetch('/api/nova/history');
             var runs = await res.json();
-            if (!runs.length) { alert('No NOVA runs in the database yet.'); return; }
-            alert(runs.map(function(r) {
-                return '#' + r.id + ' · ' + (r.ran_at || '') +
-                    ' · r=' + r.radius_m + 'm · candidates=' + r.n_candidates +
-                    ' · by=' + r.initiated_by;
-            }).join('\n'));
-        } catch (err) { alert('Could not load history: ' + err.message); }
+            var list = document.getElementById('novaCandidateList');
+            if (!runs.length) {
+                if (list) list.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:24px;font-size:0.75rem;">No NOVA runs saved yet.</div>';
+                return;
+            }
+            if (list) list.innerHTML =
+                '<div style="font-size:0.65rem;font-weight:800;color:#374151;text-transform:uppercase;margin-bottom:8px;padding:0 2px;">Past Runs</div>' +
+                runs.map(function(r) {
+                    var d = r.ran_at ? r.ran_at.replace('T',' ').slice(0,16) : '—';
+                    return '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">' +
+                        '<div>' +
+                        '<div style="font-size:0.72rem;font-weight:700;color:#166534;">' + d + '</div>' +
+                        '<div style="font-size:0.62rem;color:#6b7280;">r=' + r.radius_m + 'm · ' + r.n_candidates + ' candidates · by ' + r.initiated_by + '</div>' +
+                        '</div>' +
+                        '<button onclick="novaReloadRun(' + r.id + ',' + r.complaint_lat + ',' + r.complaint_lng + ',' + r.radius_m + ')" ' +
+                        'style="font-size:0.62rem;font-weight:700;color:#15803d;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:4px 8px;cursor:pointer;">Reload</button>' +
+                        '</div>';
+                }).join('');
+        } catch (err) { novaShowError('Could not load history: ' + err.message); }
+    }
+
+    async function novaReloadRun(runId, lat, lng, radiusM) {
+        try {
+            var res = await fetch('/api/nova/run/' + runId);
+            var data = await res.json();
+            if (!data.success || !data.candidates.length) { novaShowError('No saved candidates for run #' + runId); return; }
+            // Restore pin + circle
+            _novaSetPin(lat, lng);
+            novaSetRadius(radiusM);
+            // Build minimal result object to reuse renderResults
+            novaRenderResultsJeak({
+                candidates: data.candidates,
+                geojson: {
+                    type: 'FeatureCollection',
+                    features: data.candidates.map(function(c) {
+                        return { type: 'Feature',
+                            geometry: { type: 'Point', coordinates: [c.lng, c.lat] },
+                            properties: Object.assign({ type: 'candidate' }, c) };
+                    })
+                },
+                delaunay_geojson: { type: 'FeatureCollection', features: [] },
+                meta: { n_sites: '—', n_nps: '—', n_candidates: data.candidates.length },
+            });
+        } catch (err) { novaShowError('Reload failed: ' + err.message); }
     }
 
     // NOVA panel slide-in registration (mirrors ATOM pattern)

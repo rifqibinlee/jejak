@@ -256,6 +256,25 @@ def run_setup():
         """)
         print("  [OK] NOVA nova_runs table created.")
 
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS nova_candidates (
+                id                SERIAL PRIMARY KEY,
+                run_id            INTEGER REFERENCES nova_runs(id) ON DELETE CASCADE,
+                label             TEXT NOT NULL,
+                rank              INTEGER NOT NULL,
+                lat               DOUBLE PRECISION NOT NULL,
+                lng               DOUBLE PRECISION NOT NULL,
+                dist_m            DOUBLE PRECISION,
+                signal_count      INTEGER DEFAULT 0,
+                signal_weight_sum INTEGER DEFAULT 0,
+                avg_rsrp          DOUBLE PRECISION,
+                color             TEXT,
+                created_at        TIMESTAMP DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS idx_nova_candidates_run_id ON nova_candidates(run_id);
+        """)
+        print("  [OK] NOVA nova_candidates table created.")
+
         # --- 8. POSTGIS + GEOSERVER DEMO LAYER (optional extension) ---
         try:
             cursor.execute("CREATE EXTENSION IF NOT EXISTS postgis;")

@@ -17,7 +17,7 @@ import orjson
 from agent import run_netalytics_agent
 from genset_pipeline import route_substations
 from atom_pipeline import run_atom_pipeline, get_recent_runs
-from nova_pipeline import run_nova_pipeline, get_nova_recent_runs
+from nova_pipeline import run_nova_pipeline, get_nova_recent_runs, get_nova_run_candidates
 from geoserver_integration import (
     catalog_payload,
     geoserver_enabled,
@@ -2472,6 +2472,17 @@ def nova_history():
         return jsonify(runs)
     except Exception:
         return jsonify([]), 500
+
+
+@app.route('/api/nova/run/<int:run_id>')
+@api_login_required
+def nova_run_detail(run_id):
+    """Return saved candidates for a past NOVA run."""
+    try:
+        candidates = get_nova_run_candidates(run_id)
+        return jsonify({'success': True, 'run_id': run_id, 'candidates': candidates})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 if __name__ == '__main__':

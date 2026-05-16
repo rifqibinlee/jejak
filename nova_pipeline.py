@@ -348,6 +348,7 @@ def run_nova_pipeline(
         n_nps=n_nps,
         n_candidates=len(candidates),
         initiated_by=initiated_by,
+        candidates=candidates,
     )
 
     return _sanitise({
@@ -376,10 +377,12 @@ def run_nova_pipeline(
 # ── Persistence ───────────────────────────────────────────────────────────────
 
 def _save_run(complaint_lat, complaint_lng, radius_m, top_k,
-              n_sites, n_nps, n_candidates, initiated_by) -> Optional[int]:
+              n_sites, n_nps, n_candidates, initiated_by,
+              candidates: list) -> Optional[int]:
     try:
         conn   = psycopg2.connect(**DB_CONFIG)
         cursor = conn.cursor()
+
         cursor.execute(
             """
             INSERT INTO nova_runs
@@ -392,14 +395,66 @@ def _save_run(complaint_lat, complaint_lng, radius_m, top_k,
              n_sites, n_nps, n_candidates, initiated_by, datetime.now()),
         )
         run_id = cursor.fetchone()[0]
+
+        # Persist each candidate
+        for c in candidates:
+            cursor.execute(
+                """
+                INSERT INTO nova_candidates
+                    (run_id, label, rank, lat, lng, dist_m,
+                     signal_count, signal_weight_sum, avg_rsrp, color)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (run_id, c['label'], c['rank'], c['lat'], c['lng'],
+                 c['dist_m'], c['signal_count'], c['signal_weight_sum'],
+                 c['avg_rsrp'], c['color']),
+            )
+
         conn.commit()
         cursor.close()
         conn.close()
-        print(f"[NOVA] Run saved → nova_runs.id={run_id}")
+        print(f"[NOVA] Run saved → nova_runs.id={run_id} with {len(candidates)} candidates")
         return run_id
     except Exception as e:
         print(f"[NOVA] Could not save run to DB: {e}")
         return None
+
+
+def get_nova_run_candidates(run_id: int) -> list:
+    """Return saved candidates for a specific NOVA run."""
+    try:
+        conn   = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT label, rank, lat, lng, dist_m,
+                   signal_count, signal_weight_sum, avg_rsrp, color
+            FROM nova_candidates
+            WHERE run_id = %s
+            ORDER BY rank
+            """,
+            (run_id,),
+        )
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return [
+            {
+                'label':             r[0],
+                'rank':              r[1],
+                'lat':               r[2],
+                'lng':               r[3],
+                'dist_m':            r[4],
+                'signal_count':      r[5],
+                'signal_weight_sum': r[6],
+                'avg_rsrp':          r[7],
+                'color':             r[8],
+            }
+            for r in rows
+        ]
+    except Exception as e:
+        print(f"[NOVA] get_nova_run_candidates error: {e}")
+        return []
 
 
 def get_nova_recent_runs(limit: int = 10) -> list:
