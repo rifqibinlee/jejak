@@ -192,7 +192,366 @@
         #map { transition: left .3s cubic-bezier(.4,0,.2,1); }
         #map.expanded { left: 0; }
 
-        /* ── DARK SIDEBAR OVERRIDES ── */
+        /* ══════════════════════════════════════════
+           DARK SIDEBAR OVERRIDES — CCTV / BITCOIN / GENSET
+           All scoped to sidebar IDs, zero JS touched
+        ══════════════════════════════════════════ */
+
+        /* ── Shared sidebar shell ── */
+        #cctvSidebar, #mhSidebar, #gensetSidebar {
+          background: rgba(2,9,18,0.97) !important;
+          border-right: 1px solid rgba(255,255,255,0.10) !important;
+          box-shadow: none !important;
+          color: #e8f0f8 !important;
+          font-family: 'DM Sans', sans-serif !important;
+        }
+
+        /* ── Headers ── */
+        #cctvSidebar > div:first-child,
+        #mhSidebar   > div:first-child {
+          background: rgba(4,14,28,0.95) !important;
+          border-bottom: 1px solid rgba(255,255,255,0.10) !important;
+        }
+        #cctvSidebar > div:first-child h2,
+        #mhSidebar   > div:first-child h2 { color: #e8f0f8 !important; font-family: 'Raleway', sans-serif !important; }
+        #cctvSidebar > div:first-child p  { color: #7eaac6 !important; }
+        #mhSidebar   > div:first-child p  { color: #7eaac6 !important; }
+
+        /* ── All light section boxes → dark glass ── */
+        #cctvSidebar div[style*="background:#f0f9ff"],
+        #cctvSidebar div[style*="background:#f8fafc"],
+        #cctvSidebar div[style*="background:#f0fdf4"],
+        #cctvSidebar div[style*="background:#fffbeb"],
+        #mhSidebar   div[style*="background:#eff6ff"] {
+          background: rgba(255,255,255,0.04) !important;
+          border-color: rgba(255,255,255,0.10) !important;
+          border-radius: 0 !important;
+        }
+
+        /* ── Step labels ── */
+        #cctvSidebar span[style*="color:#1e3a8a"],
+        #cctvSidebar span[style*="color:#4c1d95"],
+        #cctvSidebar span[style*="color:#14532d"] { color: #e8f0f8 !important; }
+
+        /* ── All labels / helper text ── */
+        #cctvSidebar label[style*="color:#4b5563"],
+        #cctvSidebar label[style*="color:#6b7280"],
+        #cctvSidebar div[style*="color:#64748b"],
+        #cctvSidebar div[style*="color:#4b5563"],
+        #cctvSidebar div[style*="color:#78716c"],
+        #mhSidebar   label,
+        #mhSidebar   div[style*="color:#6b7280"],
+        #mhSidebar   div[style*="color:#9ca3af"] { color: #7eaac6 !important; }
+
+        /* ── Text inputs & number inputs ── */
+        #cctvSidebar input[type="text"],
+        #cctvSidebar input[type="number"],
+        #mhSidebar   input[type="text"],
+        #gensetSidebar input[type="text"] {
+          background: rgba(255,255,255,0.06) !important;
+          border: 1px solid rgba(255,255,255,0.12) !important;
+          color: #e8f0f8 !important;
+          border-radius: 0 !important;
+        }
+        #cctvSidebar input::placeholder,
+        #mhSidebar   input::placeholder,
+        #gensetSidebar input::placeholder { color: #3a5c75 !important; }
+        #cctvSidebar input:focus,
+        #mhSidebar   input:focus,
+        #gensetSidebar input:focus { border-color: rgba(255,255,255,0.28) !important; outline: none !important; }
+
+        /* ── File upload labels ── */
+        #cctvSidebar label[style*="background:#eef2ff"],
+        #cctvSidebar label[style*="background:#ecfeff"],
+        #cctvSidebar label[style*="background:#fffbeb"],
+        #cctvSidebar label[style*="background:#fef2f2"],
+        #cctvSidebar label[style*="background:#f5f3ff"] {
+          background: rgba(255,255,255,0.04) !important;
+          border-color: rgba(255,255,255,0.18) !important;
+          border-style: dashed !important;
+          color: #7eaac6 !important;
+          border-radius: 0 !important;
+        }
+
+        /* ── Search result dropdowns ── */
+        #cctvSearchResults,
+        #mhSearchResults,
+        #gensetSearchResults {
+          background: rgba(4,14,28,0.98) !important;
+          border: 1px solid rgba(255,255,255,0.10) !important;
+          border-radius: 0 !important;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+        }
+
+        /* ── Legend sections ── */
+        #cctvSidebar div[style*="color:#64748b"],
+        #mhSidebar div[style*="color:#6b7280"] { color: #7eaac6 !important; }
+        #cctvSidebar div[style*="font-weight:700; color:#4b5563"] { color: #7eaac6 !important; }
+
+        /* ── Upload success banner ── */
+        #cctvUploadSummary {
+          background: rgba(52,211,153,0.10) !important;
+          border: 1px solid rgba(52,211,153,0.25) !important;
+          color: #34d399 !important;
+          border-radius: 0 !important;
+        }
+
+        /* ── Results panel ── */
+        #cctvResultsPanel {
+          background: rgba(251,191,36,0.07) !important;
+          border-color: rgba(251,191,36,0.20) !important;
+          border-radius: 0 !important;
+        }
+        #cctvResultsPanel div[style*="color:#92400e"] { color: #fbbf24 !important; }
+        #cctvResultsPanel div[style*="color:#78716c"]  { color: #7eaac6 !important; }
+
+        /* ── CCTV Run button ── */
+        #cctvRunBtn {
+          background: rgba(255,255,255,0.10) !important;
+          border: 1px solid rgba(255,255,255,0.18) !important;
+          color: #e8f0f8 !important;
+          border-radius: 0 !important;
+          font-family: 'Raleway', sans-serif !important;
+          letter-spacing: 1px !important;
+        }
+        #cctvRunBtn:hover { background: rgba(255,255,255,0.18) !important; }
+
+        /* ── Bitcoin: site slots ── */
+        #mhSlot1, #mhSlot2, #mhSlot3 {
+          background: rgba(255,255,255,0.04) !important;
+          border-color: rgba(255,255,255,0.10) !important;
+          border-radius: 0 !important;
+        }
+        #mhSlot1 div[style*="color:#9ca3af"],
+        #mhSlot2 div[style*="color:#9ca3af"],
+        #mhSlot3 div[style*="color:#9ca3af"] { color: #3a5c75 !important; }
+
+        /* ── Bitcoin: mode buttons ── */
+        #mh_btn2pt, #mh_btn3pt { border-radius: 0 !important; font-family: 'Raleway', sans-serif !important; font-size: 0.72rem !important; letter-spacing: 1px !important; text-transform: uppercase !important; }
+
+        /* ── Bitcoin: run / reset buttons ── */
+        #mhRunBtn {
+          border-radius: 0 !important;
+          font-family: 'Raleway', sans-serif !important;
+          letter-spacing: 1px !important;
+          text-transform: uppercase !important;
+        }
+        #mhSidebar button[style*="border:1px solid #dc2626"] {
+          background: rgba(248,113,113,0.08) !important;
+          border-color: rgba(248,113,113,0.30) !important;
+          color: #f87171 !important;
+          border-radius: 0 !important;
+        }
+
+        /* ── Bitcoin: overpass status ── */
+        #mhOverpassStatus {
+          background: rgba(37,99,235,0.10) !important;
+          border-color: rgba(37,99,235,0.25) !important;
+          color: #93c5fd !important;
+          border-radius: 0 !important;
+        }
+
+        /* ── Bitcoin: results box ── */
+        #mhResultsBox { border-radius: 0 !important; }
+        #mhResults[style*="color:#9ca3af"] { color: #3a5c75 !important; }
+
+        /* ── Bitcoin: step circles ── */
+        #mhStep1, #mhStep2 {
+          border-radius: 50% !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          width: 28px !important; height: 28px !important;
+          flex-shrink: 0 !important;
+          box-sizing: border-box !important;
+          line-height: 1 !important;
+        }
+        /* Step 3: no display:!important so JS can hide it in 2-point mode */
+        #mhStep3 {
+          border-radius: 50% !important;
+          display: flex;
+          align-items: center !important;
+          justify-content: center !important;
+          width: 28px !important; height: 28px !important;
+          flex-shrink: 0 !important;
+          box-sizing: border-box !important;
+          line-height: 1 !important;
+        }
+
+        /* ══ GENSET SIDEBAR — comprehensive dark override ══ */
+        #gensetSidebar {
+          background: rgba(2,9,18,0.97) !important;
+          border-right: 1px solid rgba(255,255,255,0.10) !important;
+          box-shadow: none !important;
+          color: #e8f0f8 !important;
+          font-family: 'DM Sans', sans-serif !important;
+        }
+        /* Header — replace green gradient */
+        #gensetSidebar > div:first-child {
+          background: rgba(4,14,28,0.95) !important;
+          border-bottom: 1px solid rgba(255,255,255,0.10) !important;
+        }
+        #gensetSidebar h2 { color: #e8f0f8 !important; font-family: 'Raleway', sans-serif !important; }
+        #gensetSidebar > div:first-child p { color: #7eaac6 !important; }
+
+        /* Search bar row */
+        #gensetSidebar > div:nth-child(2) {
+          border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+          background: transparent !important;
+        }
+        #gensetSearchInput {
+          background: rgba(255,255,255,0.06) !important;
+          border: 1px solid rgba(255,255,255,0.12) !important;
+          color: #e8f0f8 !important;
+          border-radius: 0 !important;
+        }
+        #gensetSearchResults {
+          background: rgba(4,14,28,0.98) !important;
+          border: 1px solid rgba(255,255,255,0.10) !important;
+          border-radius: 0 !important;
+          box-shadow: 0 8px 24px rgba(0,0,0,.4) !important;
+        }
+
+        /* Site card */
+        #gensetSiteCard {
+          background: rgba(52,211,153,0.06) !important;
+          border: 1px solid rgba(52,211,153,0.20) !important;
+          border-radius: 0 !important;
+        }
+        #gensetSiteName { color: #34d399 !important; }
+        #gensetSiteDetails { color: #7eaac6 !important; }
+        #gensetFindBtn {
+          background: rgba(52,211,153,0.15) !important;
+          border: 1px solid rgba(52,211,153,0.30) !important;
+          color: #34d399 !important;
+          border-radius: 0 !important;
+        }
+
+        /* Result panels */
+        #gensetFound {
+          background: rgba(52,211,153,0.07) !important;
+          border-color: rgba(52,211,153,0.25) !important;
+          border-radius: 0 !important;
+        }
+        #gensetFound span[style*="color:#14532d"] { color: #34d399 !important; }
+        #gensetFoundContent { color: #7eaac6 !important; }
+        #gensetNotFound {
+          background: rgba(248,113,113,0.07) !important;
+          border-color: rgba(248,113,113,0.25) !important;
+          border-radius: 0 !important;
+        }
+        #gensetNotFound span[style*="color:#991b1b"] { color: #f87171 !important; }
+        #gensetNotFound p { color: #7eaac6 !important; }
+
+        /* Bulk processing outer wrapper */
+        #gensetSidebar div[style*="border:1px solid #bbf7d0"],
+        #gensetSidebar div[style*="border: 1px solid #bbf7d0"] {
+          border-color: rgba(52,211,153,0.20) !important;
+          border-radius: 0 !important;
+        }
+        /* Bulk header strip */
+        #gensetSidebar div[style*="background:#f0fdf4"] {
+          background: rgba(255,255,255,0.04) !important;
+          border-radius: 0 !important;
+        }
+        /* Bulk body (white background) */
+        #gensetSidebar div[style*="background:white"],
+        #gensetSidebar div[style*="background: white"] {
+          background: rgba(255,255,255,0.02) !important;
+        }
+        #gensetSidebar p[style*="color:#6b7280"] { color: #7eaac6 !important; }
+        /* Bulk file upload label */
+        #gensetXlsxLabel {
+          background: rgba(52,211,153,0.06) !important;
+          border-color: rgba(52,211,153,0.25) !important;
+          color: #34d399 !important;
+          border-radius: 0 !important;
+        }
+        /* Total cable row */
+        #gsBulkTotalRow {
+          background: rgba(52,211,153,0.06) !important;
+          border-color: rgba(52,211,153,0.20) !important;
+          border-radius: 0 !important;
+        }
+        #gsBulkTotalRow span[style*="color:#14532d"] { color: #7eaac6 !important; }
+        #gsBulkTotalDist { color: #34d399 !important; }
+        /* Cost calculator */
+        #gsBulkCostCalc {
+          background: rgba(251,191,36,0.06) !important;
+          border-color: rgba(251,191,36,0.20) !important;
+          border-radius: 0 !important;
+        }
+        #gsBulkCostCalc div[style*="color:#92400e"],
+        #gsBulkCostCalc span[style*="color:#92400e"],
+        #gsBulkCostCalc span[style*="color:#78350f"] { color: #fbbf24 !important; }
+        #gsBulkCostCalc input {
+          background: rgba(255,255,255,0.06) !important;
+          border-color: rgba(251,191,36,0.25) !important;
+          color: #e8f0f8 !important;
+          border-radius: 0 !important;
+        }
+        #gsBulkCostCalc div[style*="border-top:1px dashed"] { border-color: rgba(251,191,36,0.20) !important; }
+        #gsBulkMatCost, #gsBulkEngCost, #gsBulkTotalCost { color: #fbbf24 !important; }
+        /* Bulk results list */
+        #gensetBulkResults {
+          border-color: rgba(255,255,255,0.08) !important;
+          border-radius: 0 !important;
+          background: rgba(255,255,255,0.03) !important;
+        }
+        /* Export labels */
+        #gsBulkExportRow div[style*="color:#6b7280"] { color: #7eaac6 !important; }
+
+        /* Geo Tools section */
+        #gensetSidebar div[style*="background:#faf5ff"] {
+          background: rgba(167,139,250,0.06) !important;
+          border-color: rgba(167,139,250,0.18) !important;
+          border-radius: 0 !important;
+        }
+        #gensetSidebar div[style*="color:#7c3aed"] { color: #a78bfa !important; }
+        /* Geo pick status */
+        #gsGeoPickStatus {
+          background: rgba(37,99,235,0.10) !important;
+          color: #93c5fd !important;
+          border-radius: 0 !important;
+        }
+        /* Geo inputs */
+        #gsGeoLatA, #gsGeoLngA, #gsGeoLatB, #gsGeoLngB {
+          background: rgba(255,255,255,0.06) !important;
+          border-color: rgba(255,255,255,0.12) !important;
+          color: #e8f0f8 !important;
+          border-radius: 0 !important;
+        }
+        /* Geo pick buttons */
+        #gensetSidebar button[style*="background:#dbeafe"] {
+          background: rgba(37,99,235,0.12) !important;
+          color: #93c5fd !important;
+          border: 1px solid rgba(37,99,235,0.25) !important;
+          border-radius: 0 !important;
+        }
+        #gensetSidebar button[style*="background:#fee2e2"] {
+          background: rgba(248,113,113,0.12) !important;
+          color: #f87171 !important;
+          border-radius: 0 !important;
+        }
+        /* Geo results */
+        #gensetSidebar div[style*="background:#f8fafc"],
+        #gensetSidebar div[style*="background:#f9fafb"] {
+          background: rgba(255,255,255,0.04) !important;
+          border-radius: 0 !important;
+        }
+        /* Genset status badge */
+        #gensetStatusBadge {
+          background: rgba(255,255,255,0.10) !important;
+          color: #e8f0f8 !important;
+          border-radius: 0 !important;
+        }
+        /* All remaining gray text */
+        #gensetSidebar span[style*="color:#6b7280"],
+        #gensetSidebar span[style*="color:#64748b"],
+        #gensetSidebar span[style*="color:#374151"] { color: #7eaac6 !important; }
+
+        /* Bitcoin container background */
+        #bitcoinContainer { background: #020912 !important; }
         #sidebar {
           background: rgba(2,9,18,0.97) !important;
           border-right: 1px solid rgba(255,255,255,0.10) !important;
