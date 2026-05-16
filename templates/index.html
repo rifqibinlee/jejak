@@ -9225,7 +9225,17 @@ out center;`;
     }
 
     function novaTargetMap() {
-        return (typeof mhMap !== 'undefined' && mhMap) ? mhMap : null;
+        // Try known map variables first
+        if (typeof mhMap !== 'undefined' && mhMap) return mhMap;
+        if (typeof coverageMap !== 'undefined' && coverageMap) return coverageMap;
+        if (typeof map !== 'undefined' && map) return map;
+        // Fallback: find any initialised Leaflet container in the DOM
+        var containers = document.querySelectorAll('.leaflet-container');
+        for (var i = 0; i < containers.length; i++) {
+            var m = containers[i]._leaflet_map;
+            if (m) return m;
+        }
+        return null;
     }
 
     function novaUpdateRadius(val) {
@@ -9245,7 +9255,7 @@ out center;`;
 
     function novaPinMode() {
         var LMap = novaTargetMap();
-        if (!LMap) { alert('Open the Coverage Map tab first.'); return; }
+        if (!LMap) { novaShowError('No map found — switch to the Coverage Map tab first.'); return; }
         _novaPinning = !_novaPinning;
         var btn = document.getElementById('novaPinBtnTxt');
         if (_novaPinning) {
