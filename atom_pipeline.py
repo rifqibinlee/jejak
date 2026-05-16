@@ -54,6 +54,17 @@ CLUSTER_COLORS = [
 NOISE_COLOR = '#6b7280'
 
 
+def _sanitise(obj):
+    """Recursively convert numpy scalars → native Python so jsonify never chokes."""
+    if isinstance(obj, dict):
+        return {k: _sanitise(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitise(v) for v in obj]
+    if hasattr(obj, 'item'):      # numpy scalar (int64, float64, bool_, …)
+        return obj.item()
+    return obj
+
+
 def _aws_session():
     return boto3.Session(region_name=AWS_REGION)
 
@@ -193,8 +204,8 @@ def run_atom_pipeline(region: str = 'All', week: str = None, initiated_by: str =
     labels = db.fit_predict(coords)
     df['cluster_id'] = labels
 
-    unique_clusters = [c for c in sorted(set(labels)) if c != -1]
-    n_clusters      = len(unique_clusters)
+    unique_clusters = [int(c) for c in sorted(set(labels)) if c != -1]
+    n_clusters      = int(len(unique_clusters))
     n_noise         = int((labels == -1).sum())
 
     print(f"[ATOM] Result: {n_clusters} clusters, {n_noise} noise points")
@@ -225,16 +236,17 @@ def run_atom_pipeline(region: str = 'All', week: str = None, initiated_by: str =
 
     # Convex hull layer + cluster summary
     for cid in unique_clusters:
+        cid        = int(cid)
         cluster_df = df[df['cluster_id'] == cid]
-        n          = len(cluster_df)
+        n          = int(len(cluster_df))
         color      = CLUSTER_COLORS[cid % len(CLUSTER_COLORS)]
 
         # Need ≥ 3 non-collinear points for a polygon hull
         if n >= 3:
             try:
-                pts  = list(zip(cluster_df['lng'], cluster_df['lat']))
+                pts  = [(float(x), float(y)) for x, y in zip(cluster_df['lng'], cluster_df['lat'])]
                 hull = MultiPoint(pts).convex_hull
-                geom = mapping(hull)
+                geom = _sanitise(mapping(hull))
             except (TopologicalError, Exception):
                 geom = {
                     'type': 'Point',
@@ -278,12 +290,12 @@ def run_atom_pipeline(region: str = 'All', week: str = None, initiated_by: str =
     # ── 6. Persist run ───────────────────────────────────────────────────────
     run_id = _save_run(params, n_clusters, n_noise, n_input, region, week, initiated_by)
 
-    return {
-        'run_id':           run_id,
-        'params':           params,
-        'n_clusters':       n_clusters,
-        'n_noise':          n_noise,
-        'total_points':     n_input,
+    return _sanitise({
+        'run_id':            run_id,
+        'params':            params,
+        'n_clusters':        n_clusters,
+        'n_noise':           n_noise,
+        'total_points':      n_input,
         'cluster_summaries': cluster_summaries,
         'geojson': {
             'type':     'FeatureCollection',
@@ -293,7 +305,7 @@ def run_atom_pipeline(region: str = 'All', week: str = None, initiated_by: str =
             'type':     'FeatureCollection',
             'features': point_features,
         },
-    }
+    })
 
 
 # ── Persistence ───────────────────────────────────────────────────────────────
