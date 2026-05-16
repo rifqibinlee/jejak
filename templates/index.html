@@ -205,6 +205,7 @@
           height: 100%; overflow-y: auto;
           padding: 20px 18px;
           display: flex; flex-direction: column; gap: 14px;
+          box-sizing: border-box;
         }
         #sidebar .control-group {
           background: rgba(255,255,255,0.03) !important;
@@ -1376,15 +1377,15 @@
         </div>
 
         <!-- Rankings -->
-        <div class="control-group" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+        <div class="control-group" style="flex:1;display:flex;flex-direction:column;min-height:0;gap:0;">
           <label class="control-label" style="color:#f87171;"><i class="fas fa-trophy" style="margin-right:4px;"></i>Top 10 Congested Sectors</label>
-          <div id="leaderboardList" style="overflow-y:auto;max-height:100px;margin-bottom:10px;font-size:0.72rem;"></div>
+          <div id="leaderboardList" style="flex:1;overflow-y:auto;min-height:0;margin-bottom:10px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);"></div>
 
           <label class="control-label" style="color:#60a5fa;"><i class="fas fa-square" style="margin-right:4px;"></i>Worst MR Clusters</label>
-          <div id="mrClusterList" style="overflow-y:auto;max-height:100px;margin-bottom:10px;font-size:0.72rem;"></div>
+          <div id="mrClusterList" style="flex:1;overflow-y:auto;min-height:0;margin-bottom:10px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);"></div>
 
           <label class="control-label" style="color:#a78bfa;"><i class="fas fa-caret-up" style="margin-right:4px;"></i>Worst Ookla Clusters</label>
-          <div id="ooklaClusterList" style="overflow-y:auto;max-height:100px;font-size:0.72rem;"></div>
+          <div id="ooklaClusterList" style="flex:1;overflow-y:auto;min-height:0;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);"></div>
         </div>
 
         <div id="loading" class="hidden" style="text-align:center;color:#60a5fa;font-size:0.78rem;font-weight:700;padding:8px;"><i class="fas fa-circle-notch fa-spin" style="margin-right:6px;"></i>Loading Data...</div>
@@ -3970,9 +3971,9 @@
             const data = await res.json();
 
             document.getElementById('leaderboardList').innerHTML = data.map((d, i) => `
-                <div class="leaderboard-item cursor-pointer flex justify-between p-2 border-b bg-white hover:bg-gray-100" onclick="zoomToSite('${d.zoom_sector_id.split('_')[0]}')">
-                    <span class="font-bold text-gray-800 text-xs">#${i+1} ${d.zoom_sector_id}</span>
-                    <span class="bg-red-100 text-red-700 px-1 py-0.5 rounded text-[10px] font-bold">${d.congested_weeks} Wks</span>
+                <div class="leaderboard-item" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.06);background:transparent;transition:background .15s;" onmouseover="this.style.background='rgba(248,113,113,0.07)'" onmouseout="this.style.background='transparent'" onclick="zoomToSite('${d.zoom_sector_id.split('_')[0]}')">
+                    <span style="font-weight:700;color:#e8f0f8;font-size:11px;font-family:'DM Sans',sans-serif;">#${i+1} ${d.zoom_sector_id}</span>
+                    <span style="background:rgba(248,113,113,0.15);color:#f87171;padding:2px 7px;font-size:10px;font-weight:700;font-family:'Raleway',sans-serif;letter-spacing:.5px;white-space:nowrap;">${d.congested_weeks} Wks</span>
                 </div>
             `).join('');
         }
@@ -3983,20 +3984,20 @@
                 const data = await res.json();
 
                 document.getElementById('mrClusterList').innerHTML = data.mr.map((c, i) => `
-                    <div class="leaderboard-item cursor-pointer flex justify-between p-2 border-b bg-white hover:bg-blue-50"
+                    <div class="leaderboard-item" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.06);background:transparent;transition:background .15s;" onmouseover="this.style.background='rgba(96,165,250,0.07)'" onmouseout="this.style.background='transparent'"
                           onclick="focusCluster(${c.cluster_id}, 'MR', ${c.center_lat}, ${c.center_lon})">
-                        <span class="font-bold text-xs text-gray-700">#${i+1} Cluster ${c.cluster_id} (${c.point_count} pts)</span>
-                        <span class="bg-red-100 text-red-700 px-1 py-0.5 rounded text-[10px] font-bold">${Number(c.avg_signal).toFixed(1)} dBm</span>
+                        <span style="font-weight:700;color:#e8f0f8;font-size:11px;font-family:'DM Sans',sans-serif;">#${i+1} Cluster ${c.cluster_id} (${c.point_count} pts)</span>
+                        <span style="background:rgba(248,113,113,0.15);color:#f87171;padding:2px 7px;font-size:10px;font-weight:700;font-family:'Raleway',sans-serif;letter-spacing:.5px;white-space:nowrap;">${Number(c.avg_signal).toFixed(1)} dBm</span>
                     </div>
-                `).join('') || '<p class="text-xs text-gray-400 p-2">No MR data found.</p>';
+                `).join('') || '<p style="font-size:11px;color:#3a5c75;padding:8px;">No MR data found.</p>';
 
                 document.getElementById('ooklaClusterList').innerHTML = data.ookla.map((c, i) => `
-                    <div class="leaderboard-item cursor-pointer flex justify-between p-2 border-b bg-white hover:bg-purple-50"
+                    <div class="leaderboard-item" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.06);background:transparent;transition:background .15s;" onmouseover="this.style.background='rgba(167,139,250,0.07)'" onmouseout="this.style.background='transparent'"
                           onclick="focusCluster(${c.cluster_id}, 'Ookla', ${c.center_lat}, ${c.center_lon})">
-                        <span class="font-bold text-xs text-gray-700">#${i+1} Cluster ${c.cluster_id} (${c.point_count} pts)</span>
-                        <span class="bg-red-100 text-red-700 px-1 py-0.5 rounded text-[10px] font-bold">${Number(c.avg_signal).toFixed(1)} dBm</span>
+                        <span style="font-weight:700;color:#e8f0f8;font-size:11px;font-family:'DM Sans',sans-serif;">#${i+1} Cluster ${c.cluster_id} (${c.point_count} pts)</span>
+                        <span style="background:rgba(248,113,113,0.15);color:#f87171;padding:2px 7px;font-size:10px;font-weight:700;font-family:'Raleway',sans-serif;letter-spacing:.5px;white-space:nowrap;">${Number(c.avg_signal).toFixed(1)} dBm</span>
                     </div>
-                `).join('') || '<p class="text-xs text-gray-400 p-2">No Ookla data found.</p>';
+                `).join('') || '<p style="font-size:11px;color:#3a5c75;padding:8px;">No Ookla data found.</p>';
 
             } catch (e) { console.error("Error loading clusters", e); }
         }
