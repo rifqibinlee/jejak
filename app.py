@@ -18,6 +18,7 @@ from agent import run_netalytics_agent
 from genset_pipeline import route_substations
 from atom_pipeline import run_atom_pipeline, get_recent_runs
 from nova_pipeline import run_nova_pipeline, get_nova_recent_runs, get_nova_run_candidates
+from pave_pipeline import run_pave, get_pave_recent_runs
 from geoserver_integration import (
     catalog_payload,
     geoserver_enabled,
@@ -2483,6 +2484,87 @@ def nova_run_detail(run_id):
         return jsonify({'success': True, 'run_id': run_id, 'candidates': candidates})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ── PAVE routes ───────────────────────────────────────────────────────────────
+
+@app.route('/api/pave/run', methods=['POST'])
+@api_login_required
+def pave_run():
+    """
+    Trigger PAVE analysis for a single candidate location.
+    Body: {
+        candidate_lat: float, candidate_lon: float,
+        nova_run_id: int (optional), nova_candidate_label: str (optional)
+    }
+    Returns viewshed GeoJSON + per-site LOS results + terrain profiles.
+    """
+    data     = request.get_json(silent=True) or {}
+    username = session.get('username', 'system')
+
+    try:
+        cand_lat = float(data.get('candidate_lat', 0))
+        cand_lon = float(data.get('candidate_lon', 0))
+    except (TypeError, ValueError) as e:
+        return jsonify({'success': False, 'error': f'Invalid coordinates: {e}'}), 400
+
+    if not (-90 <= cand_lat <= 90) or not (-180 <= cand_lon <= 180):
+        return jsonify({'success': False, 'error': 'Coordinates out of range'}), 400
+
+    nova_run_id           = data.get('nova_run_id')
+    nova_candidate_label  = data.get('nova_candidate_label')
+
+    print(f"[PAVE] Run triggered by '{username}' — ({cand_lat},{cand_lon}) "
+          f"nova={nova_run_id}/{nova_candidate_label}")
+
+    try:
+        # Fetch all sites from Athena for LOS checks
+        sites_sql = """
+            SELECT CAST(site_id   AS VARCHAR)  AS site_id,
+                   CAST(latitude  AS DOUBLE)   AS lat,
+                   CAST(longitude AS DOUBLE)   AS lng
+            FROM site_coordinates
+            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+        """
+        sites_df = wr.athena.read_sql_query(
+            sites_sql,
+            database=ATHENA_DATABASE,
+            s3_output=S3_STAGING_DIR,
+            boto3_session=aws_session,
+        )
+        all_sites = sites_df.dropna(subset=['lat', 'lng']).to_dict('records')
+        print(f"[PAVE] {len(all_sites)} total sites loaded from Athena")
+
+        result = run_pave(
+            candidate_lat=cand_lat,
+            candidate_lon=cand_lon,
+            all_sites=all_sites,
+            boto_session=aws_session,
+            initiated_by=username,
+            nova_run_id=nova_run_id,
+            nova_candidate_label=nova_candidate_label,
+        )
+
+        if 'error' in result and not result.get('sites'):
+            return jsonify({'success': False, **result}), 400
+
+        return jsonify({'success': True, **result})
+
+    except Exception as e:
+        import traceback as tb
+        tb.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/pave/history')
+@api_login_required
+def pave_history():
+    """Return the last 10 PAVE runs."""
+    try:
+        runs = get_pave_recent_runs(limit=10)
+        return jsonify(runs)
+    except Exception:
+        return jsonify([]), 500
 
 
 if __name__ == '__main__':

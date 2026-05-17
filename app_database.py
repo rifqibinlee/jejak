@@ -275,7 +275,36 @@ def run_setup():
         """)
         print("  [OK] NOVA nova_candidates table created.")
 
-        # --- 8. POSTGIS + GEOSERVER DEMO LAYER (optional extension) ---
+        # --- 9. PAVE MODULE: Run History + Site Results ---
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS pave_runs (
+                id                    SERIAL PRIMARY KEY,
+                candidate_lat         DOUBLE PRECISION NOT NULL,
+                candidate_lon         DOUBLE PRECISION NOT NULL,
+                nova_run_id           INTEGER REFERENCES nova_runs(id) ON DELETE SET NULL,
+                nova_candidate_label  TEXT,
+                total_nearby          INTEGER DEFAULT 0,
+                los_count             INTEGER DEFAULT 0,
+                no_los_count          INTEGER DEFAULT 0,
+                processing_time_s     DOUBLE PRECISION,
+                initiated_by          TEXT DEFAULT 'system',
+                ran_at                TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS pave_sites (
+                id          SERIAL PRIMARY KEY,
+                run_id      INTEGER REFERENCES pave_runs(id) ON DELETE CASCADE,
+                site_id     TEXT NOT NULL,
+                lat         DOUBLE PRECISION,
+                lng         DOUBLE PRECISION,
+                los         BOOLEAN NOT NULL,
+                distance_m  INTEGER
+            );
+            CREATE INDEX IF NOT EXISTS idx_pave_sites_run_id ON pave_sites(run_id);
+        """)
+        print("  [OK] PAVE pave_runs + pave_sites tables created.")
+
+        # --- 11. POSTGIS + GEOSERVER DEMO LAYER (optional extension) ---
         try:
             cursor.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
             cursor.execute("""

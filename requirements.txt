@@ -30,6 +30,7 @@ SQLAlchemy
 # GIS & Mapping
 geopandas
 shapely
+rasterio
 openpyxl
 osmnx
 scikit-learn

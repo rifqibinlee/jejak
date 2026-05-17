@@ -1689,6 +1689,20 @@
             </div>
         </button>
 
+        <!-- PAVE button -->
+        <button id="paveBtn" onclick="togglePavePanel()" title="PAVE — Line-of-Sight visibility analysis"
+                style="display:flex; align-items:center; gap:8px; padding:0 14px; height:72px; background:#fff; border:1.5px solid #cbd5e1; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.13); cursor:pointer; transition:all 0.2s; flex-shrink:0;"
+                onmouseover="this.style.borderColor='#b45309';this.style.boxShadow='0 4px 14px rgba(180,83,9,0.18)'"
+                onmouseout="this.style.borderColor='#cbd5e1';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.13)'">
+            <div style="width:36px; height:36px; background:linear-gradient(135deg,#92400e,#d97706); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <i class="fas fa-eye" style="color:white; font-size:0.95rem;"></i>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:1px;">
+                <span style="line-height:1.2; font-size:0.78rem; font-weight:700; color:#374151;">PAVE</span>
+                <span style="font-size:0.65rem; color:#6b7280; font-weight:400;">LOS analysis</span>
+            </div>
+        </button>
+
         <!-- NOVA button -->
         <button id="novaBtn" onclick="toggleNovaPanel()" title="NOVA — New tower site candidates"
                 style="display:flex; align-items:center; gap:8px; padding:0 14px; height:72px; background:#fff; border:1.5px solid #cbd5e1; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.13); cursor:pointer; transition:all 0.2s; flex-shrink:0;"
@@ -2155,6 +2169,90 @@
         </div>
         <div class="p-3 border-t border-gray-100 bg-gray-50 flex-shrink-0">
             <button type="button" onclick="loadAtomHistoryJeak()" class="w-full text-[10px] text-indigo-700 font-bold hover:underline">History (last runs)</button>
+        </div>
+    </div>
+
+    <!-- PAVE — Line of Sight visibility analysis -->
+    <div id="pavePanel" class="sliding-panel" style="width:420px;">
+        <div class="panel-resize-handle" id="paveResizeHandle" title="Drag to resize"></div>
+        <div style="background:linear-gradient(135deg,#92400e,#d97706); color:white; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+            <div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                    <i class="fas fa-eye"></i>
+                    <span style="font-weight:900; font-size:0.9rem; letter-spacing:0.05em;">PAVE</span>
+                    <span style="font-size:0.65rem; font-weight:600; opacity:.9;">Path &amp; Visibility Evaluation</span>
+                </div>
+                <div id="paveParamChips" style="display:flex; gap:6px; flex-wrap:wrap; font-size:0.65rem;"></div>
+            </div>
+            <button type="button" onclick="togglePavePanel()" style="color:white; background:none; border:none; font-size:1.2rem; cursor:pointer; opacity:.8;">&times;</button>
+        </div>
+
+        <!-- Source selector -->
+        <div style="padding:10px 12px; border-bottom:1px solid #e5e7eb; background:#fffbeb; flex-shrink:0;">
+            <p style="font-size:0.65rem; font-weight:700; color:#92400e; text-transform:uppercase; margin:0 0 6px;">1. Candidate location</p>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button type="button" id="paveFromNovaBtn" onclick="paveUseNova()" style="flex:1; min-width:130px; background:linear-gradient(135deg,#15803d,#16a34a); color:white; border:none; border-radius:7px; padding:7px 10px; font-size:0.7rem; font-weight:700; cursor:pointer;">
+                    <i class="fas fa-broadcast-tower"></i> Use NOVA candidate
+                </button>
+                <button type="button" id="pavePinBtn" onclick="pavePinMode()" style="flex:1; min-width:100px; background:linear-gradient(135deg,#92400e,#d97706); color:white; border:none; border-radius:7px; padding:7px 10px; font-size:0.7rem; font-weight:700; cursor:pointer;">
+                    <i class="fas fa-map-pin"></i> <span id="pavePinBtnTxt">Pin manually</span>
+                </button>
+            </div>
+            <!-- NOVA candidate picker (shown when NOVA results exist) -->
+            <div id="paveNovaPicker" style="display:none; margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;"></div>
+            <!-- Pin info -->
+            <div id="pavePinInfo" style="margin-top:6px; font-size:0.68rem; color:#374151; display:none; background:#fef3c7; border-radius:6px; padding:5px 8px;">
+                <i class="fas fa-crosshairs" style="color:#d97706;"></i>
+                <span id="pavePinCoords">—</span>
+            </div>
+        </div>
+
+        <!-- Run button -->
+        <div style="padding:8px 12px; border-bottom:1px solid #e5e7eb; flex-shrink:0;">
+            <button type="button" id="paveRunBtn" onclick="runPaveJeak()"
+                    style="width:100%; background:linear-gradient(135deg,#92400e,#d97706); color:white; border:none; border-radius:8px; padding:10px; font-size:0.78rem; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fas fa-satellite-dish"></i> Run PAVE Analysis
+            </button>
+            <div id="paveError" style="display:none; margin-top:6px; padding:6px 10px; background:#fef2f2; border-radius:6px; font-size:0.7rem; color:#dc2626; font-weight:600;"></div>
+        </div>
+
+        <!-- Stats bar -->
+        <div id="paveStatsBar" style="display:none; padding:8px 12px; border-bottom:1px solid #fcd34d; background:#fffbeb; flex-shrink:0; display:flex; gap:4px; text-align:center;">
+            <div style="flex:1;"><div id="paveStatNearby" style="font-size:1.1rem; font-weight:900; color:#92400e;">—</div><div style="font-size:0.6rem; color:#b45309; font-weight:700; text-transform:uppercase;">Nearby</div></div>
+            <div style="flex:1;"><div id="paveStatLOS" style="font-size:1.1rem; font-weight:900; color:#16a34a;">—</div><div style="font-size:0.6rem; color:#15803d; font-weight:700; text-transform:uppercase;">LOS ✓</div></div>
+            <div style="flex:1;"><div id="paveStatNoLOS" style="font-size:1.1rem; font-weight:900; color:#dc2626;">—</div><div style="font-size:0.6rem; color:#b91c1c; font-weight:700; text-transform:uppercase;">No LOS ✗</div></div>
+            <div style="flex:1;"><div id="paveStatTime" style="font-size:1.1rem; font-weight:900; color:#6b7280;">—</div><div style="font-size:0.6rem; color:#6b7280; font-weight:700; text-transform:uppercase;">Seconds</div></div>
+        </div>
+
+        <!-- Layer toggles -->
+        <div id="paveLayerToggles" style="display:none; padding:6px 12px; border-bottom:1px solid #e5e7eb; gap:6px; flex-shrink:0; flex-wrap:wrap;">
+            <button type="button" id="paveToggleViewshed" onclick="togglePaveViewshedJeak()" style="font-size:0.65rem; font-weight:700; padding:4px 10px; border-radius:6px; border:1px solid #fcd34d; background:#fffbeb; color:#92400e; cursor:pointer;">Viewshed</button>
+            <button type="button" id="paveToggleLines" onclick="togglePaveLinesJeak()" style="font-size:0.65rem; font-weight:700; padding:4px 10px; border-radius:6px; border:1px solid #fcd34d; background:#fffbeb; color:#92400e; cursor:pointer;">LOS lines</button>
+            <button type="button" onclick="clearPaveLayersJeak()" style="font-size:0.65rem; font-weight:700; padding:4px 10px; border-radius:6px; border:1px solid #d1d5db; background:#f9fafb; color:#374151; cursor:pointer;">Clear</button>
+        </div>
+
+        <!-- Profile chart (shown when a site is clicked) -->
+        <div id="paveProfileBox" style="display:none; padding:10px 12px; border-bottom:1px solid #e5e7eb; background:#fafafa; flex-shrink:0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span id="paveProfileTitle" style="font-size:0.7rem; font-weight:800; color:#374151;">Terrain Profile</span>
+                <button onclick="document.getElementById('paveProfileBox').style.display='none'" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:0.9rem;">&times;</button>
+            </div>
+            <div id="paveProfileChart" style="height:140px;"></div>
+        </div>
+
+        <!-- Site list -->
+        <div style="flex:1; overflow-y:auto; padding:8px 12px;">
+            <div id="paveSiteList">
+                <div style="text-align:center; color:#9ca3af; padding:28px 16px;">
+                    <i class="fas fa-eye" style="font-size:2rem; margin-bottom:8px; display:block; opacity:.4;"></i>
+                    <p style="font-size:0.75rem; font-weight:600; color:#374151;">Select a candidate, then run PAVE</p>
+                    <p style="font-size:0.65rem; color:#9ca3af; margin-top:4px;">Shows LOS visibility to all nearby towers within 10 km</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding:8px 12px; border-top:1px solid #e5e7eb; background:#f9fafb; flex-shrink:0;">
+            <button type="button" onclick="loadPaveHistoryJeak()" style="width:100%; font-size:0.65rem; color:#92400e; font-weight:700; background:none; border:none; cursor:pointer; text-decoration:underline;">History (last runs)</button>
         </div>
     </div>
 
@@ -9510,6 +9608,352 @@ out center;`;
                 }).join('');
         } catch (err) { novaShowError('Could not load history: ' + err.message); }
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  PAVE — Path & Visibility Evaluation
+    // ═══════════════════════════════════════════════════════════════
+
+    var _paveOpen = false;
+    var _paveLat  = null, _paveLng  = null;
+    var _pavePinning = false;
+    var _pavePinMarker   = null;
+    var _paveViewshedLayer = null;
+    var _paveLinesLayer    = null;
+    var _paveViewshedOn    = true;
+    var _paveLinesOn       = true;
+    var _paveSitesData     = [];
+    var _paveDem           = null;
+
+    function togglePavePanel() {
+        var p = document.getElementById('pavePanel');
+        if (!p) return;
+        _paveOpen = !_paveOpen;
+        if (_paveOpen) p.classList.add('open');
+        else           p.classList.remove('open');
+    }
+
+    function paveTargetMap() {
+        if (typeof mhMap !== 'undefined' && mhMap) return mhMap;
+        if (typeof coverageMap !== 'undefined' && coverageMap) return coverageMap;
+        if (typeof map !== 'undefined' && map) return map;
+        var containers = document.querySelectorAll('.leaflet-container');
+        for (var i = 0; i < containers.length; i++) {
+            var m = containers[i]._leaflet_map;
+            if (m) return m;
+        }
+        return null;
+    }
+
+    function pavePinMode() {
+        var LMap = paveTargetMap();
+        if (!LMap) { paveShowError('No map found — switch to Coverage Map tab first.'); return; }
+        _pavePinning = !_pavePinning;
+        var btn = document.getElementById('pavePinBtnTxt');
+        if (_pavePinning) {
+            if (btn) btn.textContent = 'Click on map…';
+            LMap.getContainer().style.cursor = 'crosshair';
+            LMap.once('click', function(e) {
+                _pavePinning = false;
+                if (btn) btn.textContent = 'Pin manually';
+                LMap.getContainer().style.cursor = '';
+                _paveSetPin(e.latlng.lat, e.latlng.lng, 'Manual pin');
+            });
+        } else {
+            if (btn) btn.textContent = 'Pin manually';
+            LMap.getContainer().style.cursor = '';
+        }
+    }
+
+    function paveUseNova() {
+        // Populate picker from NOVA candidates on map
+        var picker = document.getElementById('paveNovaPicker');
+        if (!picker) return;
+        if (!_novaCandidateLayer) {
+            paveShowError('Run NOVA first to get candidates.');
+            return;
+        }
+        picker.innerHTML = '';
+        picker.style.display = 'flex';
+        var added = 0;
+        _novaCandidateLayer.eachLayer(function(lyr) {
+            var p = lyr.feature && lyr.feature.properties;
+            if (!p || p.type !== 'candidate') return;
+            var ll = lyr.getLatLng();
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.style.cssText = 'background:' + p.color + ';color:white;border:none;border-radius:6px;padding:4px 12px;font-size:0.7rem;font-weight:800;cursor:pointer;';
+            btn.textContent = 'Candidate ' + p.label;
+            btn.onclick = (function(lat, lng, label) {
+                return function() { _paveSetPin(lat, lng, 'NOVA Candidate ' + label); };
+            })(ll.lat, ll.lng, p.label);
+            picker.appendChild(btn);
+            added++;
+        });
+        if (!added) paveShowError('No NOVA candidates on map. Run NOVA first.');
+    }
+
+    function _paveSetPin(lat, lng, label) {
+        _paveLat = lat; _paveLng = lng;
+        var LMap = paveTargetMap();
+        if (_pavePinMarker && LMap) { LMap.removeLayer(_pavePinMarker); }
+        if (LMap) {
+            _pavePinMarker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                    className: '',
+                    html: '<div style="width:30px;height:30px;background:#d97706;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;"><i class="fas fa-eye" style="color:white;font-size:0.7rem;"></i></div>',
+                    iconSize: [30, 30], iconAnchor: [15, 15],
+                })
+            }).addTo(LMap).bindPopup('<b style="color:#92400e;">PAVE candidate</b><br>' + label + '<br>' + lat.toFixed(5) + ', ' + lng.toFixed(5));
+            LMap.setView([lat, lng], Math.max(LMap.getZoom(), 13));
+        }
+        var info = document.getElementById('pavePinInfo');
+        var coords = document.getElementById('pavePinCoords');
+        if (info) info.style.display = 'block';
+        if (coords) coords.textContent = label + ' — ' + lat.toFixed(5) + ', ' + lng.toFixed(5);
+        var errEl = document.getElementById('paveError');
+        if (errEl) errEl.style.display = 'none';
+    }
+
+    async function runPaveJeak() {
+        if (_paveLat === null) { paveShowError('Select or pin a candidate location first.'); return; }
+        var btn  = document.getElementById('paveRunBtn');
+        var list = document.getElementById('paveSiteList');
+        var errEl = document.getElementById('paveError');
+        if (errEl) errEl.style.display = 'none';
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Running PAVE…'; }
+        if (list) list.innerHTML = '<div style="text-align:center;padding:24px;color:#d97706;font-size:0.75rem;font-weight:700;"><i class="fas fa-circle-notch fa-spin" style="font-size:1.5rem;"></i><div style="margin-top:8px;">Computing viewshed + LOS…</div><div style="font-size:0.65rem;color:#9ca3af;margin-top:4px;">This may take 15–60 seconds</div></div>';
+        document.getElementById('paveProfileBox').style.display = 'none';
+
+        try {
+            var body = { candidate_lat: _paveLat, candidate_lon: _paveLng };
+            var res  = await fetch('/api/pave/run', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body),
+            });
+            var data = await res.json();
+            if (!data.success) { paveShowError(data.error || 'Pipeline failed'); return; }
+            paveRenderResultsJeak(data);
+        } catch (e) {
+            paveShowError(e.message || 'Network error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-satellite-dish"></i> Run PAVE Analysis'; }
+        }
+    }
+
+    function paveRenderResultsJeak(data) {
+        var LMap = paveTargetMap();
+        clearPaveLayersJeak();
+        _paveSitesData = data.sites || [];
+        var summary = data.summary || {};
+
+        // Stats bar
+        var sb = document.getElementById('paveStatsBar');
+        if (sb) sb.style.display = 'flex';
+        document.getElementById('paveStatNearby').textContent = summary.total_nearby || 0;
+        document.getElementById('paveStatLOS').textContent    = summary.los_count    || 0;
+        document.getElementById('paveStatNoLOS').textContent  = summary.no_los_count || 0;
+        document.getElementById('paveStatTime').textContent   = (summary.processing_time_s || '—');
+
+        // Param chips
+        var chips = document.getElementById('paveParamChips');
+        if (chips) chips.innerHTML =
+            '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:2px 7px;font-size:.65rem;font-weight:800;">' +
+            (summary.los_count||0) + ' LOS / ' + (summary.total_nearby||0) + ' sites</span>';
+
+        // Layer toggles
+        var lt = document.getElementById('paveLayerToggles');
+        if (lt) lt.style.display = 'flex';
+
+        // Viewshed polygon
+        if (data.viewshed_geojson && LMap) {
+            _paveViewshedLayer = L.geoJSON(
+                { type: 'Feature', geometry: data.viewshed_geojson, properties: {} },
+                { style: { color: '#d97706', weight: 1.5, fillColor: '#fbbf24', fillOpacity: 0.12 } }
+            ).addTo(LMap);
+        }
+
+        // LOS lines
+        if (_paveSitesData.length && LMap) {
+            var lineFeatures = _paveSitesData.map(function(s) {
+                return {
+                    type: 'Feature',
+                    geometry: { type: 'LineString', coordinates: [[_paveLng, _paveLat], [s.lng, s.lat]] },
+                    properties: { los: s.los, site_id: s.site_id, distance_m: s.distance_m },
+                };
+            });
+            _paveLinesLayer = L.geoJSON(
+                { type: 'FeatureCollection', features: lineFeatures },
+                {
+                    style: function(f) {
+                        return f.properties.los
+                            ? { color: '#16a34a', weight: 1.5, opacity: 0.7 }
+                            : { color: '#dc2626', weight: 1.5, opacity: 0.5, dashArray: '4 4' };
+                    },
+                    onEachFeature: function(f, layer) {
+                        layer.bindTooltip(f.properties.site_id + ' — ' +
+                            (f.properties.los ? '✓ LOS' : '✗ No LOS') + ' · ' + f.properties.distance_m + 'm');
+                    },
+                }
+            ).addTo(LMap);
+        }
+
+        // Site list
+        paveBuildSiteList(_paveSitesData);
+    }
+
+    function paveBuildSiteList(sites) {
+        var list = document.getElementById('paveSiteList');
+        if (!list) return;
+        if (!sites.length) {
+            list.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:24px;font-size:0.75rem;">No nearby sites found.</div>';
+            return;
+        }
+        var los  = sites.filter(function(s) { return s.los; });
+        var nlos = sites.filter(function(s) { return !s.los; });
+
+        function siteCard(s, idx) {
+            var col  = s.los ? '#16a34a' : '#dc2626';
+            var icon = s.los ? '✓' : '✗';
+            var bg   = s.los ? '#f0fdf4' : '#fef2f2';
+            var bdr  = s.los ? '#86efac' : '#fca5a5';
+            return '<div style="background:' + bg + ';border:1px solid ' + bdr + ';border-radius:7px;padding:7px 10px;margin-bottom:5px;cursor:pointer;border-left:4px solid ' + col + ';" onclick="paveShowProfile(' + idx + ')">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                '<span style="font-size:0.72rem;font-weight:800;color:#1e293b;">' + s.site_id + '</span>' +
+                '<span style="font-size:0.7rem;font-weight:900;color:' + col + ';">' + icon + ' ' + (s.los ? 'LOS' : 'No LOS') + '</span>' +
+                '</div>' +
+                '<div style="font-size:0.62rem;color:#6b7280;margin-top:2px;">' + s.distance_m + ' m away · click for profile</div>' +
+                '</div>';
+        }
+
+        var html = '';
+        if (los.length) {
+            html += '<div style="font-size:0.6rem;font-weight:800;color:#16a34a;text-transform:uppercase;margin:6px 0 4px;padding:0 2px;">✓ Clear LOS (' + los.length + ')</div>';
+            los.forEach(function(s) { html += siteCard(s, sites.indexOf(s)); });
+        }
+        if (nlos.length) {
+            html += '<div style="font-size:0.6rem;font-weight:800;color:#dc2626;text-transform:uppercase;margin:10px 0 4px;padding:0 2px;">✗ Blocked (' + nlos.length + ')</div>';
+            nlos.forEach(function(s) { html += siteCard(s, sites.indexOf(s)); });
+        }
+        list.innerHTML = html;
+    }
+
+    function paveShowProfile(idx) {
+        var s = _paveSitesData[idx];
+        if (!s || !s.profile) return;
+        var p = s.profile;
+        var box = document.getElementById('paveProfileBox');
+        var title = document.getElementById('paveProfileTitle');
+        if (title) title.textContent = s.site_id + ' — ' + (s.los ? '✓ LOS Clear' : '✗ LOS Blocked') + ' · ' + s.distance_m + 'm';
+        box.style.display = 'block';
+
+        var col = s.los ? '#16a34a' : '#dc2626';
+        Plotly.react('paveProfileChart', [
+            {
+                x: p.distances_m,
+                y: p.terrain_corrected,
+                type: 'scatter', mode: 'lines',
+                fill: 'tozeroy', fillcolor: 'rgba(120,113,108,0.25)',
+                line: { color: '#78716c', width: 1.5 },
+                name: 'Terrain',
+            },
+            {
+                x: p.distances_m,
+                y: p.los_line,
+                type: 'scatter', mode: 'lines',
+                line: { color: col, width: 2, dash: s.los ? 'solid' : 'dash' },
+                name: 'LOS line',
+            },
+        ], {
+            margin: { t: 4, b: 28, l: 36, r: 8 },
+            height: 130,
+            paper_bgcolor: 'transparent',
+            plot_bgcolor:  'rgba(255,255,255,0.5)',
+            font: { size: 9, family: 'Inter,sans-serif' },
+            xaxis: { title: 'Distance (m)', tickfont: { size: 8 } },
+            yaxis: { title: 'Elev (m)', tickfont: { size: 8 } },
+            legend: { orientation: 'h', y: -0.35, font: { size: 8 } },
+            showlegend: true,
+        }, { displayModeBar: false, responsive: true });
+    }
+
+    function togglePaveViewshedJeak() {
+        var LMap = paveTargetMap();
+        if (!_paveViewshedLayer || !LMap) return;
+        _paveViewshedOn = !_paveViewshedOn;
+        if (_paveViewshedOn) { LMap.addLayer(_paveViewshedLayer); }
+        else { LMap.removeLayer(_paveViewshedLayer); }
+        var btn = document.getElementById('paveToggleViewshed');
+        if (btn) btn.style.opacity = _paveViewshedOn ? '1' : '0.4';
+    }
+
+    function togglePaveLinesJeak() {
+        var LMap = paveTargetMap();
+        if (!_paveLinesLayer || !LMap) return;
+        _paveLinesOn = !_paveLinesOn;
+        if (_paveLinesOn) { LMap.addLayer(_paveLinesLayer); }
+        else { LMap.removeLayer(_paveLinesLayer); }
+        var btn = document.getElementById('paveToggleLines');
+        if (btn) btn.style.opacity = _paveLinesOn ? '1' : '0.4';
+    }
+
+    function clearPaveLayersJeak() {
+        var LMap = paveTargetMap();
+        if (LMap) {
+            if (_paveViewshedLayer) { LMap.removeLayer(_paveViewshedLayer); _paveViewshedLayer = null; }
+            if (_paveLinesLayer)    { LMap.removeLayer(_paveLinesLayer);    _paveLinesLayer    = null; }
+        }
+        var lt = document.getElementById('paveLayerToggles');
+        if (lt) lt.style.display = 'none';
+        var sb = document.getElementById('paveStatsBar');
+        if (sb) sb.style.display = 'none';
+        document.getElementById('paveProfileBox').style.display = 'none';
+        var list = document.getElementById('paveSiteList');
+        if (list) list.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:28px;"><i class="fas fa-eye" style="font-size:2rem;display:block;opacity:.4;margin-bottom:8px;"></i><p style="font-size:0.75rem;color:#374151;font-weight:600;">Select a candidate, then run PAVE</p></div>';
+    }
+
+    function paveShowError(msg) {
+        var errEl = document.getElementById('paveError');
+        if (errEl) { errEl.textContent = '⚠ ' + (msg || 'Error'); errEl.style.display = 'block'; }
+        var list = document.getElementById('paveSiteList');
+        if (list) list.innerHTML = '<div style="text-align:center;color:#dc2626;padding:24px;font-size:0.75rem;font-weight:600;"><i class="fas fa-exclamation-triangle"></i> ' + String(msg || 'Error') + '</div>';
+    }
+
+    async function loadPaveHistoryJeak() {
+        try {
+            var res  = await fetch('/api/pave/history');
+            var runs = await res.json();
+            var list = document.getElementById('paveSiteList');
+            if (!runs.length) {
+                if (list) list.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:24px;font-size:0.75rem;">No PAVE runs saved yet.</div>';
+                return;
+            }
+            if (list) list.innerHTML =
+                '<div style="font-size:0.65rem;font-weight:800;color:#374151;text-transform:uppercase;margin-bottom:8px;">Past Runs</div>' +
+                runs.map(function(r) {
+                    var d = r.ran_at ? r.ran_at.replace('T',' ').slice(0,16) : '—';
+                    return '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:6px;">' +
+                        '<div style="font-size:0.72rem;font-weight:700;color:#92400e;">' + d + (r.nova_candidate_label ? ' · Candidate ' + r.nova_candidate_label : '') + '</div>' +
+                        '<div style="font-size:0.62rem;color:#6b7280;">' + r.los_count + ' LOS / ' + r.total_nearby + ' sites · ' + r.processing_time_s + 's · by ' + r.initiated_by + '</div>' +
+                        '</div>';
+                }).join('');
+        } catch (err) { paveShowError('Could not load history: ' + err.message); }
+    }
+
+    // PAVE panel resize
+    (function initPavePanelResizeJeak() {
+        var handle = document.getElementById('paveResizeHandle'), panel = document.getElementById('pavePanel');
+        if (!handle || !panel) return;
+        var drag = false, sx = 0, sw = 0;
+        handle.addEventListener('mousedown', function(ev) {
+            drag = true; sx = ev.clientX; sw = panel.offsetWidth; handle.classList.add('dragging'); ev.preventDefault();
+        });
+        document.addEventListener('mousemove', function(ev) {
+            if (!drag) return;
+            panel.style.width = Math.max(320, Math.min(620, sw - (ev.clientX - sx))) + 'px';
+        });
+        document.addEventListener('mouseup', function() { drag = false; handle.classList.remove('dragging'); });
+    })();
 
     async function novaReloadRun(runId, lat, lng, radiusM) {
         try {
