@@ -2518,22 +2518,21 @@ def pave_run():
           f"nova={nova_run_id}/{nova_candidate_label}")
 
     try:
-        # Fetch all sites from Athena for LOS checks
-        sites_sql = """
+        # Bbox query — only sites within ±0.12° (~13 km) of candidate
+        # Uses get_cached_dataframe so repeat runs in same area cost nothing
+        pad = 0.12
+        sites_sql = f"""
             SELECT CAST(site_id   AS VARCHAR)  AS site_id,
                    CAST(latitude  AS DOUBLE)   AS lat,
                    CAST(longitude AS DOUBLE)   AS lng
             FROM site_coordinates
-            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+            WHERE latitude  IS NOT NULL AND longitude IS NOT NULL
+              AND CAST(latitude  AS DOUBLE) BETWEEN {cand_lat - pad} AND {cand_lat + pad}
+              AND CAST(longitude AS DOUBLE) BETWEEN {cand_lon - pad} AND {cand_lon + pad}
         """
-        sites_df = wr.athena.read_sql_query(
-            sites_sql,
-            database=ATHENA_DATABASE,
-            s3_output=S3_STAGING_DIR,
-            boto3_session=aws_session,
-        )
+        sites_df = get_cached_dataframe(sites_sql)
         all_sites = sites_df.dropna(subset=['lat', 'lng']).to_dict('records')
-        print(f"[PAVE] {len(all_sites)} total sites loaded from Athena")
+        print(f"[PAVE] {len(all_sites)} nearby sites loaded from Athena")
 
         result = run_pave(
             candidate_lat=cand_lat,
@@ -2543,6 +2542,7 @@ def pave_run():
             initiated_by=username,
             nova_run_id=nova_run_id,
             nova_candidate_label=nova_candidate_label,
+            fast_mode=True,
         )
 
         if 'error' in result and not result.get('sites'):
@@ -2565,6 +2565,34 @@ def pave_history():
         return jsonify(runs)
     except Exception:
         return jsonify([]), 500
+
+
+@app.route('/api/pave/profile', methods=['POST'])
+@api_login_required
+def pave_profile():
+    """
+    Lazy terrain profile for one site pair.
+    Body: { candidate_lat, candidate_lon, site_lat, site_lng, site_id }
+    Called when user clicks a site in the PAVE panel.
+    """
+    data = request.get_json(silent=True) or {}
+    try:
+        cand_lat = float(data['candidate_lat'])
+        cand_lon = float(data['candidate_lon'])
+        site_lat = float(data['site_lat'])
+        site_lng = float(data['site_lng'])
+    except (KeyError, TypeError, ValueError) as e:
+        return jsonify({'success': False, 'error': f'Invalid params: {e}'}), 400
+
+    try:
+        from pave_pipeline import get_dem, get_profile_data, SEARCH_R, OBS_H, TGT_H
+        dem, tf = get_dem(cand_lat, cand_lon, SEARCH_R, aws_session)
+        profile = get_profile_data(dem, tf, cand_lat, cand_lon, OBS_H, site_lat, site_lng, TGT_H)
+        return jsonify({'success': True, 'profile': profile})
+    except Exception as e:
+        import traceback as tb
+        tb.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 if __name__ == '__main__':

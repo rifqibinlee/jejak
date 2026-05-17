@@ -9840,14 +9840,40 @@ out center;`;
         list.innerHTML = html;
     }
 
-    function paveShowProfile(idx) {
+    async function paveShowProfile(idx) {
         var s = _paveSitesData[idx];
-        if (!s || !s.profile) return;
-        var p = s.profile;
-        var box = document.getElementById('paveProfileBox');
+        if (!s) return;
+        var box   = document.getElementById('paveProfileBox');
         var title = document.getElementById('paveProfileTitle');
+        var chart = document.getElementById('paveProfileChart');
         if (title) title.textContent = s.site_id + ' — ' + (s.los ? '✓ LOS Clear' : '✗ LOS Blocked') + ' · ' + s.distance_m + 'm';
         box.style.display = 'block';
+        if (chart) chart.innerHTML = '<div style="text-align:center;padding:20px;color:#d97706;font-size:0.75rem;"><i class="fas fa-circle-notch fa-spin"></i> Loading profile…</div>';
+
+        // Fetch lazily if not already loaded
+        if (!s.profile) {
+            try {
+                var res = await fetch('/api/pave/profile', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        candidate_lat: _paveLat,
+                        candidate_lon: _paveLng,
+                        site_lat: s.lat,
+                        site_lng: s.lng,
+                        site_id: s.site_id,
+                    }),
+                });
+                var data = await res.json();
+                if (!data.success) { if (chart) chart.innerHTML = '<div style="color:#dc2626;padding:10px;font-size:0.72rem;">Profile failed: ' + data.error + '</div>'; return; }
+                s.profile = data.profile;   // cache it
+            } catch(e) {
+                if (chart) chart.innerHTML = '<div style="color:#dc2626;padding:10px;font-size:0.72rem;">Network error</div>';
+                return;
+            }
+        }
+
+        var p = s.profile;
 
         var col = s.los ? '#16a34a' : '#dc2626';
         Plotly.react('paveProfileChart', [

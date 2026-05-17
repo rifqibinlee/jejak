@@ -46,9 +46,9 @@ OBS_H     = 30.0          # candidate tower height AGL (m)
 TGT_H     = 30.0          # existing site antenna height AGL (m)
 SEARCH_R  = 10_000.0      # neighbour search radius (m)
 DEM_PATH  = '/vsis3/jejak-mappro-demo/3W-data/DEM/merged_MsiaDEM.tif'
-N_AZ      = 360
-LOS_N     = 62            # profile sample count
-MAX_SITES = 80            # cap nearby sites to avoid huge responses
+N_AZ      = 72            # azimuth rays (72 = 5° steps; fast enough for map polygon)
+LOS_N     = 32            # profile sample count (32 is accurate for 10 km)
+MAX_SITES = 40            # cap nearby sites
 
 # ── Config ────────────────────────────────────────────────────────────────────
 AWS_REGION = os.getenv("AWS_DEFAULT_REGION", "ap-southeast-1")
@@ -307,7 +307,14 @@ def run_pave(candidate_lat: float,
              boto_session,
              initiated_by: str = 'system',
              nova_run_id: Optional[int] = None,
-             nova_candidate_label: Optional[str] = None) -> dict:
+             nova_candidate_label: Optional[str] = None,
+             fast_mode: bool = True) -> dict:
+    """
+    fast_mode=True  → skip viewshed polygon + skip terrain profiles in main run.
+                       Profiles are fetched on demand via /api/pave/profile.
+                       Typical run time: 5-20s.
+    fast_mode=False → include viewshed + all profiles (slow, 1-5 min).
+    """
     """
     Full PAVE analysis for one candidate tower location.
 
@@ -370,10 +377,14 @@ def run_pave(candidate_lat: float,
     except Exception as e:
         return {'error': f'DEM load failed: {e}', 'run_id': None}
 
-    # ── 3. Viewshed polygon ───────────────────────────────────────────────────
-    poly     = viewshed_polygon(dem, tf, candidate_lat, candidate_lon)
-    vs_geo   = _sanitise(mapping(poly)) if poly else None
-    print(f"[PAVE] Viewshed polygon {'computed' if poly else 'failed'}")
+    # ── 3. Viewshed polygon (skipped in fast_mode) ────────────────────────────
+    if fast_mode:
+        vs_geo = None
+        print("[PAVE] fast_mode: viewshed skipped")
+    else:
+        poly   = viewshed_polygon(dem, tf, candidate_lat, candidate_lon)
+        vs_geo = _sanitise(mapping(poly)) if poly else None
+        print(f"[PAVE] Viewshed polygon {'computed' if poly else 'failed'}")
 
     # ── 4. Batch LOS check ────────────────────────────────────────────────────
     sl  = np.array([s['lat'] for s in nearby])
@@ -381,22 +392,24 @@ def run_pave(candidate_lat: float,
     los = los_batch(dem, tf, candidate_lat, candidate_lon, OBS_H, sl, so, TGT_H)
     print(f"[PAVE] LOS: {int(los.sum())} clear / {int((~los).sum())} blocked")
 
-    # ── 5. Build site list with profile data ──────────────────────────────────
+    # ── 5. Build site list (profiles lazy in fast_mode) ───────────────────────
     sites_out = []
     for i, s in enumerate(nearby):
-        profile = get_profile_data(
-            dem, tf,
-            candidate_lat, candidate_lon, OBS_H,
-            s['lat'], s['lng'], TGT_H,
-        )
-        sites_out.append({
-            'site_id':     s.get('site_id', '—'),
-            'lat':         round(s['lat'], 6),
-            'lng':         round(s['lng'], 6),
-            'los':         bool(los[i]),
-            'distance_m':  int(round(s['_dist'])),
-            'profile':     profile,
-        })
+        site_entry = {
+            'site_id':    s.get('site_id', '—'),
+            'lat':        round(s['lat'], 6),
+            'lng':        round(s['lng'], 6),
+            'los':        bool(los[i]),
+            'distance_m': int(round(s['_dist'])),
+            'profile':    None,   # fetched on demand via /api/pave/profile
+        }
+        if not fast_mode:
+            site_entry['profile'] = get_profile_data(
+                dem, tf,
+                candidate_lat, candidate_lon, OBS_H,
+                s['lat'], s['lng'], TGT_H,
+            )
+        sites_out.append(site_entry)
 
     lc = int(los.sum())
     elapsed = round(time.time() - t0, 2)
