@@ -113,7 +113,7 @@
         table.dataTable tbody tr.selected td { font-weight: bold; color: #1e3a8a; border-top: 1px solid #93c5fd; border-bottom: 1px solid #93c5fd; }
 
         /* ── MAP / SIDEBAR LAYOUT ── */
-        #mapView, #mapContainer { position: absolute; top: 72px; bottom: 0; left: 0; right: 0; overflow: hidden; background: #020912; }
+        #mapView, #mapContainer { position: absolute; top: 72px; bottom: 0; left: 0; right: 0; overflow: visible; background: #020912; }
 
         /* ── MAP BOTTOM INTELLIGENCE BAR ── */
         #mapBottomBar { box-shadow: 0 -2px 20px rgba(0,0,0,.5); }
@@ -1469,7 +1469,7 @@
 
 
 
-    <div id="mapContainer" style="position:absolute; top:72px; bottom:0; left:0; right:0; overflow:hidden;">
+    <div id="mapContainer" style="position:absolute; top:72px; bottom:0; left:0; right:0; overflow:visible;">
 
     <!-- Google Maps-style Traffic Layer Control -->
     <div id="mapLayerControl" style="display:flex; align-items:flex-end; gap:8px;">
@@ -10189,120 +10189,6 @@ out center;`;
                         <span class="bb-item-rank">#${i+1}</span>
                         <span class="bb-item-name">${name}</span>
                         ${i === 0 ? globalBadge : ''}
-                    </div>
-                    <span class="bb-item-badge">${badge}</span>
-                </div>`;
-            }).join('');
-        }
-
-        function _attachMapListeners() {
-            if (_mapBound) return;
-            if (typeof map === 'undefined' || !map || !map.on) { setTimeout(_attachMapListeners, 600); return; }
-            map.on('moveend zoomend', _update);
-            _mapBound = true;
-        }
-    })();
-    </script>
-</body>
-
-        let _open = false, _loaded = false, _mapBound = false;
-        let _mr = [], _ookla = [], _congested = [];
-
-        window.toggleMapBottomBar = function() {
-            _open = !_open;
-            const panel    = document.getElementById('mapBottomBarPanel');
-            const chevron  = document.getElementById('mapBottomBarChevron');
-            const layerCtrl = document.getElementById('mapLayerControl');
-            if (_open) {
-                panel.style.display     = 'block';
-                chevron.style.transform = 'rotate(180deg)';
-                if (layerCtrl) layerCtrl.style.bottom = (PANEL_H + HANDLE_H + 8) + 'px';
-                _attachMapListeners();
-                if (!_loaded) _load(); else _update();
-            } else {
-                panel.style.display     = 'none';
-                chevron.style.transform = '';
-                if (layerCtrl) layerCtrl.style.bottom = LAYER_DEFAULT_BOTTOM + 'px';
-            }
-        };
-
-        window.refreshBottomBar = function() {
-            _loaded = false;
-            if (_open) _load();
-        };
-
-        async function _load() {
-            const spinner = document.getElementById('mapBottomBarLoading');
-            if (spinner) spinner.style.display = 'inline-flex';
-            try {
-                const [cRes, tRes] = await Promise.all([
-                    fetch('/api/map/worst_clusters'),
-                    fetch('/api/map/top_congested')
-                ]);
-                const cd = await cRes.json();
-                const td = await tRes.json();
-
-                _mr    = (cd.mr    || []).map(c => ({...c, center_lat: +c.center_lat, center_lon: +c.center_lon}));
-                _ookla = (cd.ookla || []).map(c => ({...c, center_lat: +c.center_lat, center_lon: +c.center_lon}));
-
-                // Enrich congested with lat/lng from siteDataCache
-                const cache = (typeof siteDataCache !== 'undefined' && Array.isArray(siteDataCache)) ? siteDataCache : [];
-                _congested = td.map(d => {
-                    const prefix = (d.zoom_sector_id || '').split('_')[0].toUpperCase();
-                    const site   = cache.find(s => (s.site_id || '').toUpperCase() === prefix);
-                    return { ...d, lat: site ? +site.lat : null, lng: site ? +site.lng : null };
-                }).filter(d => d.lat && d.lng && !isNaN(d.lat) && !isNaN(d.lng));
-
-                _loaded = true;
-                _update();
-            } catch(e) {
-                console.error('Bottom bar load failed:', e);
-                ['bottomBarMR','bottomBarOokla','bottomBarCongested'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.innerHTML = '<div class="bb-empty">Failed to load</div>';
-                });
-            } finally {
-                if (spinner) spinner.style.display = 'none';
-            }
-        }
-
-        function _update() {
-            if (!_open || !_loaded) return;
-            if (typeof map === 'undefined' || !map || !map.getBounds) return;
-            const b = map.getBounds();
-
-            const mrV  = _mr.filter(c    => !isNaN(c.center_lat) && b.contains([c.center_lat, c.center_lon]));
-            const okV  = _ookla.filter(c => !isNaN(c.center_lat) && b.contains([c.center_lat, c.center_lon]));
-            const cnV  = _congested.filter(d => b.contains([d.lat, d.lng]));
-
-            const info = document.getElementById('mapBottomBarInfo');
-            if (info) info.textContent = `· ${mrV.length} MR · ${okV.length} Ookla · ${cnV.length} Congested in view`;
-
-            _renderCol('bottomBarMR',        mrV,  'mr');
-            _renderCol('bottomBarOokla',     okV,  'ookla');
-            _renderCol('bottomBarCongested', cnV,  'congested');
-        }
-
-        function _renderCol(elId, data, type) {
-            const el = document.getElementById(elId);
-            if (!el) return;
-            if (!data.length) { el.innerHTML = '<div class="bb-empty">No data in current view</div>'; return; }
-            el.innerHTML = data.slice(0, 8).map((d, i) => {
-                let name, badge, action;
-                if (type === 'congested') {
-                    name   = d.zoom_sector_id || '';
-                    badge  = `${d.congested_weeks} Wks`;
-                    action = `zoomToSite && zoomToSite('${(name.split('_')[0])}')`;
-                } else {
-                    const src = type === 'mr' ? 'MR' : 'Ookla';
-                    name   = `Cluster ${d.cluster_id} (${d.point_count} pts)`;
-                    badge  = `${(+d.avg_signal).toFixed(1)} dBm`;
-                    action = `focusCluster(${d.cluster_id},'${src}',${d.center_lat},${d.center_lon})`;
-                }
-                return `<div class="bb-item" onclick="${action}">
-                    <div style="display:flex;align-items:center;min-width:0;overflow:hidden;">
-                        <span class="bb-item-rank">#${i+1}</span>
-                        <span class="bb-item-name">${name}</span>
                     </div>
                     <span class="bb-item-badge">${badge}</span>
                 </div>`;
