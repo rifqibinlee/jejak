@@ -114,6 +114,16 @@
 
         /* ── MAP / SIDEBAR LAYOUT ── */
         #mapView, #mapContainer { position: absolute; top: 72px; bottom: 0; left: 0; right: 0; overflow: hidden; background: #020912; }
+
+        /* ── MAP BOTTOM INTELLIGENCE BAR ── */
+        #mapBottomBar { box-shadow: 0 -2px 20px rgba(0,0,0,.5); }
+        .bb-item { display:flex; align-items:center; justify-content:space-between; padding:6px 12px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.04); transition:background .15s; }
+        .bb-item:hover { background:rgba(255,255,255,0.05); }
+        .bb-item:last-child { border-bottom:none; }
+        .bb-item-rank { font-size:9px; color:#3a5c75; margin-right:5px; font-family:'Raleway',sans-serif; flex-shrink:0; }
+        .bb-item-name { font-size:11px; font-weight:600; color:#e8f0f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .bb-item-badge { font-size:10px; font-weight:700; padding:2px 7px; white-space:nowrap; flex-shrink:0; font-family:'Raleway',sans-serif; letter-spacing:.5px; background:rgba(248,113,113,0.15); color:#f87171; }
+        .bb-empty { display:flex; align-items:center; justify-content:center; height:100%; font-size:11px; color:#3a5c75; font-family:'DM Sans',sans-serif; font-style:italic; text-align:center; padding:16px; }
         #sidebar { position: absolute; top: 0; left: 0; bottom: 0; width: 350px; background: rgba(2,9,18,0.97); color: #e8f0f8; z-index: 1000; padding: 0; box-shadow: none; display: flex; flex-direction: column; gap: 0; overflow: hidden; }
         #map { position: absolute; top: 0; right: 0; bottom: 0; left: 350px; z-index: 1; }
         .control-group { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 0; border: 1px solid rgba(255,255,255,0.08); }
@@ -158,7 +168,7 @@
         .header-btn:hover { background: #fff; }
 
         /* ── LAYER CONTROL ── */
-        #mapLayerControl { position: absolute; bottom: 24px; left: 366px; z-index: 1100; transition: left .3s cubic-bezier(.4,0,.2,1); }
+        #mapLayerControl { position: absolute; bottom: 60px; left: 366px; z-index: 1100; transition: left .3s cubic-bezier(.4,0,.2,1), bottom .3s cubic-bezier(.4,0,.2,1); }
         #layerMenuBtn { display: flex; align-items: center; gap: 8px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 7px 11px 7px 9px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.12); transition: box-shadow .2s, background .15s; user-select: none; white-space: nowrap; }
         #layerMenuBtn:hover  { background: #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,.14); }
         #layerMenuBtn:active { background: #f1f5f9; }
@@ -2016,6 +2026,49 @@
         }
     </script>
 
+    <!-- ══ MAP BOTTOM INTELLIGENCE BAR ══ -->
+    <div id="mapBottomBar" style="position:absolute;bottom:0;left:350px;right:0;z-index:1050;transition:left .3s cubic-bezier(.4,0,.2,1);">
+      <!-- Handle — always visible -->
+      <button id="mapBottomBarHandle" onclick="toggleMapBottomBar()" style="width:100%;height:36px;background:rgba(2,9,18,0.96);border:none;border-top:1px solid rgba(255,255,255,0.12);cursor:pointer;display:flex;align-items:center;gap:10px;padding:0 16px;">
+        <i id="mapBottomBarChevron" class="fas fa-chevron-up" style="color:#7eaac6;font-size:10px;transition:transform .25s;flex-shrink:0;"></i>
+        <span style="font-family:'Raleway',sans-serif;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#e8f0f8;">Map Intelligence</span>
+        <span id="mapBottomBarInfo" style="font-family:'DM Sans',sans-serif;font-size:11px;color:#3a5c75;">· Current view</span>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+          <span id="mapBottomBarLoading" style="display:none;font-size:10px;color:#7eaac6;font-family:'DM Sans',sans-serif;"><i class="fas fa-circle-notch fa-spin" style="margin-right:4px;"></i>Loading…</span>
+          <button onclick="event.stopPropagation();refreshBottomBar()" title="Refresh data" style="background:none;border:none;cursor:pointer;color:#3a5c75;font-size:11px;padding:4px;transition:color .2s;" onmouseover="this.style.color='#e8f0f8'" onmouseout="this.style.color='#3a5c75'"><i class="fas fa-redo-alt"></i></button>
+        </div>
+      </button>
+      <!-- Panel — hidden by default -->
+      <div id="mapBottomBarPanel" style="display:none;background:rgba(2,9,18,0.97);border-top:1px solid rgba(255,255,255,0.08);">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;height:200px;">
+          <!-- MR Clusters -->
+          <div style="border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:6px;flex-shrink:0;">
+              <i class="fas fa-square" style="color:#60a5fa;font-size:8px;"></i>
+              <span style="font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#60a5fa;">Worst MR Clusters</span>
+            </div>
+            <div id="bottomBarMR" style="flex:1;overflow-y:auto;"></div>
+          </div>
+          <!-- Ookla Clusters -->
+          <div style="border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:6px;flex-shrink:0;">
+              <i class="fas fa-caret-up" style="color:#a78bfa;font-size:10px;"></i>
+              <span style="font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#a78bfa;">Worst Ookla Clusters</span>
+            </div>
+            <div id="bottomBarOokla" style="flex:1;overflow-y:auto;"></div>
+          </div>
+          <!-- Congested Sites -->
+          <div style="display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:6px;flex-shrink:0;">
+              <i class="fas fa-trophy" style="color:#f87171;font-size:9px;"></i>
+              <span style="font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f87171;">Most Congested</span>
+            </div>
+            <div id="bottomBarCongested" style="flex:1;overflow-y:auto;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     </div><!-- /#mapContainer -->
 
     <!-- ══ SLIDING PANELS — body-level so they work from any tab ══ -->
@@ -3304,7 +3357,7 @@
         </form>
     </div>
 
-    <button id="chatToggleBtn" onclick="toggleChat()" class="fixed bottom-6 right-8 bg-blue-600 text-white w-14 h-14 rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.3)] z-[6000] flex items-center justify-center text-2xl hover:bg-blue-700 hover:scale-105 transition-all">
+    <button id="chatToggleBtn" onclick="toggleChat()" class="fixed bottom-6 right-8 bg-blue-600 text-white w-14 h-14 rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.3)] z-[6000] flex items-center justify-center text-2xl hover:bg-blue-700 hover:scale-105 transition-all" style="transition: bottom .3s cubic-bezier(.4,0,.2,1), background .2s, transform .2s;">
         <i class="fas fa-comment-dots"></i>
     </button>
 
@@ -6361,15 +6414,18 @@
             mapEl.classList.toggle('expanded');
 
             const icon = toggleBtn.querySelector('i');
-            if (sidebar.classList.contains('collapsed')) {
+            const collapsed = sidebar.classList.contains('collapsed');
+            if (collapsed) {
                 icon.classList.replace('fa-chevron-left', 'fa-chevron-right');
                 if (layerCtrl) layerCtrl.style.left = '16px';
             } else {
                 icon.classList.replace('fa-chevron-right', 'fa-chevron-left');
                 if (layerCtrl) layerCtrl.style.left = '366px';
             }
+            // Sync bottom bar
+            const bar = document.getElementById('mapBottomBar');
+            if (bar) bar.style.left = collapsed ? '0' : '350px';
 
-            // Force Leaflet to recalculate map size after transition
             setTimeout(() => { map.invalidateSize(); }, 300);
         }
 
@@ -10003,5 +10059,263 @@ out center;`;
             <i class="fas fa-drafting-compass" style="color:#8b5cf6;width:14px;"></i> Copy as DMS
         </div>
     </div>
+    <!-- ══ MAP BOTTOM INTELLIGENCE BAR — JS ══ -->
+    <script>
+    (function() {
+        const PANEL_H    = 200;
+        const HANDLE_H   = 36;
+        const TOTAL_H    = PANEL_H + HANDLE_H;          // 236px
+        const LAYER_BASE = 60;                           // always sit above bar handle
+        const LAYER_OPEN = TOTAL_H + 24;                 // 260px when panel open
+        const CHAT_BASE  = 24;                           // chatBtn default
+        const CHAT_OPEN  = TOTAL_H + 16;                 // 252px when panel open
+
+        let _open = false, _loaded = false, _mapBound = false;
+        let _mr = [], _ookla = [], _congested = [];
+
+        window.toggleMapBottomBar = function() {
+            _open = !_open;
+            const panel     = document.getElementById('mapBottomBarPanel');
+            const chevron   = document.getElementById('mapBottomBarChevron');
+            const layerCtrl = document.getElementById('mapLayerControl');
+            const chatBtn   = document.getElementById('chatToggleBtn');
+
+            if (_open) {
+                panel.style.display     = 'block';
+                chevron.style.transform = 'rotate(180deg)';
+                if (layerCtrl) layerCtrl.style.bottom = LAYER_OPEN + 'px';
+                if (chatBtn)   { chatBtn.style.transition = 'bottom .3s'; chatBtn.style.bottom = CHAT_OPEN + 'px'; }
+                _attachMapListeners();
+                if (!_loaded) _load(); else _update();
+            } else {
+                panel.style.display     = 'none';
+                chevron.style.transform = '';
+                if (layerCtrl) layerCtrl.style.bottom = LAYER_BASE + 'px';
+                if (chatBtn)   { chatBtn.style.transition = 'bottom .3s'; chatBtn.style.bottom = CHAT_BASE + 'px'; }
+            }
+        };
+
+        window.refreshBottomBar = function() {
+            _loaded = false;
+            if (_open) _load();
+        };
+
+        async function _load() {
+            const spinner = document.getElementById('mapBottomBarLoading');
+            if (spinner) spinner.style.display = 'inline-flex';
+            try {
+                const [cRes, tRes] = await Promise.all([
+                    fetch('/api/map/worst_clusters'),
+                    fetch('/api/map/top_congested')
+                ]);
+                const cd = await cRes.json();
+                const td = await tRes.json();
+
+                _mr    = (cd.mr    || []).map(c => ({...c, center_lat: +c.center_lat, center_lon: +c.center_lon}));
+                _ookla = (cd.ookla || []).map(c => ({...c, center_lat: +c.center_lat, center_lon: +c.center_lon}));
+
+                // Enrich congested with lat/lng from siteDataCache
+                const cache = (typeof siteDataCache !== 'undefined' && Array.isArray(siteDataCache)) ? siteDataCache : [];
+                _congested = td.map(d => {
+                    const prefix = (d.zoom_sector_id || '').split('_')[0].toUpperCase();
+                    const site   = cache.find(s => (s.site_id || '').toUpperCase() === prefix);
+                    return { ...d, lat: site ? +site.lat : null, lng: site ? +site.lng : null };
+                }).filter(d => d.lat && d.lng && !isNaN(d.lat) && !isNaN(d.lng));
+
+                _loaded = true;
+                _update();
+            } catch(e) {
+                console.error('Bottom bar load failed:', e);
+                ['bottomBarMR','bottomBarOokla','bottomBarCongested'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = '<div class="bb-empty">Failed to load</div>';
+                });
+            } finally {
+                if (spinner) spinner.style.display = 'none';
+            }
+        }
+
+        function _update() {
+            if (!_open || !_loaded) return;
+            if (typeof map === 'undefined' || !map || !map.getBounds) return;
+            const b = map.getBounds();
+
+            const mrV = _mr.filter(c    => !isNaN(c.center_lat) && !isNaN(c.center_lon) && b.contains([c.center_lat, c.center_lon]));
+            const okV = _ookla.filter(c => !isNaN(c.center_lat) && !isNaN(c.center_lon) && b.contains([c.center_lat, c.center_lon]));
+            const cnV = _congested.filter(d => d.lat && d.lng && b.contains([d.lat, d.lng]));
+
+            const inView = mrV.length + okV.length + cnV.length;
+            const info   = document.getElementById('mapBottomBarInfo');
+
+            // Use in-view data if available, else fall back to global with a label
+            if (inView > 0) {
+                if (info) info.textContent = `· ${mrV.length} MR · ${okV.length} Ookla · ${cnV.length} Congested in view`;
+                _renderCol('bottomBarMR',        mrV,   'mr',        false);
+                _renderCol('bottomBarOokla',     okV,   'ookla',     false);
+                _renderCol('bottomBarCongested', cnV,   'congested', false);
+            } else {
+                // Nothing in bounds — show global top data with a note
+                if (info) info.textContent = '· Showing global data (zoom in to filter by view)';
+                _renderCol('bottomBarMR',        _mr,        'mr',        true);
+                _renderCol('bottomBarOokla',     _ookla,     'ookla',     true);
+                _renderCol('bottomBarCongested', _congested, 'congested', true);
+            }
+        }
+
+        function _renderCol(elId, data, type, isGlobal) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            if (!data.length) {
+                el.innerHTML = '<div class="bb-empty">No data available</div>';
+                return;
+            }
+            const globalBadge = isGlobal
+                ? '<span style="font-size:9px;padding:1px 5px;background:rgba(255,255,255,0.08);color:#3a5c75;margin-left:4px;border-radius:2px;">GLOBAL</span>'
+                : '';
+            el.innerHTML = data.slice(0, 8).map((d, i) => {
+                let name, badge, action;
+                if (type === 'congested') {
+                    name   = d.zoom_sector_id || '';
+                    badge  = `${d.congested_weeks} Wks`;
+                    action = `zoomToSite && zoomToSite('${name.split('_')[0]}')`;
+                } else {
+                    const src = type === 'mr' ? 'MR' : 'Ookla';
+                    name   = `Cluster ${d.cluster_id} (${d.point_count} pts)`;
+                    badge  = `${(+d.avg_signal).toFixed(1)} dBm`;
+                    action = `focusCluster(${d.cluster_id},'${src}',${d.center_lat},${d.center_lon})`;
+                }
+                return `<div class="bb-item" onclick="${action}">
+                    <div style="display:flex;align-items:center;min-width:0;overflow:hidden;">
+                        <span class="bb-item-rank">#${i+1}</span>
+                        <span class="bb-item-name">${name}</span>
+                        ${i === 0 ? globalBadge : ''}
+                    </div>
+                    <span class="bb-item-badge">${badge}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function _attachMapListeners() {
+            if (_mapBound) return;
+            if (typeof map === 'undefined' || !map || !map.on) { setTimeout(_attachMapListeners, 600); return; }
+            map.on('moveend zoomend', _update);
+            _mapBound = true;
+        }
+    })();
+    </script>
+</body>
+
+        let _open = false, _loaded = false, _mapBound = false;
+        let _mr = [], _ookla = [], _congested = [];
+
+        window.toggleMapBottomBar = function() {
+            _open = !_open;
+            const panel    = document.getElementById('mapBottomBarPanel');
+            const chevron  = document.getElementById('mapBottomBarChevron');
+            const layerCtrl = document.getElementById('mapLayerControl');
+            if (_open) {
+                panel.style.display     = 'block';
+                chevron.style.transform = 'rotate(180deg)';
+                if (layerCtrl) layerCtrl.style.bottom = (PANEL_H + HANDLE_H + 8) + 'px';
+                _attachMapListeners();
+                if (!_loaded) _load(); else _update();
+            } else {
+                panel.style.display     = 'none';
+                chevron.style.transform = '';
+                if (layerCtrl) layerCtrl.style.bottom = LAYER_DEFAULT_BOTTOM + 'px';
+            }
+        };
+
+        window.refreshBottomBar = function() {
+            _loaded = false;
+            if (_open) _load();
+        };
+
+        async function _load() {
+            const spinner = document.getElementById('mapBottomBarLoading');
+            if (spinner) spinner.style.display = 'inline-flex';
+            try {
+                const [cRes, tRes] = await Promise.all([
+                    fetch('/api/map/worst_clusters'),
+                    fetch('/api/map/top_congested')
+                ]);
+                const cd = await cRes.json();
+                const td = await tRes.json();
+
+                _mr    = (cd.mr    || []).map(c => ({...c, center_lat: +c.center_lat, center_lon: +c.center_lon}));
+                _ookla = (cd.ookla || []).map(c => ({...c, center_lat: +c.center_lat, center_lon: +c.center_lon}));
+
+                // Enrich congested with lat/lng from siteDataCache
+                const cache = (typeof siteDataCache !== 'undefined' && Array.isArray(siteDataCache)) ? siteDataCache : [];
+                _congested = td.map(d => {
+                    const prefix = (d.zoom_sector_id || '').split('_')[0].toUpperCase();
+                    const site   = cache.find(s => (s.site_id || '').toUpperCase() === prefix);
+                    return { ...d, lat: site ? +site.lat : null, lng: site ? +site.lng : null };
+                }).filter(d => d.lat && d.lng && !isNaN(d.lat) && !isNaN(d.lng));
+
+                _loaded = true;
+                _update();
+            } catch(e) {
+                console.error('Bottom bar load failed:', e);
+                ['bottomBarMR','bottomBarOokla','bottomBarCongested'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = '<div class="bb-empty">Failed to load</div>';
+                });
+            } finally {
+                if (spinner) spinner.style.display = 'none';
+            }
+        }
+
+        function _update() {
+            if (!_open || !_loaded) return;
+            if (typeof map === 'undefined' || !map || !map.getBounds) return;
+            const b = map.getBounds();
+
+            const mrV  = _mr.filter(c    => !isNaN(c.center_lat) && b.contains([c.center_lat, c.center_lon]));
+            const okV  = _ookla.filter(c => !isNaN(c.center_lat) && b.contains([c.center_lat, c.center_lon]));
+            const cnV  = _congested.filter(d => b.contains([d.lat, d.lng]));
+
+            const info = document.getElementById('mapBottomBarInfo');
+            if (info) info.textContent = `· ${mrV.length} MR · ${okV.length} Ookla · ${cnV.length} Congested in view`;
+
+            _renderCol('bottomBarMR',        mrV,  'mr');
+            _renderCol('bottomBarOokla',     okV,  'ookla');
+            _renderCol('bottomBarCongested', cnV,  'congested');
+        }
+
+        function _renderCol(elId, data, type) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            if (!data.length) { el.innerHTML = '<div class="bb-empty">No data in current view</div>'; return; }
+            el.innerHTML = data.slice(0, 8).map((d, i) => {
+                let name, badge, action;
+                if (type === 'congested') {
+                    name   = d.zoom_sector_id || '';
+                    badge  = `${d.congested_weeks} Wks`;
+                    action = `zoomToSite && zoomToSite('${(name.split('_')[0])}')`;
+                } else {
+                    const src = type === 'mr' ? 'MR' : 'Ookla';
+                    name   = `Cluster ${d.cluster_id} (${d.point_count} pts)`;
+                    badge  = `${(+d.avg_signal).toFixed(1)} dBm`;
+                    action = `focusCluster(${d.cluster_id},'${src}',${d.center_lat},${d.center_lon})`;
+                }
+                return `<div class="bb-item" onclick="${action}">
+                    <div style="display:flex;align-items:center;min-width:0;overflow:hidden;">
+                        <span class="bb-item-rank">#${i+1}</span>
+                        <span class="bb-item-name">${name}</span>
+                    </div>
+                    <span class="bb-item-badge">${badge}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function _attachMapListeners() {
+            if (_mapBound) return;
+            if (typeof map === 'undefined' || !map || !map.on) { setTimeout(_attachMapListeners, 600); return; }
+            map.on('moveend zoomend', _update);
+            _mapBound = true;
+        }
+    })();
+    </script>
 </body>
 </html>
