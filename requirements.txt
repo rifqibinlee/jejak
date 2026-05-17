@@ -30,7 +30,7 @@ SQLAlchemy
 # GIS & Mapping
 geopandas
 shapely
-rasterio
+rasterio --no-binary rasterio
 openpyxl
 osmnx
 scikit-learn

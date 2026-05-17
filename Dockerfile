@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     gdal-bin \
     libgdal-dev \
+    libgeos-dev \
+    libproj-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a virtual environment so we can easily copy all installed packages later
@@ -38,12 +40,12 @@ ENV PYTHONFAULTHANDLER=1 \
 WORKDIR /app
 
 # Install ONLY the runtime libraries needed to execute (no compilers!)
-# libpq5 is the runtime equivalent of libpq-dev
-# libgdal32 is the GDAL runtime required by rasterio
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     postgresql-client \
-    libgdal32 \
+    libgdal-dev \
+    libgeos-dev \
+    libproj-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the pre-compiled Python packages from the builder stage
