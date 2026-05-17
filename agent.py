@@ -11,22 +11,32 @@ from langchain_community.chat_models import ChatLiteLLM
 from langchain_core.tools import tool
 from langchain_core.messages import SystemMessage, HumanMessage, messages_to_dict, messages_from_dict
 from langgraph.prebuilt import create_react_agent
-from sentence_transformers import CrossEncoder, SentenceTransformer
+try:
+    from sentence_transformers import CrossEncoder, SentenceTransformer
+    _sentence_transformers_available = True
+except ImportError:
+    _sentence_transformers_available = False
+    CrossEncoder = None
+    SentenceTransformer = None
 
 # --- AWS ATHENA CONFIGURATION ---
 ATHENA_DATABASE = "advanced-analytics"
 S3_STAGING_DIR = "s3://jejak-mappro-demo /3W-data/athena-query-results/"
 aws_session = boto3.Session(region_name="ap-southeast-1")
 
-print("[System] Loading Cross-Encoder Reranker Model...")
+reranker = None
+embedder = None
 
-try:
-    reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
-    print("[System] Loading Native Nomic Embedder...")
-    embedder = SentenceTransformer('nomic-ai/nomic-embed-text-v1.5', trust_remote_code=True)
-except Exception as e:
-    print(f"[Warning] Could not load models: {e}")
-    reranker = None
+if _sentence_transformers_available:
+    print("[System] Loading Cross-Encoder Reranker Model...")
+    try:
+        reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+        print("[System] Loading Native Nomic Embedder...")
+        embedder = SentenceTransformer('nomic-ai/nomic-embed-text-v1.5', trust_remote_code=True)
+    except Exception as e:
+        print(f"[Warning] Could not load models: {e}")
+else:
+    print("[System] sentence-transformers not installed; reranker/embedder disabled.")
 
 # ==========================================
 # 1. DEFINE THE TOOLS FOR LLAMA 3.2
@@ -439,6 +449,8 @@ def search_telecom_manuals(query: str, vendor: str = "All") -> str:
     Optionally pass the vendor (e.g., 'Ericsson', 'ZTE') if mentioned in the prompt.
     """
     print(f"[Agent Tool] Searching manuals for: {query} | Vendor: {vendor}")
+    if embedder is None:
+        return "Manual search unavailable: embedding model not loaded (sentence-transformers not installed)."
     try:
         # 1. Turn the user's question into a vector natively
         query_vector = embedder.encode(query).tolist()
