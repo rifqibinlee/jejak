@@ -8,7 +8,7 @@ bcrypt
 requests
 
 # Data Science & Math
-numpy<2.0.0
+numpy>=2.0.0
 pandas
 python-dateutil
 pytz
