@@ -9617,6 +9617,7 @@ out center;`;
 
     var _paveOpen = false;
     var _paveLat  = null, _paveLng  = null;
+    var _paveRunId = null;
     var _pavePinning = false;
     var _pavePinMarker   = null;
     var _paveViewshedLayer = null;
@@ -9746,6 +9747,7 @@ out center;`;
     function paveRenderResultsJeak(data) {
         var LMap = paveTargetMap();
         clearPaveLayersJeak();
+        _paveRunId = data.run_id || null;
         _paveSitesData = data.sites || [];
         var summary = data.summary || {};
 
@@ -9848,10 +9850,10 @@ out center;`;
         var chart = document.getElementById('paveProfileChart');
         if (title) title.textContent = s.site_id + ' — ' + (s.los ? '✓ LOS Clear' : '✗ LOS Blocked') + ' · ' + s.distance_m + 'm';
         box.style.display = 'block';
-        if (chart) chart.innerHTML = '<div style="text-align:center;padding:20px;color:#d97706;font-size:0.75rem;"><i class="fas fa-circle-notch fa-spin"></i> Loading profile…</div>';
 
-        // Fetch lazily if not already loaded
+        // Only fetch if profile not already in memory
         if (!s.profile) {
+            if (chart) chart.innerHTML = '<div style="text-align:center;padding:20px;color:#d97706;font-size:0.75rem;"><i class="fas fa-circle-notch fa-spin"></i> Loading profile…</div>';
             try {
                 var res = await fetch('/api/pave/profile', {
                     method: 'POST',
@@ -9862,11 +9864,12 @@ out center;`;
                         site_lat: s.lat,
                         site_lng: s.lng,
                         site_id: s.site_id,
+                        run_id: _paveRunId,
                     }),
                 });
                 var data = await res.json();
                 if (!data.success) { if (chart) chart.innerHTML = '<div style="color:#dc2626;padding:10px;font-size:0.72rem;">Profile failed: ' + data.error + '</div>'; return; }
-                s.profile = data.profile;   // cache it
+                s.profile = data.profile;   // cache in memory
             } catch(e) {
                 if (chart) chart.innerHTML = '<div style="color:#dc2626;padding:10px;font-size:0.72rem;">Network error</div>';
                 return;
