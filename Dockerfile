@@ -5,12 +5,14 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
-# Install heavy C-compilers and development headers
+# Install heavy C-compilers and development headers (including GDAL for rasterio)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     build-essential \
     python3-dev \
     libpq-dev \
+    gdal-bin \
+    libgdal-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a virtual environment so we can easily copy all installed packages later
@@ -37,9 +39,11 @@ WORKDIR /app
 
 # Install ONLY the runtime libraries needed to execute (no compilers!)
 # libpq5 is the runtime equivalent of libpq-dev
+# libgdal32 is the GDAL runtime required by rasterio
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     postgresql-client \
+    libgdal32 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the pre-compiled Python packages from the builder stage
