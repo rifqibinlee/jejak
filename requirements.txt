@@ -45,5 +45,4 @@ langchain-ollama
 langchain-text-splitters
 litellm
 pypdf
-sentence-transformers
-einops
+# sentence-transformers and einops removed: they pull torch+CUDA (~1.5GB) onto a CPU-only ARM64 instance
