@@ -39,15 +39,14 @@ ENV PYTHONFAULTHANDLER=1 \
 
 WORKDIR /app
 
-# Install runtime libraries + GDAL (needed by rasterio at runtime)
+# Install runtime GDAL/GEOS/PROJ libraries (needed by rasterio at runtime)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     postgresql-client \
-    libgdal-dev \
-    libgeos-dev \
-    libproj-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && /opt/venv/bin/pip install --no-cache-dir rasterio==1.5.0
+    libgdal36 \
+    libgeos3.13.1 \
+    libproj25 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy the pre-compiled Python packages from the builder stage
 COPY --from=builder /opt/venv /opt/venv
