@@ -2571,10 +2571,11 @@ def pave_history():
 @api_login_required
 def pave_profile():
     """
-    Lazy terrain profile for one site pair.
-    Body: { candidate_lat, candidate_lon, site_lat, site_lng, site_id }
-    Called when user clicks a site in the PAVE panel.
+    Terrain profile for one site pair.
+    Reads from DB (pre-computed during PAVE run) — falls back to live S3 calc.
+    Body: { candidate_lat, candidate_lon, site_lat, site_lng, run_id (optional) }
     """
+    import json as _json
     data = request.get_json(silent=True) or {}
     try:
         cand_lat = float(data['candidate_lat'])
@@ -2584,11 +2585,52 @@ def pave_profile():
     except (KeyError, TypeError, ValueError) as e:
         return jsonify({'success': False, 'error': f'Invalid params: {e}'}), 400
 
+    run_id = data.get('run_id')
+
+    # ── Fast path: read pre-computed profile from DB ──────────────────────────
+    try:
+        import psycopg2
+        conn = psycopg2.connect(
+            host=os.getenv('DB_HOST', 'vibe_db'),
+            database=os.getenv('DB_NAME', 'vibe_db'),
+            user=os.getenv('DB_USER', 'postgres'),
+            password=os.getenv('DB_PASSWORD', '1234'),
+            port=os.getenv('DB_PORT', '5432'),
+        )
+        cur = conn.cursor()
+        if run_id:
+            cur.execute(
+                """SELECT profile_json FROM pave_sites
+                   WHERE run_id=%s
+                   AND ABS(lat-%s)<0.00005 AND ABS(lng-%s)<0.00005
+                   LIMIT 1""",
+                (run_id, site_lat, site_lng),
+            )
+        else:
+            cur.execute(
+                """SELECT ps.profile_json FROM pave_sites ps
+                   JOIN pave_runs pr ON ps.run_id=pr.id
+                   WHERE ABS(pr.candidate_lat-%s)<0.00005
+                   AND ABS(pr.candidate_lon-%s)<0.00005
+                   AND ABS(ps.lat-%s)<0.00005
+                   AND ABS(ps.lng-%s)<0.00005
+                   ORDER BY pr.ran_at DESC LIMIT 1""",
+                (cand_lat, cand_lon, site_lat, site_lng),
+            )
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        if row and row[0]:
+            return jsonify({'success': True, 'profile': _json.loads(row[0]), 'source': 'db'})
+    except Exception as db_err:
+        print(f"[PAVE profile] DB lookup failed: {db_err}")
+
+    # ── Slow fallback: compute live from S3 DEM ───────────────────────────────
     try:
         from pave_pipeline import get_dem, get_profile_data, SEARCH_R, OBS_H, TGT_H
         dem, tf = get_dem(cand_lat, cand_lon, SEARCH_R, aws_session)
         profile = get_profile_data(dem, tf, cand_lat, cand_lon, OBS_H, site_lat, site_lng, TGT_H)
-        return jsonify({'success': True, 'profile': profile})
+        return jsonify({'success': True, 'profile': profile, 'source': 's3'})
     except Exception as e:
         import traceback as tb
         tb.print_exc()

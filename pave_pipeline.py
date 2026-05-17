@@ -18,6 +18,7 @@ Architecture:
   - Same DB_CONFIG / boto3 patterns as atom_pipeline / nova_pipeline
 """
 
+import json
 import math
 import os
 import time
@@ -392,23 +393,26 @@ def run_pave(candidate_lat: float,
     los = los_batch(dem, tf, candidate_lat, candidate_lon, OBS_H, sl, so, TGT_H)
     print(f"[PAVE] LOS: {int(los.sum())} clear / {int((~los).sum())} blocked")
 
-    # ── 5. Build site list (profiles lazy in fast_mode) ───────────────────────
+    # ── 5. Build site list — always pre-compute profiles (DEM is already in RAM)
     sites_out = []
     for i, s in enumerate(nearby):
+        try:
+            profile = get_profile_data(
+                dem, tf,
+                candidate_lat, candidate_lon, OBS_H,
+                s['lat'], s['lng'], TGT_H,
+            )
+        except Exception as pe:
+            print(f"[PAVE] profile error for {s.get('site_id')}: {pe}")
+            profile = None
         site_entry = {
             'site_id':    s.get('site_id', '—'),
             'lat':        round(s['lat'], 6),
             'lng':        round(s['lng'], 6),
             'los':        bool(los[i]),
             'distance_m': int(round(s['_dist'])),
-            'profile':    None,   # fetched on demand via /api/pave/profile
+            'profile':    profile,
         }
-        if not fast_mode:
-            site_entry['profile'] = get_profile_data(
-                dem, tf,
-                candidate_lat, candidate_lon, OBS_H,
-                s['lat'], s['lng'], TGT_H,
-            )
         sites_out.append(site_entry)
 
     lc = int(los.sum())
@@ -468,14 +472,15 @@ def _save_run(candidate_lat, candidate_lon, nova_run_id, nova_candidate_label,
         run_id = cursor.fetchone()[0]
 
         for s in sites:
+            profile_json = json.dumps(s['profile']) if s.get('profile') else None
             cursor.execute(
                 """
                 INSERT INTO pave_sites
-                    (run_id, site_id, lat, lng, los, distance_m)
-                VALUES (%s,%s,%s,%s,%s,%s)
+                    (run_id, site_id, lat, lng, los, distance_m, profile_json)
+                VALUES (%s,%s,%s,%s,%s,%s,%s)
                 """,
                 (run_id, s['site_id'], s['lat'], s['lng'],
-                 s['los'], s['distance_m']),
+                 s['los'], s['distance_m'], profile_json),
             )
 
         conn.commit()

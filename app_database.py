@@ -292,14 +292,16 @@ def run_setup():
             );
 
             CREATE TABLE IF NOT EXISTS pave_sites (
-                id          SERIAL PRIMARY KEY,
-                run_id      INTEGER REFERENCES pave_runs(id) ON DELETE CASCADE,
-                site_id     TEXT NOT NULL,
-                lat         DOUBLE PRECISION,
-                lng         DOUBLE PRECISION,
-                los         BOOLEAN NOT NULL,
-                distance_m  INTEGER
+                id           SERIAL PRIMARY KEY,
+                run_id       INTEGER REFERENCES pave_runs(id) ON DELETE CASCADE,
+                site_id      TEXT NOT NULL,
+                lat          DOUBLE PRECISION,
+                lng          DOUBLE PRECISION,
+                los          BOOLEAN NOT NULL,
+                distance_m   INTEGER,
+                profile_json TEXT
             );
+            ALTER TABLE pave_sites ADD COLUMN IF NOT EXISTS profile_json TEXT;
             CREATE INDEX IF NOT EXISTS idx_pave_sites_run_id ON pave_sites(run_id);
         """)
         print("  [OK] PAVE pave_runs + pave_sites tables created.")
