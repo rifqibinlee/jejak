@@ -4694,6 +4694,74 @@
             }
         }
 
+        // ── GeoServer WMS GetFeatureInfo on map click ──────────────────────
+        var _geoInfoPopup = L.popup({ maxWidth: 340, className: 'geo-info-popup' });
+
+        map.on('click', async function (e) {
+            var activeEntries = geoserverWmsEntries.filter(function (en) { return en.active && en.layer; });
+            if (!activeEntries.length) return;
+
+            var size    = map.getSize();
+            var bounds  = map.getBounds();
+            var nw      = bounds.getNorthWest();
+            var se      = bounds.getSouthEast();
+            var bbox    = nw.lng + ',' + se.lat + ',' + se.lng + ',' + nw.lat;
+            var px      = map.latLngToContainerPoint(e.latlng);
+
+            var layerNames = activeEntries.map(function (en) {
+                return en.layer.wmsParams && en.layer.wmsParams.layers;
+            }).filter(Boolean).join(',');
+
+            var wmsBase = window.location.origin + '/api/geoserver/wms';
+            var url = wmsBase +
+                '?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo' +
+                '&LAYERS='     + encodeURIComponent(layerNames) +
+                '&QUERY_LAYERS='+ encodeURIComponent(layerNames) +
+                '&BBOX='       + bbox +
+                '&WIDTH='      + size.x +
+                '&HEIGHT='     + size.y +
+                '&X='          + Math.round(px.x) +
+                '&Y='          + Math.round(px.y) +
+                '&INFO_FORMAT=application/json' +
+                '&FEATURE_COUNT=5' +
+                '&SRS=EPSG:4326';
+
+            try {
+                var res  = await fetch(url, { credentials: 'same-origin' });
+                if (!res.ok) return;
+                var data = await res.json();
+                var features = (data.features || []).filter(function (f) {
+                    return f.properties && Object.keys(f.properties).length > 0;
+                });
+                if (!features.length) return;
+
+                var rows = features.map(function (f, fi) {
+                    var props = f.properties;
+                    var layerName = (f.id || '').split('.')[0] || layerNames.split(',')[0];
+                    var inner = Object.keys(props).filter(function (k) {
+                        var v = props[k];
+                        return v !== null && v !== '' && k.toLowerCase() !== 'geom' && k.toLowerCase() !== 'the_geom';
+                    }).map(function (k) {
+                        return '<tr><td style="color:#64748b;padding:2px 6px 2px 0;font-size:0.68rem;white-space:nowrap;">' +
+                            k + '</td><td style="font-weight:600;font-size:0.7rem;padding:2px 0;">' +
+                            String(props[k]).replace(/</g,'&lt;') + '</td></tr>';
+                    }).join('');
+                    return '<div style="' + (fi > 0 ? 'margin-top:8px;padding-top:8px;border-top:1px solid #e5e7eb;' : '') + '">' +
+                        '<div style="font-size:0.65rem;font-weight:800;color:#0e7490;text-transform:uppercase;margin-bottom:4px;">' +
+                        '<i class="fas fa-draw-polygon" style="margin-right:4px;"></i>' + layerName.replace(/_/g,' ') +
+                        '</div><table style="width:100%;border-collapse:collapse;">' + inner + '</table></div>';
+                }).join('');
+
+                _geoInfoPopup
+                    .setLatLng(e.latlng)
+                    .setContent(
+                        '<div style="font-family:Inter,sans-serif;max-height:260px;overflow-y:auto;">' +
+                        rows + '</div>'
+                    )
+                    .openOn(map);
+            } catch (_) {}
+        });
+
         var siteDataCache = [];
         var activeCoverageLayers = [];
         var siteMarkerMap = {};
