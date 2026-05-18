@@ -29,6 +29,7 @@ SQLAlchemy
 
 # GIS & Mapping
 geopandas
+geoalchemy2
 shapely
 rasterio==1.5.0
 openpyxl
