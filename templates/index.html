@@ -1678,44 +1678,26 @@
 
         <!-- Processes button (ATOM) — sits right beside Layers in the same bottom bar -->
         <button id="processesBtn" onclick="toggleAtomPanel()" title="Processes — ATOM coverage clustering"
-                style="display:flex; align-items:center; gap:8px; padding:0 14px; height:72px; background:#fff; border:1.5px solid #cbd5e1; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.13); cursor:pointer; transition:all 0.2s; flex-shrink:0;"
-                onmouseover="this.style.borderColor='#6366f1';this.style.boxShadow='0 4px 14px rgba(99,102,241,0.18)'"
-                onmouseout="this.style.borderColor='#cbd5e1';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.13)'">
-            <div style="width:36px; height:36px; background:linear-gradient(135deg,#4338ca,#7c3aed); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <i class="fas fa-atom" style="color:white; font-size:0.95rem;"></i>
-            </div>
-            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:1px;">
-                <span style="line-height:1.2; font-size:0.78rem; font-weight:700; color:#374151;">Processes</span>
-                <span style="font-size:0.65rem; color:#6b7280; font-weight:400;">ATOM clustering</span>
-            </div>
+                style="display:flex; align-items:center; justify-content:center; width:48px; height:48px; background:linear-gradient(135deg,#4338ca,#7c3aed); border:1.5px solid rgba(99,102,241,0.35); border-radius:12px; box-shadow:0 2px 8px rgba(99,102,241,0.25); cursor:pointer; transition:all 0.2s; flex-shrink:0; padding:0;"
+                onmouseover="this.style.borderColor='#6366f1';this.style.boxShadow='0 4px 14px rgba(99,102,241,0.45)';this.style.transform='scale(1.08)'"
+                onmouseout="this.style.borderColor='rgba(99,102,241,0.35)';this.style.boxShadow='0 2px 8px rgba(99,102,241,0.25)';this.style.transform='scale(1)'">
+            <i class="fas fa-atom" style="color:white; font-size:1.1rem;"></i>
         </button>
 
         <!-- PAVE button -->
         <button id="paveBtn" onclick="togglePavePanel()" title="PAVE — Line-of-Sight visibility analysis"
-                style="display:flex; align-items:center; gap:8px; padding:0 14px; height:72px; background:#fff; border:1.5px solid #cbd5e1; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.13); cursor:pointer; transition:all 0.2s; flex-shrink:0;"
-                onmouseover="this.style.borderColor='#b45309';this.style.boxShadow='0 4px 14px rgba(180,83,9,0.18)'"
-                onmouseout="this.style.borderColor='#cbd5e1';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.13)'">
-            <div style="width:36px; height:36px; background:linear-gradient(135deg,#92400e,#d97706); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <i class="fas fa-eye" style="color:white; font-size:0.95rem;"></i>
-            </div>
-            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:1px;">
-                <span style="line-height:1.2; font-size:0.78rem; font-weight:700; color:#374151;">PAVE</span>
-                <span style="font-size:0.65rem; color:#6b7280; font-weight:400;">LOS analysis</span>
-            </div>
+                style="display:flex; align-items:center; justify-content:center; width:48px; height:48px; background:linear-gradient(135deg,#92400e,#d97706); border:1.5px solid rgba(217,119,6,0.35); border-radius:12px; box-shadow:0 2px 8px rgba(180,83,9,0.25); cursor:pointer; transition:all 0.2s; flex-shrink:0; padding:0;"
+                onmouseover="this.style.borderColor='#d97706';this.style.boxShadow='0 4px 14px rgba(180,83,9,0.45)';this.style.transform='scale(1.08)'"
+                onmouseout="this.style.borderColor='rgba(217,119,6,0.35)';this.style.boxShadow='0 2px 8px rgba(180,83,9,0.25)';this.style.transform='scale(1)'">
+            <i class="fas fa-eye" style="color:white; font-size:1.1rem;"></i>
         </button>
 
         <!-- NOVA button -->
         <button id="novaBtn" onclick="toggleNovaPanel()" title="NOVA — New tower site candidates"
-                style="display:flex; align-items:center; gap:8px; padding:0 14px; height:72px; background:#fff; border:1.5px solid #cbd5e1; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.13); cursor:pointer; transition:all 0.2s; flex-shrink:0;"
-                onmouseover="this.style.borderColor='#16a34a';this.style.boxShadow='0 4px 14px rgba(22,163,74,0.18)'"
-                onmouseout="this.style.borderColor='#cbd5e1';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.13)'">
-            <div style="width:36px; height:36px; background:linear-gradient(135deg,#15803d,#16a34a); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <i class="fas fa-broadcast-tower" style="color:white; font-size:0.95rem;"></i>
-            </div>
-            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:1px;">
-                <span style="line-height:1.2; font-size:0.78rem; font-weight:700; color:#374151;">NOVA</span>
-                <span style="font-size:0.65rem; color:#6b7280; font-weight:400;">Site candidates</span>
-            </div>
+                style="display:flex; align-items:center; justify-content:center; width:48px; height:48px; background:linear-gradient(135deg,#15803d,#16a34a); border:1.5px solid rgba(22,163,74,0.35); border-radius:12px; box-shadow:0 2px 8px rgba(22,163,74,0.25); cursor:pointer; transition:all 0.2s; flex-shrink:0; padding:0;"
+                onmouseover="this.style.borderColor='#16a34a';this.style.boxShadow='0 4px 14px rgba(22,163,74,0.45)';this.style.transform='scale(1.08)'"
+                onmouseout="this.style.borderColor='rgba(22,163,74,0.35)';this.style.boxShadow='0 2px 8px rgba(22,163,74,0.25)';this.style.transform='scale(1)'">
+            <i class="fas fa-broadcast-tower" style="color:white; font-size:1.1rem;"></i>
         </button>
     </div>
 
