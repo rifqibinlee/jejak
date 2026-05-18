@@ -10333,7 +10333,7 @@ function rolloutShowDetail(data) {
         (plan.target_date ? ' · Target: ' + plan.target_date : '');
 
     rolloutSwitchTab('checkpoints');
-    rolloutRenderCheckpoints(data.checkpoints || []);
+    rolloutRenderCheckpoints(data.checkpoints || [], data.documents || []);
     rolloutRenderDocs(data.documents || []);
     rolloutRenderTeam(data.members || []);
     rolloutRenderActivity(data.events || []);
@@ -10352,7 +10352,13 @@ function rolloutSwitchTab(tabName) {
 }
 
 // ── Checkpoints ────────────────────────────────────────────────────────────
-function rolloutRenderCheckpoints(cps) {
+function rolloutRenderCheckpoints(cps, docs) {
+    docs = docs || [];
+    var docCountByCp = {};
+    docs.forEach(function(d) {
+        var k = (d.cp_code || '').trim();
+        if (k) docCountByCp[k] = (docCountByCp[k] || 0) + 1;
+    });
     var container = document.getElementById('rolloutTabCheckpoints');
     if (!container) return;
     var STATUS_STYLE = {
@@ -10365,7 +10371,8 @@ function rolloutRenderCheckpoints(cps) {
         if (!phases[cp.phase]) phases[cp.phase] = [];
         phases[cp.phase].push(cp);
     });
-    container.innerHTML = Object.keys(phases).map(function(ph) {
+    var hintBanner = '<div style="font-size:0.62rem;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.35;"><i class="fas fa-file-upload"></i> <strong>Approve</strong> requires at least one file in <strong>Documents</strong> tagged with that checkpoint\'s code.</div>';
+    container.innerHTML = hintBanner + Object.keys(phases).map(function(ph) {
         return '<div style="margin-bottom:10px;">' +
             '<div style="font-size:0.6rem;font-weight:800;color:#0369a1;text-transform:uppercase;margin-bottom:4px;padding:4px 0;border-bottom:1px solid #bae6fd;">' + ph + '</div>' +
             phases[ph].map(function(cp) {
@@ -10374,10 +10381,19 @@ function rolloutRenderCheckpoints(cps) {
                 var icon = st === 'Approved' ? 'fa-check-circle' : (st === 'Rejected' ? 'fa-times-circle' : 'fa-circle');
                 var iconCol = st === 'Approved' ? '#16a34a' : (st === 'Rejected' ? '#dc2626' : '#cbd5e1');
                 var np_id = _rolloutCurrentPlan && _rolloutCurrentPlan.plan ? _rolloutCurrentPlan.plan.np_id : '';
+                var nDocs = docCountByCp[cp.cp_code] || 0;
+                var canApprove = nDocs >= 1;
+                var approveBtn = '';
+                if (canApprove) {
+                    approveBtn = '<button onclick="rolloutCheckpointAction(\'' + np_id + '\',\'' + cp.cp_code + '\',\'approve\')" ' +
+                        'style="font-size:0.6rem;font-weight:700;background:#dcfce7;color:#16a34a;border:1px solid #86efac;border-radius:5px;padding:2px 8px;cursor:pointer;margin-left:4px;">Approve</button>';
+                } else {
+                    approveBtn = '<span title="Upload one or more documents in the Documents tab, with this checkpoint selected." ' +
+                        'style="font-size:0.58rem;font-weight:600;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:5px;padding:2px 6px;margin-left:4px;cursor:help;white-space:nowrap;">Docs required</span>';
+                }
                 var actionBtns = '';
                 if (st === 'Pending' || st === 'Rejected') {
-                    actionBtns = '<button onclick="rolloutCheckpointAction(\'' + np_id + '\',\'' + cp.cp_code + '\',\'approve\')" ' +
-                        'style="font-size:0.6rem;font-weight:700;background:#dcfce7;color:#16a34a;border:1px solid #86efac;border-radius:5px;padding:2px 8px;cursor:pointer;margin-left:4px;">Approve</button>' +
+                    actionBtns = approveBtn +
                         (st === 'Pending' ? '<button onclick="rolloutCheckpointAction(\'' + np_id + '\',\'' + cp.cp_code + '\',\'reject\')" ' +
                         'style="font-size:0.6rem;font-weight:700;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:5px;padding:2px 8px;cursor:pointer;margin-left:4px;">Reject</button>' : '') +
                         (st === 'Rejected' ? '<button onclick="rolloutCheckpointAction(\'' + np_id + '\',\'' + cp.cp_code + '\',\'reopen\')" ' +

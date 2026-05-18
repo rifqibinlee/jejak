@@ -2875,6 +2875,14 @@ def rollout_update_checkpoint(np_id, cp_code):
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 if action == 'approve':
+                    cur.execute(
+                        "SELECT COUNT(*) FROM rollout_documents WHERE np_id=%s AND cp_code=%s",
+                        (np_id, cp_code),
+                    )
+                    if cur.fetchone()[0] == 0:
+                        return jsonify({
+                            'error': 'Upload at least one document tagged for this checkpoint before approving.',
+                        }), 400
                     cur.execute("""
                         UPDATE rollout_checkpoints
                         SET status='Approved', approved_by=%s, approved_at=NOW(), notes=%s
