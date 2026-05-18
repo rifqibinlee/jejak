@@ -92,6 +92,9 @@ def run_setup():
                 created_at      TIMESTAMP DEFAULT NOW()
             );
         """)
+        cursor.execute("""
+            ALTER TABLE map_annotations ADD COLUMN IF NOT EXISTS is_rollout_completed_site BOOLEAN DEFAULT FALSE;
+        """)
         print("  [OK] Annotation Tables created.")
 
         # --- 3. MESSAGING TABLES ---
@@ -332,6 +335,7 @@ def run_setup():
             );
             ALTER TABLE rollout_plans ADD COLUMN IF NOT EXISTS nova_run_id INTEGER;
             ALTER TABLE rollout_plans ADD COLUMN IF NOT EXISTS nova_candidate_label TEXT;
+            ALTER TABLE rollout_plans ADD COLUMN IF NOT EXISTS completion_annotation_id INTEGER REFERENCES map_annotations(id) ON DELETE SET NULL;
             CREATE INDEX IF NOT EXISTS idx_rollout_plans_status  ON rollout_plans(status);
             CREATE INDEX IF NOT EXISTS idx_rollout_plans_created ON rollout_plans(created_at);
 

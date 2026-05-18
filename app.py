@@ -808,10 +808,14 @@ def get_annotations():
                 a.created_at, a.updated_at,
                 a.closed_at, a.days_open,
                 (SELECT COUNT(*) FROM annotation_comments c
-                 WHERE c.annotation_id = a.id) AS comment_count
+                 WHERE c.annotation_id = a.id) AS comment_count,
+                COALESCE(a.is_rollout_completed_site, FALSE) AS is_rollout_completed_site
             FROM map_annotations a
             LEFT JOIN annotation_assignees aa ON aa.annotation_id = a.id
-            WHERE (a.created_by = %s OR a.assigned_to = %s OR aa.user_id = %s)
+            WHERE (
+                a.created_by = %s OR a.assigned_to = %s OR aa.user_id = %s
+                OR COALESCE(a.is_rollout_completed_site, FALSE) = TRUE
+            )
         """
         params = [user_id, user_id, user_id]
 
@@ -829,7 +833,8 @@ def get_annotations():
             'created_by', 'created_by_username',
             'assigned_to', 'assigned_to_username',
             'status', 'priority', 'created_at', 'updated_at',
-            'closed_at', 'days_open', 'comment_count'
+            'closed_at', 'days_open', 'comment_count',
+            'is_rollout_completed_site',
         ]
 
         with get_db_connection() as conn:
@@ -2701,6 +2706,111 @@ def _rollout_seed_checkpoints(cur, np_id):
         )
 
 
+def _rollout_create_completion_annotation(cur, np_id, user_id, username):
+    """Create a visible map annotation when the rollout reaches Completed (idempotent per plan)."""
+    cur.execute(
+        """
+        SELECT site_name, intended_lat, intended_lon, deployed_lat, deployed_lon,
+               nova_run_id, nova_candidate_label, completion_annotation_id
+        FROM rollout_plans WHERE np_id=%s FOR UPDATE
+        """,
+        (np_id,),
+    )
+    row = cur.fetchone()
+    if not row:
+        return False
+    (
+        site_name,
+        intended_lat,
+        intended_lon,
+        deployed_lat,
+        deployed_lon,
+        nova_run_id,
+        nova_candidate_label,
+        completion_annotation_id,
+    ) = row
+    if completion_annotation_id:
+        return False
+    lat = deployed_lat if deployed_lat is not None else intended_lat
+    lng = deployed_lon if deployed_lon is not None else intended_lon
+    if lat is None or lng is None:
+        return False
+
+    display_name = (site_name or '').strip() or np_id
+    title = f'New tower site — {display_name}'
+    desc_lines = [
+        'Rollout completed — this nominal point is recorded as a new / planned tower site on the network map.',
+        f'Rollout ID: {np_id}',
+    ]
+    if nova_run_id is not None:
+        suf = f' (NOVA candidate {nova_candidate_label})' if nova_candidate_label else ''
+        desc_lines.append(f'Linked NOVA run #{nova_run_id}{suf}.')
+    if deployed_lat is not None and deployed_lon is not None:
+        desc_lines.append(
+            'Location uses deployed (as-built) coordinates from Rollout.'
+        )
+    else:
+        desc_lines.append('Location uses the intended rollout / candidate coordinates.')
+    desc_lines.append(f'Coordinates: {float(lat):.6f}, {float(lng):.6f}')
+
+    gj = {'type': 'Point', 'coordinates': [float(lng), float(lat)]}
+    gj_str            = json.dumps(gj)
+    uname_safe        = (username or 'system')
+    accent            = '#059669'
+    fill_opacity_pts  = 0.92
+
+    cur.execute(
+        """
+        INSERT INTO map_annotations (
+            title, description, shape_type, geojson,
+            center_lat, center_lng, radius_meters,
+            representative_lat, representative_lng,
+            color, fill_color, fill_opacity, stroke_weight,
+            created_by, created_by_username,
+            assigned_to, assigned_to_username,
+            status, priority, is_rollout_completed_site
+        )
+        VALUES (%s,%s,'point',%s,%s,%s,NULL,%s,%s,
+                %s,%s,%s,%s,%s,%s,NULL,NULL,%s,%s,%s)
+        RETURNING id
+        """,
+        (
+            title,
+            '\n'.join(desc_lines),
+            gj_str,
+            lat,
+            lng,
+            lat,
+            lng,
+            accent,
+            accent,
+            fill_opacity_pts,
+            3,
+            user_id,
+            uname_safe,
+            'resolved',
+            'normal',
+            True,
+        ),
+    )
+    new_ann_id = cur.fetchone()[0]
+    cur.execute(
+        """UPDATE rollout_plans SET completion_annotation_id=%s, updated_at=NOW()
+           WHERE np_id=%s""",
+        (new_ann_id, np_id),
+    )
+    _rollout_log(
+        cur,
+        np_id,
+        'New site annotation',
+        f'Map annotation #{new_ann_id} — new tower site marker.',
+        None,
+        user_id,
+        username,
+    )
+    return True
+
+
 @app.route('/api/rollout/plans', methods=['GET'])
 @api_login_required
 def rollout_list_plans():
@@ -2871,6 +2981,7 @@ def rollout_update_checkpoint(np_id, cp_code):
     if cp_code not in valid_codes:
         return jsonify({'error': 'Invalid cp_code'}), 400
 
+    created_site_ann = False
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -2900,6 +3011,9 @@ def rollout_update_checkpoint(np_id, cp_code):
                     else:
                         cur.execute("UPDATE rollout_plans SET status='Completed', updated_at=NOW() WHERE np_id=%s",
                                     (np_id,))
+                        created_site_ann = _rollout_create_completion_annotation(
+                            cur, np_id, user_id, username,
+                        )
                     _rollout_log(cur, np_id, 'Checkpoint Approved',
                                  f'{cp_code} approved. {notes}', cp_code, user_id, username)
 
@@ -2929,7 +3043,7 @@ def rollout_update_checkpoint(np_id, cp_code):
                 else:
                     return jsonify({'error': 'Invalid action'}), 400
 
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'rollout_annotation_created': created_site_ann})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

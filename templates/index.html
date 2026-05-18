@@ -6161,7 +6161,8 @@
                 // Annotations = has assignees OR created by me
                 const anns = all.filter(a =>
                     (a.assignees && a.assignees.length > 0) ||
-                    a.created_by_username === myUsername
+                    a.created_by_username === myUsername ||
+                    a.is_rollout_completed_site
                 );
 
                 // Keep notes badge fresh
@@ -6197,7 +6198,7 @@
                     <div id="ann-card-${a.id}" class="ann-card ${priorityClass} ${hiddenClass}" style="${cardStyle}" onclick="openDetailModal(${a.id})">
                         <div class="ann-card-title">
                             <span>${icon}</span>
-                            <span class="flex-1 truncate">${escHtml(a.title)}</span>
+                            <span class="flex-1 truncate">${escHtml(a.title)}${a.is_rollout_completed_site ? '<span class="inline-flex ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-700 text-white">NEW SITE</span>' : ''}</span>
                             <span class="status-badge status-${a.status}">${a.status.replace('_',' ')}</span>
                             <button id="ann-eye-${a.id}" onclick="toggleAnnotationVisibility(${a.id}, event)" title="${eyeTitle}" class="ann-eye-btn ${isHidden ? 'ann-eye-hidden' : ''}"><i class="fas ${eyeIcon}"></i></button>
                         </div>
@@ -10431,7 +10432,8 @@ async function rolloutCheckpointAction(np_id, cp_code, action) {
         });
         var data = await res.json();
         if (data.error) { alert(data.error); return; }
-        rolloutOpenPlan(np_id);
+        await rolloutOpenPlan(np_id);
+        if (typeof loadAnnotations === 'function') { await loadAnnotations(); }
     } catch(e) {
         alert('Error: ' + e.message);
     }
