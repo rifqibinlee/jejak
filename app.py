@@ -2754,10 +2754,19 @@ def _rollout_create_completion_annotation(cur, np_id, user_id, username):
     desc_lines.append(f'Coordinates: {float(lat):.6f}, {float(lng):.6f}')
 
     gj = {'type': 'Point', 'coordinates': [float(lng), float(lat)]}
-    gj_str            = json.dumps(gj)
-    uname_safe        = (username or 'system')
-    accent            = '#059669'
-    fill_opacity_pts  = 0.92
+    gj_str           = json.dumps(gj)
+    uname_safe       = (username or 'system').strip() or 'system'
+    accent           = '#059669'
+    fill_opacity_pts = 0.92
+
+    ann_created_by = None
+    if user_id is not None:
+        cur.execute('SELECT 1 FROM users WHERE id = %s', (user_id,))
+        if cur.fetchone():
+            ann_created_by = user_id
+    ann_creator_username = uname_safe
+    if user_id is not None and ann_created_by is None:
+        ann_creator_username = f'{uname_safe} (rollout; user id {user_id} not in DB)'
 
     cur.execute(
         """
@@ -2786,8 +2795,8 @@ def _rollout_create_completion_annotation(cur, np_id, user_id, username):
             accent,
             fill_opacity_pts,
             3,
-            user_id,
-            uname_safe,
+            ann_created_by,
+            ann_creator_username,
             'resolved',
             'normal',
             True,
