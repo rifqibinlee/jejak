@@ -1699,6 +1699,20 @@
                 onmouseout="this.style.borderColor='rgba(22,163,74,0.35)';this.style.boxShadow='0 2px 8px rgba(22,163,74,0.25)';this.style.transform='scale(1)'">
             <i class="fas fa-broadcast-tower" style="color:white; font-size:1.1rem;"></i>
         </button>
+
+        <!-- ROLLOUT button -->
+        <button id="rolloutBtn" onclick="toggleRolloutPanel()" title="Rollout — Deployment lifecycle tracker"
+                style="display:flex; align-items:center; gap:8px; padding:0 14px; height:72px; background:#fff; border:1.5px solid #cbd5e1; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.13); cursor:pointer; transition:all 0.2s; flex-shrink:0;"
+                onmouseover="this.style.borderColor='#0369a1';this.style.boxShadow='0 4px 14px rgba(3,105,161,0.18)'"
+                onmouseout="this.style.borderColor='#cbd5e1';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.13)'">
+            <div style="width:36px; height:36px; background:linear-gradient(135deg,#0c4a6e,#0369a1); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <i class="fas fa-route" style="color:white; font-size:0.95rem;"></i>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:1px;">
+                <span style="line-height:1.2; font-size:0.78rem; font-weight:700; color:#374151;">Rollout</span>
+                <span style="font-size:0.65rem; color:#6b7280; font-weight:400;">Deploy tracker</span>
+            </div>
+        </button>
     </div>
 
     <!-- Ghost that follows the cursor while dragging -->
@@ -2337,6 +2351,186 @@
 
         <div style="padding:8px 12px; border-top:1px solid #e5e7eb; background:#f9fafb; flex-shrink:0;">
             <button type="button" onclick="loadNovaHistoryJeak()" style="width:100%; font-size:0.65rem; color:#15803d; font-weight:700; background:none; border:none; cursor:pointer; text-decoration:underline;">History (last runs)</button>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         ROLLOUT PANEL — Deployment lifecycle tracker
+         ===================================================================== -->
+    <div id="rolloutPanel" class="sliding-panel" style="width:480px;">
+        <div class="panel-resize-handle" id="rolloutResizeHandle" title="Drag to resize"></div>
+
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#0c4a6e,#0369a1); color:white; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+            <div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                    <i class="fas fa-route"></i>
+                    <span style="font-weight:900; font-size:0.9rem; letter-spacing:.05em;">ROLLOUT</span>
+                    <span style="font-size:0.65rem; font-weight:600; opacity:.9;">Deployment lifecycle tracker</span>
+                </div>
+                <div id="rolloutHeaderMeta" style="font-size:0.6rem; opacity:.8;"></div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button type="button" id="rolloutNewBtn" onclick="rolloutOpenCreate()"
+                        style="background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.45); color:white; border-radius:6px; padding:4px 10px; font-size:0.68rem; font-weight:700; cursor:pointer;">
+                    + New Plan
+                </button>
+                <button type="button" onclick="toggleRolloutPanel()" style="color:white; background:none; border:none; font-size:1.2rem; cursor:pointer; opacity:.8;">&times;</button>
+            </div>
+        </div>
+
+        <!-- Tabs: List / Detail -->
+        <div id="rolloutListView" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+            <!-- Search / Filter bar -->
+            <div style="padding:8px 12px; background:#f0f9ff; border-bottom:1px solid #bae6fd; flex-shrink:0; display:flex; gap:6px; align-items:center;">
+                <input id="rolloutSearchInput" type="text" placeholder="Search site name or NP-ID…"
+                       oninput="rolloutFilterList()"
+                       style="flex:1; border:1px solid #bae6fd; border-radius:6px; padding:5px 8px; font-size:0.7rem; outline:none; color:#0c4a6e; background:white;"/>
+                <select id="rolloutStatusFilter" onchange="rolloutFilterList()"
+                        style="border:1px solid #bae6fd; border-radius:6px; padding:5px 6px; font-size:0.68rem; color:#0c4a6e; background:white; cursor:pointer;">
+                    <option value="">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Blocked">Blocked</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+
+            <!-- Plans list -->
+            <div style="flex:1; overflow-y:auto; padding:8px 12px;" id="rolloutPlansList">
+                <div style="text-align:center; color:#9ca3af; padding:32px 16px;">
+                    <i class="fas fa-route" style="font-size:2rem; margin-bottom:8px; display:block; opacity:.4;"></i>
+                    <p style="font-size:0.75rem; font-weight:600; color:#374151;">No rollout plans yet</p>
+                    <p style="font-size:0.65rem; color:#9ca3af; margin-top:4px;">Create from a NOVA candidate or click "+ New Plan"</p>
+                </div>
+            </div>
+            <div style="padding:8px 12px; border-top:1px solid #e5e7eb; background:#f9fafb; flex-shrink:0;">
+                <button type="button" onclick="rolloutLoadPlans()" style="width:100%; font-size:0.65rem; color:#0369a1; font-weight:700; background:none; border:none; cursor:pointer; text-decoration:underline;">Refresh list</button>
+            </div>
+        </div>
+
+        <!-- Detail view (hidden until a plan is selected) -->
+        <div id="rolloutDetailView" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+            <!-- Detail header -->
+            <div id="rolloutDetailHeader" style="padding:10px 12px; background:#f0f9ff; border-bottom:1px solid #bae6fd; flex-shrink:0;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                    <button type="button" onclick="rolloutShowList()"
+                            style="background:none; border:none; color:#0369a1; font-size:0.68rem; cursor:pointer; font-weight:700; display:flex; align-items:center; gap:4px;">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="rolloutDetailNpId" style="font-size:0.65rem; color:#64748b;"></span>
+                </div>
+                <div id="rolloutDetailSiteName" style="font-size:0.85rem; font-weight:800; color:#0c4a6e;"></div>
+                <div id="rolloutDetailMeta" style="font-size:0.62rem; color:#475569; margin-top:2px;"></div>
+            </div>
+
+            <!-- Detail tabs -->
+            <div style="display:flex; border-bottom:2px solid #e5e7eb; background:#fff; flex-shrink:0;">
+                <button class="rollout-tab active" onclick="rolloutSwitchTab('checkpoints')" data-tab="checkpoints"
+                        style="flex:1; padding:8px 4px; font-size:0.65rem; font-weight:700; border:none; background:none; cursor:pointer; border-bottom:2px solid #0369a1; color:#0369a1;">
+                    <i class="fas fa-tasks"></i> Checkpoints
+                </button>
+                <button class="rollout-tab" onclick="rolloutSwitchTab('docs')" data-tab="docs"
+                        style="flex:1; padding:8px 4px; font-size:0.65rem; font-weight:700; border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; color:#64748b;">
+                    <i class="fas fa-file-alt"></i> Documents
+                </button>
+                <button class="rollout-tab" onclick="rolloutSwitchTab('team')" data-tab="team"
+                        style="flex:1; padding:8px 4px; font-size:0.65rem; font-weight:700; border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; color:#64748b;">
+                    <i class="fas fa-users"></i> Team
+                </button>
+                <button class="rollout-tab" onclick="rolloutSwitchTab('activity')" data-tab="activity"
+                        style="flex:1; padding:8px 4px; font-size:0.65rem; font-weight:700; border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; color:#64748b;">
+                    <i class="fas fa-history"></i> Activity
+                </button>
+            </div>
+
+            <!-- Tab panes -->
+            <div style="flex:1; overflow-y:auto;">
+                <div id="rolloutTabCheckpoints" class="rollout-tab-pane" style="padding:8px 12px;"></div>
+                <div id="rolloutTabDocs"         class="rollout-tab-pane" style="display:none; padding:8px 12px;"></div>
+                <div id="rolloutTabTeam"         class="rollout-tab-pane" style="display:none; padding:8px 12px;"></div>
+                <div id="rolloutTabActivity"     class="rollout-tab-pane" style="display:none; padding:8px 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rollout: Create / Edit Plan Modal -->
+    <div id="rolloutCreateModal" style="display:none; position:fixed; inset:0; z-index:10100; background:rgba(0,0,0,.45); align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:14px; width:420px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,.35); overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#0c4a6e,#0369a1); color:white; padding:14px 18px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:800; font-size:0.85rem;"><i class="fas fa-route"></i> &nbsp;New Rollout Plan</span>
+                <button type="button" onclick="rolloutCloseCreate()" style="background:none; border:none; color:white; font-size:1.2rem; cursor:pointer;">&times;</button>
+            </div>
+            <form id="rolloutCreateForm" onsubmit="rolloutSubmitCreate(event)" style="padding:16px 18px; display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:0.65rem; font-weight:700; color:#374151; display:block; margin-bottom:3px;">Site Name *</label>
+                        <input id="rcSiteName" type="text" required placeholder="e.g. Bukit Tinggi NP-01"
+                               style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:7px 10px; font-size:0.72rem; box-sizing:border-box;"/>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.65rem; font-weight:700; color:#374151; display:block; margin-bottom:3px;">Target Date</label>
+                        <input id="rcTargetDate" type="date"
+                               style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:7px 10px; font-size:0.72rem; box-sizing:border-box;"/>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:0.65rem; font-weight:700; color:#374151; display:block; margin-bottom:3px;">Trigger Type</label>
+                        <select id="rcTriggerType" style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:7px 10px; font-size:0.72rem; box-sizing:border-box;">
+                            <option>State Request</option>
+                            <option>Coverage Complaint</option>
+                            <option>NOVA Candidate</option>
+                            <option>Capacity Upgrade</option>
+                            <option>Regulatory</option>
+                        </select>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.65rem; font-weight:700; color:#374151; display:block; margin-bottom:3px;">Reference / Ticket</label>
+                        <input id="rcTriggerRef" type="text" placeholder="e.g. TICKET-1234"
+                               style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:7px 10px; font-size:0.72rem; box-sizing:border-box;"/>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:0.65rem; font-weight:700; color:#374151; display:block; margin-bottom:3px;">Region</label>
+                        <input id="rcRegion" type="text" placeholder="e.g. Selangor"
+                               style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:7px 10px; font-size:0.72rem; box-sizing:border-box;"/>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.65rem; font-weight:700; color:#374151; display:block; margin-bottom:3px;">Zone</label>
+                        <input id="rcZone" type="text" placeholder="e.g. Zone 2"
+                               style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:7px 10px; font-size:0.72rem; box-sizing:border-box;"/>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:0.65rem; font-weight:700; color:#374151; display:block; margin-bottom:3px;">Intended Lat *</label>
+                        <input id="rcLat" type="number" step="any" required placeholder="3.1234"
+                               style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:7px 10px; font-size:0.72rem; box-sizing:border-box;"/>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.65rem; font-weight:700; color:#374151; display:block; margin-bottom:3px;">Intended Lon *</label>
+                        <input id="rcLon" type="number" step="any" required placeholder="101.5678"
+                               style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:7px 10px; font-size:0.72rem; box-sizing:border-box;"/>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:0.65rem; font-weight:700; color:#374151; display:block; margin-bottom:3px;">Objective</label>
+                    <textarea id="rcObjective" rows="2" placeholder="Brief deployment objective…"
+                              style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:7px 10px; font-size:0.72rem; resize:vertical; box-sizing:border-box;"></textarea>
+                </div>
+                <!-- Hidden fields for NOVA linkage -->
+                <input type="hidden" id="rcNovaRunId"/>
+                <input type="hidden" id="rcNovaLabel"/>
+                <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+                    <button type="button" onclick="rolloutCloseCreate()"
+                            style="padding:8px 18px; border:1px solid #d1d5db; border-radius:8px; font-size:0.72rem; font-weight:600; cursor:pointer; background:white;">Cancel</button>
+                    <button type="submit"
+                            style="padding:8px 18px; background:linear-gradient(135deg,#0c4a6e,#0369a1); color:white; border:none; border-radius:8px; font-size:0.72rem; font-weight:700; cursor:pointer;">
+                        Create Plan
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -9297,6 +9491,7 @@ out center;`;
     var _novaDelaunayOn = true;
     var _novaCandidatesOn = true;
     var _novaRadiusM = 500;
+    var _novaRunId = null;   // captured after each NOVA run for Rollout linkage
 
     function toggleNovaPanel() {
         var p = document.getElementById('novaPanel');
@@ -9437,6 +9632,7 @@ out center;`;
     }
 
     function novaRenderResultsJeak(data) {
+        _novaRunId = data.run_id || null;   // store for Rollout linkage
         var LMap = novaTargetMap();
         clearNovaLayersJeak();
         var meta = data.meta || {};
@@ -9510,14 +9706,19 @@ out center;`;
             var signalBadge = c.signal_count > 0
                 ? '<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:0.6rem;font-weight:700;">' + c.signal_count + ' poor-signal pts</span>'
                 : '<span style="background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 6px;font-size:0.6rem;">No signal data</span>';
-            return '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;border-left:4px solid ' + c.color + ';" onclick="novaFlyToCandidate(' + c.lat + ',' + c.lng + ')">' +
-                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+            return '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 12px;margin-bottom:6px;border-left:4px solid ' + c.color + ';">' +
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;" onclick="novaFlyToCandidate(' + c.lat + ',' + c.lng + ')" style="cursor:pointer;">' +
                 '<div style="width:26px;height:26px;background:' + c.color + ';border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:0.8rem;flex-shrink:0;">' + c.label + '</div>' +
-                '<div style="flex:1;">' +
+                '<div style="flex:1;cursor:pointer;" onclick="novaFlyToCandidate(' + c.lat + ',' + c.lng + ')">' +
                 '<div style="font-size:0.75rem;font-weight:800;color:#166534;">Candidate ' + c.label + ' <span style="color:#6b7280;font-weight:400;font-size:0.65rem;">' + c.dist_m + ' m away</span></div>' +
                 '<div style="font-size:0.62rem;color:#374151;">Avg RSRP: ' + rsrp + ' · Weight sum: ' + c.signal_weight_sum + '</div>' +
                 '</div></div>' +
+                '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px;">' +
                 signalBadge +
+                '<button onclick="rolloutCreateFromNova(' + c.lat + ',' + c.lng + ',\'' + c.label + '\')" ' +
+                'style="background:linear-gradient(135deg,#0c4a6e,#0369a1);color:white;border:none;border-radius:5px;padding:3px 9px;font-size:0.6rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;">' +
+                '<i class="fas fa-route"></i> Rollout</button>' +
+                '</div>' +
                 '</div>';
         }).join('');
     }
@@ -10016,5 +10217,423 @@ out center;`;
             <i class="fas fa-drafting-compass" style="color:#8b5cf6;width:14px;"></i> Copy as DMS
         </div>
     </div>
+
+<script>
+// =============================================================================
+// ROLLOUT MODULE — Frontend JS
+// =============================================================================
+var _rolloutOpen  = false;
+var _rolloutPlans = [];          // cached full list from server
+var _rolloutCurrentPlan = null;  // currently open plan detail
+var _rolloutNovaRunId   = null;  // set when launched from NOVA
+
+function toggleRolloutPanel() {
+    var p = document.getElementById('rolloutPanel');
+    if (!p) return;
+    _rolloutOpen = !_rolloutOpen;
+    if (_rolloutOpen) {
+        p.classList.add('open');
+        rolloutLoadPlans();
+    } else {
+        p.classList.remove('open');
+    }
+    var btn = document.getElementById('rolloutBtn');
+    if (btn) {
+        btn.style.borderColor  = _rolloutOpen ? '#0369a1' : '#cbd5e1';
+        btn.style.background   = _rolloutOpen ? '#eff6ff' : '#fff';
+    }
+}
+
+// ── List view ──────────────────────────────────────────────────────────────
+async function rolloutLoadPlans() {
+    try {
+        var res  = await fetch('/api/rollout/plans');
+        var data = await res.json();
+        _rolloutPlans = Array.isArray(data) ? data : [];
+        rolloutRenderList(_rolloutPlans);
+    } catch(e) {
+        console.error('[Rollout] load plans error', e);
+    }
+}
+
+function rolloutFilterList() {
+    var q   = (document.getElementById('rolloutSearchInput')  || {value:''}).value.toLowerCase();
+    var st  = (document.getElementById('rolloutStatusFilter') || {value:''}).value;
+    var filtered = _rolloutPlans.filter(function(p) {
+        var matchQ  = !q || p.np_id.toLowerCase().includes(q) || (p.site_name||'').toLowerCase().includes(q);
+        var matchSt = !st || p.status === st;
+        return matchQ && matchSt;
+    });
+    rolloutRenderList(filtered);
+}
+
+function rolloutRenderList(plans) {
+    var container = document.getElementById('rolloutPlansList');
+    if (!container) return;
+    if (!plans.length) {
+        container.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:32px 16px;">' +
+            '<i class="fas fa-route" style="font-size:2rem;margin-bottom:8px;display:block;opacity:.4;"></i>' +
+            '<p style="font-size:0.75rem;font-weight:600;color:#374151;">No rollout plans found</p>' +
+            '<p style="font-size:0.65rem;color:#9ca3af;margin-top:4px;">Create from NOVA candidate or click "+ New Plan"</p></div>';
+        return;
+    }
+    var STATUS_COLORS = {Active:'#16a34a', Blocked:'#dc2626', Completed:'#0369a1'};
+    container.innerHTML = plans.map(function(p) {
+        var col = STATUS_COLORS[p.status] || '#64748b';
+        var td  = p.target_date ? ' · Target: ' + p.target_date : '';
+        var ov  = p.overdue ? ' <span style="background:#fee2e2;color:#dc2626;border-radius:3px;padding:1px 5px;font-size:0.58rem;font-weight:700;">OVERDUE</span>' : '';
+        var nova = p.nova_candidate_label ? ' <span style="background:#f0fdf4;color:#15803d;border-radius:3px;padding:1px 5px;font-size:0.58rem;font-weight:700;">NOVA ' + p.nova_candidate_label + '</span>' : '';
+        return '<div onclick="rolloutOpenPlan(\'' + p.np_id + '\')" ' +
+            'style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;' +
+            'border-left:4px solid ' + col + ';transition:box-shadow .15s;" ' +
+            'onmouseover="this.style.boxShadow=\'0 2px 12px rgba(0,0,0,.1)\'" ' +
+            'onmouseout="this.style.boxShadow=\'\'">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;">' +
+            '<span style="font-size:0.75rem;font-weight:800;color:#0c4a6e;">' + (p.site_name||p.np_id) + '</span>' +
+            '<span style="font-size:0.6rem;font-weight:700;color:' + col + ';background:' + col + '18;border-radius:4px;padding:2px 7px;">' + p.status + '</span>' +
+            '</div>' +
+            '<div style="font-size:0.62rem;color:#64748b;">' + p.np_id + td + ov + nova + '</div>' +
+            '<div style="font-size:0.6rem;color:#94a3b8;margin-top:2px;">' + (p.current_cp||'—') + ' · ' + (p.region||'—') + '</div>' +
+            '</div>';
+    }).join('');
+}
+
+// ── Detail view ────────────────────────────────────────────────────────────
+async function rolloutOpenPlan(np_id) {
+    try {
+        var res  = await fetch('/api/rollout/plans/' + np_id);
+        var data = await res.json();
+        if (data.error) { alert(data.error); return; }
+        _rolloutCurrentPlan = data;
+        rolloutShowDetail(data);
+    } catch(e) {
+        alert('Error loading plan: ' + e.message);
+    }
+}
+
+function rolloutShowList() {
+    document.getElementById('rolloutListView').style.display   = 'flex';
+    document.getElementById('rolloutDetailView').style.display = 'none';
+    _rolloutCurrentPlan = null;
+}
+
+function rolloutShowDetail(data) {
+    var plan = data.plan;
+    document.getElementById('rolloutListView').style.display   = 'none';
+    document.getElementById('rolloutDetailView').style.display = 'flex';
+
+    document.getElementById('rolloutDetailNpId').textContent    = plan.np_id;
+    document.getElementById('rolloutDetailSiteName').textContent = plan.site_name || plan.np_id;
+    var STATUS_COLORS = {Active:'#16a34a', Blocked:'#dc2626', Completed:'#0369a1'};
+    var col = STATUS_COLORS[plan.status] || '#64748b';
+    document.getElementById('rolloutDetailMeta').innerHTML =
+        '<span style="color:' + col + ';font-weight:700;">' + plan.status + '</span>' +
+        (plan.current_cp ? ' · ' + plan.current_cp : '') +
+        (plan.region     ? ' · ' + plan.region : '') +
+        (plan.target_date ? ' · Target: ' + plan.target_date : '');
+
+    rolloutSwitchTab('checkpoints');
+    rolloutRenderCheckpoints(data.checkpoints || []);
+    rolloutRenderDocs(data.documents || []);
+    rolloutRenderTeam(data.members || []);
+    rolloutRenderActivity(data.events || []);
+}
+
+function rolloutSwitchTab(tabName) {
+    ['checkpoints','docs','team','activity'].forEach(function(t) {
+        var pane = document.getElementById('rolloutTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (pane) pane.style.display = t === tabName ? 'block' : 'none';
+    });
+    document.querySelectorAll('.rollout-tab').forEach(function(btn) {
+        var active = btn.getAttribute('data-tab') === tabName;
+        btn.style.borderBottomColor = active ? '#0369a1' : 'transparent';
+        btn.style.color             = active ? '#0369a1' : '#64748b';
+    });
+}
+
+// ── Checkpoints ────────────────────────────────────────────────────────────
+function rolloutRenderCheckpoints(cps) {
+    var container = document.getElementById('rolloutTabCheckpoints');
+    if (!container) return;
+    var STATUS_STYLE = {
+        Approved: 'background:#dcfce7;color:#16a34a;',
+        Rejected: 'background:#fee2e2;color:#dc2626;',
+        Pending:  'background:#f1f5f9;color:#64748b;',
+    };
+    var phases = {};
+    cps.forEach(function(cp) {
+        if (!phases[cp.phase]) phases[cp.phase] = [];
+        phases[cp.phase].push(cp);
+    });
+    container.innerHTML = Object.keys(phases).map(function(ph) {
+        return '<div style="margin-bottom:10px;">' +
+            '<div style="font-size:0.6rem;font-weight:800;color:#0369a1;text-transform:uppercase;margin-bottom:4px;padding:4px 0;border-bottom:1px solid #bae6fd;">' + ph + '</div>' +
+            phases[ph].map(function(cp) {
+                var st   = cp.status || 'Pending';
+                var stSt = STATUS_STYLE[st] || STATUS_STYLE.Pending;
+                var icon = st === 'Approved' ? 'fa-check-circle' : (st === 'Rejected' ? 'fa-times-circle' : 'fa-circle');
+                var iconCol = st === 'Approved' ? '#16a34a' : (st === 'Rejected' ? '#dc2626' : '#cbd5e1');
+                var np_id = _rolloutCurrentPlan && _rolloutCurrentPlan.plan ? _rolloutCurrentPlan.plan.np_id : '';
+                var actionBtns = '';
+                if (st === 'Pending' || st === 'Rejected') {
+                    actionBtns = '<button onclick="rolloutCheckpointAction(\'' + np_id + '\',\'' + cp.cp_code + '\',\'approve\')" ' +
+                        'style="font-size:0.6rem;font-weight:700;background:#dcfce7;color:#16a34a;border:1px solid #86efac;border-radius:5px;padding:2px 8px;cursor:pointer;margin-left:4px;">Approve</button>' +
+                        (st === 'Pending' ? '<button onclick="rolloutCheckpointAction(\'' + np_id + '\',\'' + cp.cp_code + '\',\'reject\')" ' +
+                        'style="font-size:0.6rem;font-weight:700;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:5px;padding:2px 8px;cursor:pointer;margin-left:4px;">Reject</button>' : '') +
+                        (st === 'Rejected' ? '<button onclick="rolloutCheckpointAction(\'' + np_id + '\',\'' + cp.cp_code + '\',\'reopen\')" ' +
+                        'style="font-size:0.6rem;font-weight:700;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;border-radius:5px;padding:2px 8px;cursor:pointer;margin-left:4px;">Reopen</button>' : '');
+                }
+                return '<div style="display:flex;align-items:center;gap:6px;padding:6px 4px;border-bottom:1px solid #f1f5f9;">' +
+                    '<i class="fas ' + icon + '" style="color:' + iconCol + ';font-size:0.85rem;flex-shrink:0;"></i>' +
+                    '<div style="flex:1;">' +
+                    '<div style="font-size:0.68rem;font-weight:700;color:#1e293b;">' + cp.cp_code + ' — ' + cp.activity + '</div>' +
+                    (cp.notes ? '<div style="font-size:0.6rem;color:#64748b;">' + cp.notes + '</div>' : '') +
+                    (cp.rejected_reason ? '<div style="font-size:0.6rem;color:#dc2626;">Reason: ' + cp.rejected_reason + '</div>' : '') +
+                    '</div>' +
+                    '<span style="font-size:0.58rem;font-weight:700;padding:2px 6px;border-radius:4px;' + stSt + '">' + st + '</span>' +
+                    actionBtns +
+                    '</div>';
+            }).join('') +
+            '</div>';
+    }).join('');
+}
+
+async function rolloutCheckpointAction(np_id, cp_code, action) {
+    var reason = '';
+    var notes  = '';
+    if (action === 'reject') {
+        reason = prompt('Reason for rejection (required):');
+        if (!reason) return;
+    } else if (action === 'approve') {
+        notes = prompt('Approval notes (optional):') || '';
+    }
+    try {
+        var res  = await fetch('/api/rollout/plans/' + np_id + '/checkpoint/' + cp_code, {
+            method:  'POST',
+            headers: {'Content-Type': 'application/json'},
+            body:    JSON.stringify({action: action, notes: notes, reason: reason}),
+        });
+        var data = await res.json();
+        if (data.error) { alert(data.error); return; }
+        rolloutOpenPlan(np_id);
+    } catch(e) {
+        alert('Error: ' + e.message);
+    }
+}
+
+// ── Documents ──────────────────────────────────────────────────────────────
+function rolloutRenderDocs(docs) {
+    var container = document.getElementById('rolloutTabDocs');
+    if (!container) return;
+    var np_id = _rolloutCurrentPlan && _rolloutCurrentPlan.plan ? _rolloutCurrentPlan.plan.np_id : '';
+    var uploadForm = '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 12px;margin-bottom:10px;">' +
+        '<div style="font-size:0.65rem;font-weight:700;color:#0369a1;margin-bottom:6px;">Upload Document</div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;">' +
+        '<select id="rdCpCode" style="border:1px solid #bae6fd;border-radius:6px;padding:5px 8px;font-size:0.68rem;">' +
+        ['CP/MS-1.0','CP/MS-1.1','CP/MS-1.2','CP/MS-2.0','CP/MS-2.1','CP/MS-2.2','CP/MS-2.3','CP/MS-2.4','CP/MS-2.5',
+         'CP/MS-3.0','CP/MS-3.1','CP/MS-3.2','CP/MS-3.3','CP/MS-3.4','CP/MS-3.5','CP/MS-3.6','CP/MS-3.7','CP/MS-3.8','CP/MS-3.9','CP/MS-3.10']
+        .map(function(c){return '<option>' + c + '</option>';}).join('') +
+        '</select>' +
+        '<input id="rdDesc" type="text" placeholder="Description" style="border:1px solid #bae6fd;border-radius:6px;padding:5px 8px;font-size:0.68rem;"/>' +
+        '<input id="rdFile" type="file" style="font-size:0.65rem;"/>' +
+        '<button onclick="rolloutUploadDoc(\'' + np_id + '\')" style="background:linear-gradient(135deg,#0c4a6e,#0369a1);color:white;border:none;border-radius:6px;padding:6px 12px;font-size:0.68rem;font-weight:700;cursor:pointer;">Upload</button>' +
+        '</div></div>';
+
+    if (!docs.length) {
+        container.innerHTML = uploadForm + '<div style="text-align:center;color:#9ca3af;padding:16px;font-size:0.72rem;">No documents uploaded yet.</div>';
+        return;
+    }
+    container.innerHTML = uploadForm + docs.map(function(d) {
+        var size = d.file_size > 1024 ? Math.round(d.file_size/1024) + ' KB' : d.file_size + ' B';
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #f1f5f9;">' +
+            '<i class="fas fa-file-alt" style="color:#0369a1;flex-shrink:0;"></i>' +
+            '<div style="flex:1;">' +
+            '<div style="font-size:0.68rem;font-weight:600;color:#1e293b;">' + d.filename + '</div>' +
+            '<div style="font-size:0.6rem;color:#64748b;">' + (d.cp_code||'—') + ' · ' + size + (d.description ? ' · ' + d.description : '') + '</div>' +
+            '</div>' +
+            '<a href="/api/rollout/plans/' + np_id + '/documents/' + d.id + '" target="_blank" ' +
+            'style="font-size:0.6rem;color:#0369a1;font-weight:700;text-decoration:none;">Download</a>' +
+            '</div>';
+    }).join('');
+}
+
+async function rolloutUploadDoc(np_id) {
+    var fileInput = document.getElementById('rdFile');
+    var cpCode    = (document.getElementById('rdCpCode') || {}).value || '';
+    var desc      = (document.getElementById('rdDesc')   || {}).value || '';
+    if (!fileInput || !fileInput.files.length) { alert('Select a file first.'); return; }
+    var fd = new FormData();
+    fd.append('file', fileInput.files[0]);
+    fd.append('cp_code', cpCode);
+    fd.append('description', desc);
+    try {
+        var res  = await fetch('/api/rollout/plans/' + np_id + '/documents', {method:'POST', body:fd});
+        var data = await res.json();
+        if (data.error) { alert(data.error); return; }
+        rolloutOpenPlan(np_id);
+    } catch(e) {
+        alert('Upload error: ' + e.message);
+    }
+}
+
+// ── Team ───────────────────────────────────────────────────────────────────
+function rolloutRenderTeam(members) {
+    var container = document.getElementById('rolloutTabTeam');
+    if (!container) return;
+    var np_id = _rolloutCurrentPlan && _rolloutCurrentPlan.plan ? _rolloutCurrentPlan.plan.np_id : '';
+    var addRow = '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 12px;margin-bottom:10px;">' +
+        '<div style="font-size:0.65rem;font-weight:700;color:#0369a1;margin-bottom:6px;">Add Team Member</div>' +
+        '<div style="display:flex;gap:6px;">' +
+        '<input id="rtUserId" type="number" placeholder="User ID" style="width:80px;border:1px solid #bae6fd;border-radius:6px;padding:5px 8px;font-size:0.68rem;"/>' +
+        '<select id="rtRole" style="flex:1;border:1px solid #bae6fd;border-radius:6px;padding:5px 8px;font-size:0.68rem;">' +
+        ['Project Manager','USPD Approver','State Office Approver','Site Engineer','Sub-Con','NOC Engineer','DUSP Approver','Observer']
+        .map(function(r){return '<option>' + r + '</option>';}).join('') +
+        '</select>' +
+        '<button onclick="rolloutAddMember(\'' + np_id + '\')" style="background:linear-gradient(135deg,#0c4a6e,#0369a1);color:white;border:none;border-radius:6px;padding:5px 12px;font-size:0.68rem;font-weight:700;cursor:pointer;">Add</button>' +
+        '</div></div>';
+
+    if (!members.length) {
+        container.innerHTML = addRow + '<div style="text-align:center;color:#9ca3af;padding:16px;font-size:0.72rem;">No team members assigned.</div>';
+        return;
+    }
+    container.innerHTML = addRow + members.map(function(m) {
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #f1f5f9;">' +
+            '<div style="width:28px;height:28px;background:#0369a1;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:0.7rem;font-weight:700;flex-shrink:0;">' +
+            (m.full_name || m.username || 'U').charAt(0).toUpperCase() + '</div>' +
+            '<div style="flex:1;">' +
+            '<div style="font-size:0.7rem;font-weight:600;color:#1e293b;">' + (m.full_name || m.username || 'User ' + m.user_id) + '</div>' +
+            '<div style="font-size:0.6rem;color:#64748b;">' + m.rollout_role + '</div>' +
+            '</div>' +
+            '<button onclick="rolloutRemoveMember(\'' + np_id + '\',' + m.user_id + ')" ' +
+            'style="font-size:0.6rem;color:#dc2626;background:none;border:none;cursor:pointer;">Remove</button>' +
+            '</div>';
+    }).join('');
+}
+
+async function rolloutAddMember(np_id) {
+    var uid  = parseInt((document.getElementById('rtUserId') || {}).value);
+    var role = (document.getElementById('rtRole') || {}).value;
+    if (!uid) { alert('Enter a valid User ID'); return; }
+    try {
+        var res  = await fetch('/api/rollout/plans/' + np_id + '/members', {
+            method:  'POST',
+            headers: {'Content-Type':'application/json'},
+            body:    JSON.stringify({user_id: uid, rollout_role: role}),
+        });
+        var data = await res.json();
+        if (data.error) { alert(data.error); return; }
+        rolloutOpenPlan(np_id);
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function rolloutRemoveMember(np_id, uid) {
+    if (!confirm('Remove this member?')) return;
+    try {
+        var res  = await fetch('/api/rollout/plans/' + np_id + '/members/' + uid, {method:'DELETE'});
+        var data = await res.json();
+        if (data.error) { alert(data.error); return; }
+        rolloutOpenPlan(np_id);
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── Activity log ───────────────────────────────────────────────────────────
+function rolloutRenderActivity(events) {
+    var container = document.getElementById('rolloutTabActivity');
+    if (!container) return;
+    if (!events.length) {
+        container.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:16px;font-size:0.72rem;">No activity yet.</div>';
+        return;
+    }
+    container.innerHTML = events.map(function(ev) {
+        var dt = ev.created_at ? ev.created_at.replace('T',' ').substring(0,16) : '';
+        return '<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #f1f5f9;">' +
+            '<i class="fas fa-circle" style="color:#bae6fd;font-size:0.45rem;margin-top:5px;flex-shrink:0;"></i>' +
+            '<div>' +
+            '<div style="font-size:0.68rem;font-weight:600;color:#1e293b;">' + ev.event_type + (ev.cp_code ? ' <span style="color:#0369a1;font-size:0.6rem;">' + ev.cp_code + '</span>' : '') + '</div>' +
+            (ev.note ? '<div style="font-size:0.6rem;color:#475569;">' + ev.note + '</div>' : '') +
+            '<div style="font-size:0.58rem;color:#94a3b8;">' + (ev.username||'system') + ' · ' + dt + '</div>' +
+            '</div></div>';
+    }).join('');
+}
+
+// ── Create plan modal ──────────────────────────────────────────────────────
+function rolloutOpenCreate(prefill) {
+    prefill = prefill || {};
+    var modal = document.getElementById('rolloutCreateModal');
+    if (!modal) return;
+    document.getElementById('rcSiteName').value    = prefill.site_name    || '';
+    document.getElementById('rcLat').value         = prefill.lat          || '';
+    document.getElementById('rcLon').value         = prefill.lon          || '';
+    document.getElementById('rcNovaRunId').value   = prefill.nova_run_id  || '';
+    document.getElementById('rcNovaLabel').value   = prefill.nova_label   || '';
+    document.getElementById('rcTriggerRef').value  = prefill.trigger_ref  || '';
+    if (prefill.trigger_type) {
+        var sel = document.getElementById('rcTriggerType');
+        for (var i=0; i<sel.options.length; i++) {
+            if (sel.options[i].value === prefill.trigger_type) { sel.selectedIndex = i; break; }
+        }
+    }
+    modal.style.display = 'flex';
+}
+
+function rolloutCloseCreate() {
+    var modal = document.getElementById('rolloutCreateModal');
+    if (modal) modal.style.display = 'none';
+}
+
+async function rolloutSubmitCreate(e) {
+    e.preventDefault();
+    var payload = {
+        site_name:             document.getElementById('rcSiteName').value.trim(),
+        trigger_type:          document.getElementById('rcTriggerType').value,
+        trigger_ref:           document.getElementById('rcTriggerRef').value.trim(),
+        region:                document.getElementById('rcRegion').value.trim(),
+        zone:                  document.getElementById('rcZone').value.trim(),
+        objective:             document.getElementById('rcObjective').value.trim(),
+        intended_lat:          parseFloat(document.getElementById('rcLat').value),
+        intended_lon:          parseFloat(document.getElementById('rcLon').value),
+        target_date:           document.getElementById('rcTargetDate').value || null,
+        nova_run_id:           parseInt(document.getElementById('rcNovaRunId').value) || null,
+        nova_candidate_label:  document.getElementById('rcNovaLabel').value || null,
+    };
+    if (!payload.site_name || isNaN(payload.intended_lat) || isNaN(payload.intended_lon)) {
+        alert('Site name and valid coordinates are required.'); return;
+    }
+    try {
+        var res  = await fetch('/api/rollout/plans', {
+            method:  'POST',
+            headers: {'Content-Type':'application/json'},
+            body:    JSON.stringify(payload),
+        });
+        var data = await res.json();
+        if (data.error) { alert(data.error); return; }
+        rolloutCloseCreate();
+        if (!_rolloutOpen) toggleRolloutPanel();
+        else { rolloutLoadPlans(); }
+        alert('Rollout plan ' + data.np_id + ' created successfully.');
+    } catch(e) {
+        alert('Error: ' + e.message);
+    }
+}
+
+// ── NOVA → Rollout quick-launch ────────────────────────────────────────────
+function rolloutCreateFromNova(lat, lng, label) {
+    rolloutOpenCreate({
+        lat:          lat,
+        lon:          lng,
+        nova_run_id:  _novaRunId || null,
+        nova_label:   label,
+        trigger_type: 'NOVA Candidate',
+        site_name:    'NP Candidate ' + label,
+    });
+    if (!_rolloutOpen) toggleRolloutPanel();
+}
+
+// Close modal on backdrop click
+document.addEventListener('click', function(e) {
+    var modal = document.getElementById('rolloutCreateModal');
+    if (modal && modal.style.display === 'flex' && e.target === modal) rolloutCloseCreate();
+});
+</script>
 </body>
 </html>

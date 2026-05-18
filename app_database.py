@@ -306,6 +306,91 @@ def run_setup():
         """)
         print("  [OK] PAVE pave_runs + pave_sites tables created.")
 
+        # --- 10. ROLLOUT MODULE: Deployment lifecycle tracker ---
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS rollout_plans (
+                np_id           VARCHAR(32)      PRIMARY KEY,
+                site_name       VARCHAR(255),
+                trigger_type    VARCHAR(50)      DEFAULT 'State Request',
+                trigger_ref     TEXT,
+                intended_lat    DOUBLE PRECISION,
+                intended_lon    DOUBLE PRECISION,
+                region          VARCHAR(100),
+                zone            VARCHAR(100),
+                objective       TEXT,
+                current_cp      VARCHAR(20)      DEFAULT 'CP/MS-1.0',
+                deployed_lat    DOUBLE PRECISION,
+                deployed_lon    DOUBLE PRECISION,
+                deviation_m     DOUBLE PRECISION,
+                status          VARCHAR(30)      DEFAULT 'Active',
+                target_date     DATE,
+                nova_run_id     INTEGER          REFERENCES nova_runs(id) ON DELETE SET NULL,
+                nova_candidate_label TEXT,
+                created_by      INTEGER,
+                created_at      TIMESTAMP        DEFAULT NOW(),
+                updated_at      TIMESTAMP        DEFAULT NOW()
+            );
+            ALTER TABLE rollout_plans ADD COLUMN IF NOT EXISTS nova_run_id INTEGER;
+            ALTER TABLE rollout_plans ADD COLUMN IF NOT EXISTS nova_candidate_label TEXT;
+            CREATE INDEX IF NOT EXISTS idx_rollout_plans_status  ON rollout_plans(status);
+            CREATE INDEX IF NOT EXISTS idx_rollout_plans_created ON rollout_plans(created_at);
+
+            CREATE TABLE IF NOT EXISTS rollout_checkpoints (
+                id              SERIAL PRIMARY KEY,
+                np_id           VARCHAR(32)  REFERENCES rollout_plans(np_id) ON DELETE CASCADE,
+                cp_code         VARCHAR(20),
+                activity        VARCHAR(100),
+                phase           VARCHAR(50),
+                status          VARCHAR(20)  DEFAULT 'Pending',
+                approved_by     INTEGER,
+                approved_at     TIMESTAMP,
+                rejected_reason TEXT,
+                notes           TEXT,
+                seq_order       INTEGER,
+                UNIQUE(np_id, cp_code)
+            );
+            CREATE INDEX IF NOT EXISTS idx_rollout_cp_np ON rollout_checkpoints(np_id);
+
+            CREATE TABLE IF NOT EXISTS rollout_documents (
+                id              SERIAL PRIMARY KEY,
+                np_id           VARCHAR(32)  REFERENCES rollout_plans(np_id) ON DELETE CASCADE,
+                cp_code         VARCHAR(20),
+                filename        VARCHAR(255),
+                stored_path     TEXT,
+                file_size       INTEGER,
+                mime_type       VARCHAR(100),
+                uploaded_by     INTEGER,
+                uploaded_at     TIMESTAMP    DEFAULT NOW(),
+                description     TEXT
+            );
+            CREATE INDEX IF NOT EXISTS idx_rollout_docs_np ON rollout_documents(np_id);
+
+            CREATE TABLE IF NOT EXISTS rollout_events (
+                id              SERIAL PRIMARY KEY,
+                np_id           VARCHAR(32)  REFERENCES rollout_plans(np_id) ON DELETE CASCADE,
+                event_type      VARCHAR(80),
+                cp_code         VARCHAR(20),
+                note            TEXT,
+                user_id         INTEGER,
+                username        VARCHAR(100),
+                created_at      TIMESTAMP    DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS idx_rollout_ev_np ON rollout_events(np_id);
+            CREATE INDEX IF NOT EXISTS idx_rollout_ev_ts ON rollout_events(created_at);
+
+            CREATE TABLE IF NOT EXISTS rollout_members (
+                id           SERIAL PRIMARY KEY,
+                np_id        VARCHAR(32)  REFERENCES rollout_plans(np_id) ON DELETE CASCADE,
+                user_id      INTEGER,
+                rollout_role VARCHAR(50)  DEFAULT 'Site Engineer',
+                added_by     INTEGER,
+                added_at     TIMESTAMP    DEFAULT NOW(),
+                UNIQUE(np_id, user_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_rollout_members_np ON rollout_members(np_id);
+        """)
+        print("  [OK] ROLLOUT tables created.")
+
         # --- 11. POSTGIS + GEOSERVER DEMO LAYER (optional extension) ---
         try:
             cursor.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
