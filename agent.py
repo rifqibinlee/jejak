@@ -21,7 +21,7 @@ except ImportError:
 
 # --- AWS ATHENA CONFIGURATION ---
 ATHENA_DATABASE = "advanced-analytics"
-S3_STAGING_DIR = "s3://jejak-mappro-demo /3W-data/athena-query-results/"
+S3_STAGING_DIR = "s3://jejak-mappro-demo/3W-data/athena-query-results/"
 aws_session = boto3.Session(region_name="ap-southeast-1")
 
 reranker = None
