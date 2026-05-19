@@ -20,7 +20,7 @@ except ImportError:
     SentenceTransformer = None
 
 # --- AWS ATHENA CONFIGURATION ---
-ATHENA_DATABASE = "advanced-analytics"
+ATHENA_DATABASE = "jejak-mappro-demo"
 S3_STAGING_DIR = "s3://jejak-mappro-demo/3W-data/athena-query-results/"
 aws_session = boto3.Session(region_name="ap-southeast-1")
 
