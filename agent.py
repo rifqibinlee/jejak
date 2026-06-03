@@ -7,7 +7,10 @@ import pandas as pd
 import psycopg2
 import requests
 import time
-from langchain_community.chat_models import ChatLiteLLM
+try:
+    from langchain_litellm import ChatLiteLLM
+except ImportError:
+    from langchain_community.chat_models import ChatLiteLLM
 from langchain_core.tools import tool
 from langchain_core.messages import SystemMessage, HumanMessage, messages_to_dict, messages_from_dict
 from langgraph.prebuilt import create_react_agent

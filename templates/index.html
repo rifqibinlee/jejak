@@ -1684,20 +1684,20 @@
             <i class="fas fa-atom" style="color:white; font-size:1.1rem;"></i>
         </button>
 
+        <!-- NOVA button (before PAVE) -->
+        <button id="novaBtn" onclick="toggleNovaPanel()" title="NOVA — New tower site candidates"
+                style="display:flex; align-items:center; justify-content:center; width:48px; height:48px; background:linear-gradient(135deg,#15803d,#16a34a); border:1.5px solid rgba(22,163,74,0.35); border-radius:12px; box-shadow:0 2px 8px rgba(22,163,74,0.25); cursor:pointer; transition:all 0.2s; flex-shrink:0; padding:0;"
+                onmouseover="this.style.borderColor='#16a34a';this.style.boxShadow='0 4px 14px rgba(22,163,74,0.45)';this.style.transform='scale(1.08)'"
+                onmouseout="this.style.borderColor='rgba(22,163,74,0.35)';this.style.boxShadow='0 2px 8px rgba(22,163,74,0.25)';this.style.transform='scale(1)'">
+            <i class="fas fa-broadcast-tower" style="color:white; font-size:1.1rem;"></i>
+        </button>
+
         <!-- PAVE button -->
         <button id="paveBtn" onclick="togglePavePanel()" title="PAVE — Line-of-Sight visibility analysis"
                 style="display:flex; align-items:center; justify-content:center; width:48px; height:48px; background:linear-gradient(135deg,#92400e,#d97706); border:1.5px solid rgba(217,119,6,0.35); border-radius:12px; box-shadow:0 2px 8px rgba(180,83,9,0.25); cursor:pointer; transition:all 0.2s; flex-shrink:0; padding:0;"
                 onmouseover="this.style.borderColor='#d97706';this.style.boxShadow='0 4px 14px rgba(180,83,9,0.45)';this.style.transform='scale(1.08)'"
                 onmouseout="this.style.borderColor='rgba(217,119,6,0.35)';this.style.boxShadow='0 2px 8px rgba(180,83,9,0.25)';this.style.transform='scale(1)'">
             <i class="fas fa-eye" style="color:white; font-size:1.1rem;"></i>
-        </button>
-
-        <!-- NOVA button -->
-        <button id="novaBtn" onclick="toggleNovaPanel()" title="NOVA — New tower site candidates"
-                style="display:flex; align-items:center; justify-content:center; width:48px; height:48px; background:linear-gradient(135deg,#15803d,#16a34a); border:1.5px solid rgba(22,163,74,0.35); border-radius:12px; box-shadow:0 2px 8px rgba(22,163,74,0.25); cursor:pointer; transition:all 0.2s; flex-shrink:0; padding:0;"
-                onmouseover="this.style.borderColor='#16a34a';this.style.boxShadow='0 4px 14px rgba(22,163,74,0.45)';this.style.transform='scale(1.08)'"
-                onmouseout="this.style.borderColor='rgba(22,163,74,0.35)';this.style.boxShadow='0 2px 8px rgba(22,163,74,0.25)';this.style.transform='scale(1)'">
-            <i class="fas fa-broadcast-tower" style="color:white; font-size:1.1rem;"></i>
         </button>
 
         <!-- ROLLOUT button -->
@@ -1992,39 +1992,138 @@
             <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Legend</h4>
             <i id="legendChevron" class="fas fa-chevron-down text-gray-400 transition-transform duration-200" style="font-size:0.6rem;"></i>
         </button>
-        <div id="legendBody" class="px-4 pb-4" style="border-top: 1px solid #f3f4f6; max-height: 340px; overflow-y: auto;">
-            <div class="flex items-center gap-3 mb-2 mt-3"><div class="w-3 h-3 rounded-full bg-white border-2 border-blue-600 shadow-sm flex-shrink-0"></div><span class="text-xs font-bold text-gray-700">All Sites (Clusters)</span></div>
-            <div class="flex items-center gap-3 mb-3"><div class="w-3 h-3 rounded-full bg-white border-2 border-red-600 shadow-sm flex-shrink-0"></div><span class="text-xs font-bold text-gray-700">Congested Site</span></div>
-            <div class="flex items-center gap-3 mb-1"><div class="w-3 h-3 rounded-full bg-yellow-400 border border-yellow-600 flex-shrink-0"></div><span class="text-xs font-bold text-gray-700">5G (800m)</span></div>
-            <div class="flex items-center gap-3 mb-1"><div class="w-3 h-3 rounded-full bg-blue-500 border border-blue-700 flex-shrink-0"></div><span class="text-xs font-bold text-gray-700">4G (3km)</span></div>
-            <div class="flex items-center gap-3 mb-3"><div class="w-3 h-3 rounded-full bg-gray-400 border border-gray-600 flex-shrink-0"></div><span class="text-xs font-bold text-gray-700">2G (30km)</span></div>
-            <div class="flex items-center gap-3 mb-3 pt-2 border-t border-gray-100"><div class="w-20 h-2 rounded bg-gradient-to-r from-blue-400 via-yellow-400 to-red-600 flex-shrink-0"></div><span class="text-xs font-bold text-gray-700">Heatmap</span></div>
-            <div class="flex items-center gap-3 mb-1 pt-2 border-t border-gray-100 mt-2"><div class="w-3 h-3 bg-red-600 border border-white flex-shrink-0"></div><span class="text-xs font-bold text-gray-700">MR Data Hole (Square)</span></div>
-            <div class="flex items-center gap-3"><div class="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[10px] border-transparent border-b-blue-600 flex-shrink-0"></div><span class="text-xs font-bold text-gray-700">Ookla Data Hole (Triangle)</span></div>
-
-            <!-- Buildings (GeoServer) -->
-            <div class="pt-2 mt-2 border-t border-gray-100">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Buildings (Cukai / Permit)</p>
-                <div class="flex items-center gap-3 mb-1"><div class="w-3 h-3 flex-shrink-0 border border-green-700" style="background:#22c55e;"></div><span class="text-xs font-bold text-gray-700">Paid</span></div>
-                <div class="flex items-center gap-3 mb-1"><div class="w-3 h-3 flex-shrink-0 border border-red-700" style="background:#ef4444;"></div><span class="text-xs font-bold text-gray-700">Unpaid</span></div>
-                <div class="flex items-center gap-3 mb-1"><div class="w-3 h-3 flex-shrink-0 border border-blue-700" style="background:#3b82f6;"></div><span class="text-xs font-bold text-gray-700">Exempted</span></div>
-            </div>
-
-            <!-- Building Extension (GeoServer) -->
-            <div class="pt-2 mt-1 border-t border-gray-100">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Building Extension</p>
-                <div class="flex items-center gap-3 mb-1"><div class="w-3 h-3 flex-shrink-0 border border-gray-400" style="background:#e5e7eb;"></div><span class="text-xs font-bold text-gray-700">Nil</span></div>
-                <div class="flex items-center gap-3 mb-1"><div class="w-3 h-3 flex-shrink-0 border border-orange-500" style="background:#f97316;"></div><span class="text-xs font-bold text-gray-700">Potential</span></div>
-            </div>
-
-            <!-- Signal Points (GeoServer) -->
-            <div class="pt-2 mt-1 border-t border-gray-100">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Signal Points</p>
-                <div class="flex items-center gap-3 mb-1"><div class="w-3 h-3 rounded-full flex-shrink-0 border border-red-700" style="background:#e53e3e;"></div><span class="text-xs font-bold text-gray-700">Random Signal (RSRP)</span></div>
-            </div>
+        <div id="legendBody" class="px-4 pb-4" style="border-top: 1px solid #f3f4f6; max-height: 380px; overflow-y: auto;">
+            <div id="legendDynamicContent" class="mt-2"></div>
+            <div id="legendEmptyHint" class="text-[10px] text-gray-400 italic py-2 hidden">Turn on map layers to see legend entries.</div>
         </div>
     </div>
     <script>
+        window._driveTestLegendClusters = [];
+
+        function _legendRow(iconHtml, label) {
+            return '<div class="flex items-center gap-3 mb-1">' + iconHtml +
+                '<span class="text-xs font-bold text-gray-700">' + label + '</span></div>';
+        }
+        function _legendSection(title, rowsHtml) {
+            if (!rowsHtml) return '';
+            return '<div class="pt-2 mt-1 border-t border-gray-100 first:border-t-0 first:mt-0 first:pt-0">' +
+                '<p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">' + title + '</p>' +
+                rowsHtml + '</div>';
+        }
+
+        function updateMapLegend() {
+            var el = document.getElementById('legendDynamicContent');
+            var emptyHint = document.getElementById('legendEmptyHint');
+            if (!el) return;
+            var html = '';
+            var ls = typeof layerStates !== 'undefined' ? layerStates : {};
+
+            if (ls.clusters) {
+                html += _legendSection('Sites', _legendRow(
+                    '<div class="w-3 h-3 rounded-full bg-white border-2 border-blue-600 shadow-sm flex-shrink-0"></div>',
+                    'All Sites (Clusters)'));
+            }
+            if (ls.congestion) {
+                html += _legendRow(
+                    '<div class="w-3 h-3 rounded-full bg-white border-2 border-red-600 shadow-sm flex-shrink-0"></div>',
+                    'Congested Site');
+            }
+            if (ls['5g']) html += _legendRow('<div class="w-3 h-3 rounded-full bg-yellow-400 border border-yellow-600 flex-shrink-0"></div>', '5G (800m)');
+            if (ls['4g']) html += _legendRow('<div class="w-3 h-3 rounded-full bg-blue-500 border border-blue-700 flex-shrink-0"></div>', '4G (3km)');
+            if (ls['3g']) html += _legendRow('<div class="w-3 h-3 rounded-full bg-orange-400 border border-orange-600 flex-shrink-0"></div>', '3G Coverage');
+            if (ls['2g']) html += _legendRow('<div class="w-3 h-3 rounded-full bg-gray-400 border border-gray-600 flex-shrink-0"></div>', '2G (30km)');
+
+            var driveOn = ls.sig100_120 || ls.sig121_130 || ls.sig131_worse || ls.noise;
+            if (driveOn) {
+                var driveRows = '';
+                driveRows += _legendRow(
+                    '<div class="w-2.5 h-2.5 bg-slate-800 border border-white flex-shrink-0"></div>',
+                    'MR drive test (square)');
+                driveRows += _legendRow(
+                    '<div class="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[9px] border-transparent border-b-blue-600 flex-shrink-0"></div>',
+                    'Ookla drive test (triangle)');
+                if (ls.sig100_120) driveRows += _legendRow(
+                    '<div class="w-3 h-3 rounded-full bg-yellow-400 border border-yellow-600 flex-shrink-0"></div>',
+                    'RSRP −100 to −120 dBm');
+                if (ls.sig121_130) driveRows += _legendRow(
+                    '<div class="w-3 h-3 rounded-full bg-orange-500 border border-orange-700 flex-shrink-0"></div>',
+                    'RSRP −121 to −130 dBm');
+                if (ls.sig131_worse) driveRows += _legendRow(
+                    '<div class="w-3 h-3 rounded-full bg-red-600 border border-red-800 flex-shrink-0"></div>',
+                    'RSRP ≤ −131 dBm');
+                if (ls.noise) driveRows += _legendRow(
+                    '<div class="w-2.5 h-2.5 rounded-full bg-black border border-white flex-shrink-0"></div>',
+                    'Noise / unclustered (−1)');
+                var clusters = window._driveTestLegendClusters || [];
+                if (clusters.length) {
+                    driveRows += '<p class="text-[9px] text-gray-500 mb-1 mt-1">Point colour = cluster ID:</p>';
+                    var maxShow = 8;
+                    clusters.slice(0, maxShow).forEach(function (c) {
+                        driveRows += _legendRow(
+                            '<div class="w-3 h-3 rounded-sm flex-shrink-0 border border-white/80" style="background:' + c.color + ';"></div>',
+                            'Cluster ' + c.id);
+                    });
+                    if (clusters.length > maxShow) {
+                        driveRows += '<p class="text-[9px] text-gray-400 mb-1">+' + (clusters.length - maxShow) + ' more clusters</p>';
+                    }
+                }
+                html += _legendSection('Drive Test Signal', driveRows);
+            }
+
+            if (ls.heatmap) {
+                html += _legendSection('Analytics', _legendRow(
+                    '<div class="w-20 h-2 rounded bg-gradient-to-r from-blue-400 via-yellow-400 to-red-600 flex-shrink-0"></div>',
+                    'Congestion heatmap'));
+            }
+
+            if (typeof atomHullLayerJeak !== 'undefined' && atomHullLayerJeak && atomHullsOnJeak) {
+                html += _legendSection('ATOM', _legendRow(
+                    '<div class="w-4 h-3 rounded border-2 border-indigo-600 flex-shrink-0" style="background:rgba(99,102,241,0.35);"></div>',
+                    'Signal cluster hull'));
+                if (typeof atomPointsOnJeak !== 'undefined' && atomPointsOnJeak) {
+                    html += _legendRow(
+                        '<div class="w-2.5 h-2.5 rounded-full bg-indigo-500 border border-white flex-shrink-0"></div>',
+                        'Cluster points (colour = cluster)');
+                }
+            }
+
+            var gsActive = (typeof geoserverWmsEntries !== 'undefined' ? geoserverWmsEntries : [])
+                .filter(function (e) { return e.active && e.layer; });
+            var showCukai = gsActive.some(function (e) {
+                var n = (e.layer.wmsParams && e.layer.wmsParams.layers) || '';
+                return /cukai|permit|ktn_cukai/i.test(n);
+            });
+            var showExt = gsActive.some(function (e) {
+                var n = (e.layer.wmsParams && e.layer.wmsParams.layers) || '';
+                return /ext|extension|ktn_ext/i.test(n);
+            });
+            var showSigGs = gsActive.some(function (e) {
+                var n = (e.layer.wmsParams && e.layer.wmsParams.layers) || '';
+                return /signal|Random_Signal/i.test(n);
+            });
+            if (showCukai) {
+                var b = '';
+                b += _legendRow('<div class="w-3 h-3 flex-shrink-0 border border-green-700" style="background:#22c55e;"></div>', 'Paid');
+                b += _legendRow('<div class="w-3 h-3 flex-shrink-0 border border-red-700" style="background:#ef4444;"></div>', 'Unpaid');
+                b += _legendRow('<div class="w-3 h-3 flex-shrink-0 border border-blue-700" style="background:#3b82f6;"></div>', 'Exempted');
+                html += _legendSection('Buildings (Cukai / Permit)', b);
+            }
+            if (showExt) {
+                var ex = '';
+                ex += _legendRow('<div class="w-3 h-3 flex-shrink-0 border border-gray-400" style="background:#e5e7eb;"></div>', 'Nil');
+                ex += _legendRow('<div class="w-3 h-3 flex-shrink-0 border border-orange-500" style="background:#f97316;"></div>', 'Potential');
+                html += _legendSection('Building Extension', ex);
+            }
+            if (showSigGs) {
+                html += _legendSection('GeoServer Signal', _legendRow(
+                    '<div class="w-3 h-3 rounded-full flex-shrink-0 border border-red-700" style="background:#e53e3e;"></div>',
+                    'Signal sample points'));
+            }
+
+            el.innerHTML = html;
+            if (emptyHint) emptyHint.classList.toggle('hidden', !!html);
+        }
+
         function toggleMapLegend() {
             const body = document.getElementById('legendBody');
             const chevron = document.getElementById('legendChevron');
@@ -2032,6 +2131,7 @@
             body.style.display = isHidden ? 'block' : 'none';
             chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
         }
+        window.updateMapLegend = updateMapLegend;
     </script>
 
     </div><!-- /#mapContainer -->
@@ -4654,6 +4754,7 @@
                 map.removeLayer(layer);
                 sw.classList.remove('active');
             }
+            if (typeof updateMapLegend === 'function') updateMapLegend();
         }
 
         var geoserverWmsEntries = [];
@@ -4713,6 +4814,7 @@
                 map.removeLayer(entry.layer);
                 if (sw) sw.classList.remove('active');
             }
+            if (typeof updateMapLegend === 'function') updateMapLegend();
         }
 
         // ── GeoServer WMS GetFeatureInfo on map click ──────────────────────
@@ -4834,6 +4936,7 @@
             loadNotes();
             loadTasks();
             loadGeoserverMapLayers();
+            if (typeof updateMapLegend === 'function') updateMapLegend();
         }
 
         async function loadRegions() {
@@ -5641,6 +5744,7 @@
                 }
 
                 var bounds = L.latLngBounds();
+                var clusterLegendMap = {};
                 layerSig100_120.clearLayers();
                 layerSig121_130.clearLayers();
                 layerSig131_worse.clearLayers();
@@ -5655,6 +5759,9 @@
                     var marker;
 
                     var safeCluster = String(props.cluster).trim();
+                    if (safeCluster !== '-1' && safeCluster !== '') {
+                        clusterLegendMap[safeCluster] = color;
+                    }
                     var safeSource = String(props.data_source || "").trim().toUpperCase();
                     var sigVal = parseFloat(props.signal);
 
@@ -5726,6 +5833,13 @@
                 if (map.hasLayer(layerSig131_worse)) { map.removeLayer(layerSig131_worse); map.addLayer(layerSig131_worse); }
 
                 if (bounds.isValid()) { map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 }); }
+
+                window._driveTestLegendClusters = Object.keys(clusterLegendMap).map(function (k) {
+                    return { id: k, color: clusterLegendMap[k] };
+                }).sort(function (a, b) {
+                    return (parseInt(a.id, 10) || 0) - (parseInt(b.id, 10) || 0);
+                });
+                if (typeof updateMapLegend === 'function') updateMapLegend();
 
             }).catch(err => {
                 console.error("Error loading coverage holes:", err);
@@ -9515,6 +9629,7 @@ out center;`;
         if (atomHullsOnJeak) LMap.addLayer(atomHullLayerJeak); else LMap.removeLayer(atomHullLayerJeak);
         var b = document.getElementById('atomToggleHulls');
         if (b) b.style.opacity = atomHullsOnJeak ? '1' : '0.45';
+        if (typeof updateMapLegend === 'function') updateMapLegend();
     }
 
     function toggleAtomPointsJeak() {
@@ -9524,6 +9639,7 @@ out center;`;
         if (atomPointsOnJeak) LMap.addLayer(atomPointLayerJeak); else LMap.removeLayer(atomPointLayerJeak);
         var b2 = document.getElementById('atomTogglePoints');
         if (b2) b2.style.opacity = atomPointsOnJeak ? '1' : '0.45';
+        if (typeof updateMapLegend === 'function') updateMapLegend();
     }
 
     function clearAtomLayersJeak() {
