@@ -2423,6 +2423,39 @@ def atom_history():
         return jsonify([]), 500
 
 
+@app.route('/api/atom/clusters')
+@api_login_required
+def atom_clusters_list():
+    """Return all stored ATOM clusters with their NP-ids."""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT ac.id, ac.run_id, ac.np_id, ac.cluster_id,
+                           ac.point_count, ac.avg_rsrp,
+                           ac.center_lat, ac.center_lng,
+                           ac.color, ac.created_at,
+                           ar.region, ar.week, ar.ran_at,
+                           rp.np_id AS rollout_np_id, rp.status AS rollout_status
+                    FROM atom_clusters ac
+                    JOIN atom_runs ar ON ar.id = ac.run_id
+                    LEFT JOIN rollout_plans rp ON rp.atom_cluster_id = ac.id
+                    ORDER BY ac.created_at DESC
+                    LIMIT 500
+                """)
+                cols = [d[0] for d in cur.description]
+                rows = cur.fetchall()
+                result = []
+                for row in rows:
+                    r = dict(zip(cols, row))
+                    if r.get('created_at'): r['created_at'] = r['created_at'].isoformat()
+                    if r.get('ran_at'):     r['ran_at']     = r['ran_at'].isoformat()
+                    result.append(r)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/nova/run', methods=['POST'])
 @api_login_required
 def nova_run():
@@ -2681,10 +2714,11 @@ ROLLOUT_UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads', 'roll
 os.makedirs(ROLLOUT_UPLOAD_FOLDER, exist_ok=True)
 
 
-def _rollout_gen_id():
-    ts  = datetime.now().strftime('%y%m%d')
-    rnd = ''.join(_random.choices(_string.ascii_uppercase + _string.digits, k=5))
-    return f'NP-{ts}-{rnd}'
+def _rollout_gen_np_id(cur):
+    """Draw next value from np_id_seq and return a human-readable NP-id (e.g. NP042)."""
+    cur.execute("SELECT nextval('np_id_seq')")
+    seq = cur.fetchone()[0]
+    return f'NP{seq:03d}'
 
 
 def _rollout_log(cur, np_id, event_type, note='', cp_code=None, user_id=None, username=None):
@@ -2850,21 +2884,38 @@ def rollout_list_plans():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/rollout/next_np_id', methods=['GET'])
+@api_login_required
+def rollout_peek_next_np_id():
+    """Return the next NP-id that would be assigned (without consuming it)."""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT last_value + 1 FROM np_id_seq")
+                nxt = cur.fetchone()[0]
+        return jsonify({'next_np_id': f'NP{nxt:03d}'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/rollout/plans', methods=['POST'])
 @api_login_required
 def rollout_create_plan():
-    data         = request.get_json() or {}
-    site_name    = data.get('site_name', '').strip()
-    trigger_type = data.get('trigger_type', 'State Request')
-    trigger_ref  = data.get('trigger_ref', '')
-    region       = data.get('region', '')
-    zone         = data.get('zone', '')
-    objective    = data.get('objective', '')
-    target_date  = data.get('target_date') or None
-    nova_run_id  = data.get('nova_run_id') or None
-    nova_label   = data.get('nova_candidate_label') or None
-    user_id      = session.get('user_id')
-    username     = session.get('username', 'system')
+    data             = request.get_json() or {}
+    site_name        = data.get('site_name', '').strip()
+    trigger_type     = data.get('trigger_type', 'State Request')
+    trigger_ref      = data.get('trigger_ref', '')
+    region           = data.get('region', '')
+    zone             = data.get('zone', '')
+    objective        = data.get('objective', '')
+    target_date      = data.get('target_date') or None
+    nova_run_id      = data.get('nova_run_id') or None
+    nova_label       = data.get('nova_candidate_label') or None
+    atom_cluster_id  = data.get('atom_cluster_id') or None
+    # Allow caller to supply a pre-assigned NP-id (e.g. from atom_clusters)
+    supplied_np_id   = (data.get('np_id') or '').strip() or None
+    user_id          = session.get('user_id')
+    username         = session.get('username', 'system')
 
     if not site_name:
         return jsonify({'error': 'site_name required'}), 400
@@ -2874,20 +2925,22 @@ def rollout_create_plan():
     except (TypeError, ValueError):
         return jsonify({'error': 'Valid intended_lat and intended_lon required'}), 400
 
-    np_id = _rollout_gen_id()
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
+                # Use supplied NP-id (from ATOM cluster) or generate a fresh one
+                np_id = supplied_np_id if supplied_np_id else _rollout_gen_np_id(cur)
                 cur.execute("""
                     INSERT INTO rollout_plans
                         (np_id, site_name, trigger_type, trigger_ref,
                          intended_lat, intended_lon, region, zone, objective,
                          target_date, nova_run_id, nova_candidate_label,
-                         current_cp, status, created_by)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'CP/MS-1.0','Active',%s)
+                         atom_cluster_id, current_cp, status, created_by)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'CP/MS-1.0','Active',%s)
                 """, (np_id, site_name, trigger_type, trigger_ref,
                       lat, lon, region, zone, objective,
-                      target_date, nova_run_id, nova_label, user_id))
+                      target_date, nova_run_id, nova_label,
+                      atom_cluster_id, user_id))
                 _rollout_seed_checkpoints(cur, np_id)
                 _rollout_log(cur, np_id, 'Plan Created',
                              f'Trigger: {trigger_type}. Location: ({lat:.5f}, {lon:.5f}).',

@@ -2582,10 +2582,18 @@
                 <button type="button" onclick="rolloutCloseCreate()" style="background:none; border:none; color:white; font-size:1.2rem; cursor:pointer;">&times;</button>
             </div>
             <form id="rolloutCreateForm" onsubmit="rolloutSubmitCreate(event)" style="padding:16px 18px; display:flex; flex-direction:column; gap:10px;">
+                <!-- NP-id display (auto-assigned, read-only) -->
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:10px;">
+                    <div>
+                        <div style="font-size:0.58rem; font-weight:700; color:#1d4ed8; text-transform:uppercase; letter-spacing:.05em;">Planning ID (auto-assigned)</div>
+                        <div id="rcNpIdDisplay" style="font-family:monospace; font-size:1.1rem; font-weight:800; color:#0c4a6e; letter-spacing:.08em;">—</div>
+                    </div>
+                    <div style="font-size:0.62rem; color:#3b82f6; flex:1;">Unique, sequential, system-generated. Cannot be edited.</div>
+                </div>
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1;">
-                        <label style="font-size:0.65rem; font-weight:700; color:#374151; display:block; margin-bottom:3px;">Site Name *</label>
-                        <input id="rcSiteName" type="text" required placeholder="e.g. Bukit Tinggi NP-01"
+                        <label style="font-size:0.65rem; font-weight:700; color:#374151; display:block; margin-bottom:3px;">Site / Location Name *</label>
+                        <input id="rcSiteName" type="text" required placeholder="e.g. Bukit Tinggi Tower"
                                style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:7px 10px; font-size:0.72rem; box-sizing:border-box;"/>
                     </div>
                     <div style="flex:1;">
@@ -2640,9 +2648,11 @@
                     <textarea id="rcObjective" rows="2" placeholder="Brief deployment objective…"
                               style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:7px 10px; font-size:0.72rem; resize:vertical; box-sizing:border-box;"></textarea>
                 </div>
-                <!-- Hidden fields for NOVA linkage -->
+                <!-- Hidden fields for linkage (NOVA / ATOM) -->
                 <input type="hidden" id="rcNovaRunId"/>
                 <input type="hidden" id="rcNovaLabel"/>
+                <input type="hidden" id="rcAtomClusterId"/>
+                <input type="hidden" id="rcNpId"/>
                 <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
                     <button type="button" onclick="rolloutCloseCreate()"
                             style="padding:8px 18px; border:1px solid #d1d5db; border-radius:8px; font-size:0.72rem; font-weight:600; cursor:pointer; background:white;">Cancel</button>
@@ -9602,13 +9612,21 @@ out center;`;
             return;
         }
         listEl.innerHTML = summaries.map(function(c) {
-            var rsrp = c.avg_rsrp != null ? c.avg_rsrp : 'N/A';
+            var rsrp   = c.avg_rsrp != null ? c.avg_rsrp : 'N/A';
+            var npBadge = c.np_id
+                ? '<span style="background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 6px;font-size:0.58rem;font-weight:800;letter-spacing:.04em;font-family:monospace;">' + c.np_id + '</span>'
+                : '';
+            var rolloutBtn = '<button onclick="event.stopPropagation(); atomCreateRollout(' + JSON.stringify(c) + ')" '
+                + 'style="margin-left:4px;background:#0369a1;color:white;border:none;border-radius:4px;padding:2px 7px;font-size:0.58rem;font-weight:700;cursor:pointer;" '
+                + 'title="Create Rollout plan for this cluster"><i class="fas fa-route"></i></button>';
             return '<div class="atom-cluster-card" onclick="atomFlyToJeak(' + c.center_lat + ',' + c.center_lng + ')">' +
               '<div class="atom-cluster-dot" style="background:' + c.color + '"></div>' +
               '<div class="flex-1 min-w-0">' +
-              '<div class="flex justify-between gap-2"><span class="text-xs font-black text-gray-800">Cluster ' + c.cluster_id + '</span>' +
+              '<div class="flex justify-between gap-2 flex-wrap">' +
+              '<span class="text-xs font-black text-gray-800">Cluster ' + c.cluster_id + ' ' + npBadge + '</span>' +
               '<span class="text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0" style="background:' + c.color + '22;color:#111">' + c.point_count + ' pts</span></div>' +
-              '<div class="text-[10px] text-gray-500 mt-0.5">Avg RSRP: <strong class="text-red-600">' + rsrp + '</strong> dBm</div></div>' +
+              '<div class="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1">Avg RSRP: <strong class="text-red-600">' + rsrp + ' dBm</strong>' + rolloutBtn + '</div>' +
+              '</div>' +
               '<i class="fas fa-crosshairs text-gray-300 text-xs"></i></div>';
         }).join('');
 
@@ -9620,6 +9638,20 @@ out center;`;
     function atomFlyToJeak(lat, lng) {
         const m = atomTargetMapJeak();
         if (m) m.flyTo([lat, lng], 14, { animate: true, duration: 1.2 });
+    }
+
+    function atomCreateRollout(cluster) {
+        rolloutOpenCreate({
+            lat:            cluster.center_lat,
+            lon:            cluster.center_lng,
+            trigger_type:   'NOVA Candidate',
+            site_name:      'ATOM Cluster ' + cluster.cluster_id + (cluster.np_id ? ' (' + cluster.np_id + ')' : ''),
+            np_id:          cluster.np_id  || null,
+            atom_cluster_id: cluster.id   || null,
+            nova_run_id:    null,
+            nova_label:     null,
+        });
+        if (!_rolloutOpen) toggleRolloutPanel();
     }
 
     function toggleAtomHullsJeak() {
@@ -10765,20 +10797,38 @@ function rolloutRenderActivity(events) {
 }
 
 // ── Create plan modal ──────────────────────────────────────────────────────
-function rolloutOpenCreate(prefill) {
+async function rolloutOpenCreate(prefill) {
     prefill = prefill || {};
     var modal = document.getElementById('rolloutCreateModal');
     if (!modal) return;
-    document.getElementById('rcSiteName').value    = prefill.site_name    || '';
-    document.getElementById('rcLat').value         = prefill.lat          || '';
-    document.getElementById('rcLon').value         = prefill.lon          || '';
-    document.getElementById('rcNovaRunId').value   = prefill.nova_run_id  || '';
-    document.getElementById('rcNovaLabel').value   = prefill.nova_label   || '';
-    document.getElementById('rcTriggerRef').value  = prefill.trigger_ref  || '';
+    document.getElementById('rcSiteName').value      = prefill.site_name      || '';
+    document.getElementById('rcLat').value           = prefill.lat            || '';
+    document.getElementById('rcLon').value           = prefill.lon            || '';
+    document.getElementById('rcNovaRunId').value     = prefill.nova_run_id    || '';
+    document.getElementById('rcNovaLabel').value     = prefill.nova_label     || '';
+    document.getElementById('rcAtomClusterId').value = prefill.atom_cluster_id || '';
+    document.getElementById('rcTriggerRef').value    = prefill.trigger_ref    || '';
     if (prefill.trigger_type) {
         var sel = document.getElementById('rcTriggerType');
         for (var i=0; i<sel.options.length; i++) {
             if (sel.options[i].value === prefill.trigger_type) { sel.selectedIndex = i; break; }
+        }
+    }
+    // Show pre-assigned NP-id (from ATOM cluster) or fetch next from server
+    var npIdDisplay = document.getElementById('rcNpIdDisplay');
+    var rcNpId      = document.getElementById('rcNpId');
+    if (prefill.np_id) {
+        rcNpId.value = prefill.np_id;
+        if (npIdDisplay) npIdDisplay.textContent = prefill.np_id;
+    } else {
+        rcNpId.value = '';
+        if (npIdDisplay) npIdDisplay.textContent = '…';
+        try {
+            var r = await fetch('/api/rollout/next_np_id');
+            var d = await r.json();
+            if (npIdDisplay) npIdDisplay.textContent = d.next_np_id || '(auto)';
+        } catch(_) {
+            if (npIdDisplay) npIdDisplay.textContent = '(auto)';
         }
     }
     modal.style.display = 'flex';
@@ -10803,6 +10853,8 @@ async function rolloutSubmitCreate(e) {
         target_date:           document.getElementById('rcTargetDate').value || null,
         nova_run_id:           parseInt(document.getElementById('rcNovaRunId').value) || null,
         nova_candidate_label:  document.getElementById('rcNovaLabel').value || null,
+        atom_cluster_id:       parseInt(document.getElementById('rcAtomClusterId').value) || null,
+        np_id:                 document.getElementById('rcNpId').value || null,
     };
     if (!payload.site_name || isNaN(payload.intended_lat) || isNaN(payload.intended_lon)) {
         alert('Site name and valid coordinates are required.'); return;
@@ -10832,7 +10884,8 @@ function rolloutCreateFromNova(lat, lng, label) {
         nova_run_id:  _novaRunId || null,
         nova_label:   label,
         trigger_type: 'NOVA Candidate',
-        site_name:    'NP Candidate ' + label,
+        site_name:    'NOVA Candidate ' + label,
+        np_id:        null,  // always auto-generate for NOVA candidates
     });
     if (!_rolloutOpen) toggleRolloutPanel();
 }

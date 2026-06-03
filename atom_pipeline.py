@@ -290,6 +290,10 @@ def run_atom_pipeline(region: str = 'All', week: str = None, initiated_by: str =
     # ── 6. Persist run ───────────────────────────────────────────────────────
     run_id = _save_run(params, n_clusters, n_noise, n_input, region, week, initiated_by)
 
+    # ── 7. Persist per-cluster data + assign NP-ids ──────────────────────────
+    if run_id:
+        _save_clusters(run_id, cluster_summaries, hull_features)
+
     return _sanitise({
         'run_id':            run_id,
         'params':            params,
@@ -309,6 +313,54 @@ def run_atom_pipeline(region: str = 'All', week: str = None, initiated_by: str =
 
 
 # ── Persistence ───────────────────────────────────────────────────────────────
+
+def _next_np_id(cursor) -> str:
+    """Draw next value from shared np_id_seq and return formatted NP-id."""
+    cursor.execute("SELECT nextval('np_id_seq')")
+    seq = cursor.fetchone()[0]
+    return f"NP{seq:03d}"
+
+
+def _save_clusters(run_id: int, cluster_summaries: list, hull_features: list) -> None:
+    """
+    Persist per-cluster results to atom_clusters, assigning a unique NP-id to each.
+    Mutates each summary dict in-place to add 'np_id'.
+    """
+    hull_by_cid = {f['properties']['cluster_id']: f['geometry'] for f in hull_features}
+    try:
+        conn   = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        for summary in cluster_summaries:
+            cid      = summary['cluster_id']
+            np_id    = _next_np_id(cursor)
+            hull_geo = hull_by_cid.get(cid)
+            cursor.execute(
+                """
+                INSERT INTO atom_clusters
+                    (run_id, np_id, cluster_id, point_count, avg_rsrp,
+                     center_lat, center_lng, color, hull_geojson)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (np_id) DO NOTHING
+                RETURNING np_id
+                """,
+                (
+                    run_id, np_id, cid,
+                    summary.get('point_count', 0),
+                    summary.get('avg_rsrp'),
+                    summary.get('center_lat'), summary.get('center_lng'),
+                    summary.get('color'),
+                    json.dumps(hull_geo) if hull_geo else None,
+                ),
+            )
+            row = cursor.fetchone()
+            summary['np_id'] = row[0] if row else np_id
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print(f"[ATOM] {len(cluster_summaries)} clusters saved with NP-ids.")
+    except Exception as e:
+        print(f"[ATOM] Could not save clusters to DB: {e}")
+
 
 def _save_run(params, n_clusters, n_noise, total_points, region, week, initiated_by) -> Optional[int]:
     """Write ATOM run summary to atom_runs table."""

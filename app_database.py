@@ -225,7 +225,10 @@ def run_setup():
                 """, (cat, name, p, pmin, pmax))
             print("  [OK] Default CAPEX Pricing seeded.")
 
-        # --- 6. ATOM MODULE: Run History Table ---
+        # --- 6. ATOM MODULE: Run History + Per-Cluster Results ---
+        # Global NP-id sequence — shared by atom_clusters and manual rollout plans
+        cursor.execute("CREATE SEQUENCE IF NOT EXISTS np_id_seq START 1 INCREMENT 1;")
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS atom_runs (
                 id            SERIAL PRIMARY KEY,
@@ -240,7 +243,25 @@ def run_setup():
                 ran_at        TIMESTAMP DEFAULT NOW()
             );
         """)
-        print("  [OK] ATOM atom_runs table created.")
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS atom_clusters (
+                id           SERIAL PRIMARY KEY,
+                run_id       INTEGER NOT NULL REFERENCES atom_runs(id) ON DELETE CASCADE,
+                np_id        VARCHAR(20) UNIQUE,
+                cluster_id   INTEGER NOT NULL,
+                point_count  INTEGER NOT NULL DEFAULT 0,
+                avg_rsrp     DOUBLE PRECISION,
+                center_lat   DOUBLE PRECISION NOT NULL,
+                center_lng   DOUBLE PRECISION NOT NULL,
+                color        TEXT,
+                hull_geojson TEXT,
+                created_at   TIMESTAMP DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS idx_atom_clusters_run_id ON atom_clusters(run_id);
+            CREATE INDEX IF NOT EXISTS idx_atom_clusters_np_id  ON atom_clusters(np_id);
+        """)
+        print("  [OK] ATOM atom_runs + atom_clusters tables created.")
 
         # --- 7. NOVA MODULE: Run History Table ---
         cursor.execute("""
@@ -336,6 +357,8 @@ def run_setup():
             ALTER TABLE rollout_plans ADD COLUMN IF NOT EXISTS nova_run_id INTEGER;
             ALTER TABLE rollout_plans ADD COLUMN IF NOT EXISTS nova_candidate_label TEXT;
             ALTER TABLE rollout_plans ADD COLUMN IF NOT EXISTS completion_annotation_id INTEGER REFERENCES map_annotations(id) ON DELETE SET NULL;
+            ALTER TABLE rollout_plans ADD COLUMN IF NOT EXISTS atom_cluster_id INTEGER REFERENCES atom_clusters(id) ON DELETE SET NULL;
+            ALTER TABLE rollout_plans ADD COLUMN IF NOT EXISTS display_label TEXT;
             CREATE INDEX IF NOT EXISTS idx_rollout_plans_status  ON rollout_plans(status);
             CREATE INDEX IF NOT EXISTS idx_rollout_plans_created ON rollout_plans(created_at);
 
