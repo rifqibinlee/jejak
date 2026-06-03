@@ -17,7 +17,8 @@ import orjson
 from agent import run_netalytics_agent
 from genset_pipeline import route_substations
 from atom_pipeline import run_atom_pipeline, get_recent_runs
-from nova_pipeline import run_nova_pipeline, get_nova_recent_runs, get_nova_run_candidates
+from nova_pipeline import (run_nova_pipeline, get_nova_recent_runs,
+                           get_nova_run_candidates, get_nova_candidates_by_np_id)
 from pave_pipeline import run_pave, get_pave_recent_runs
 from geoserver_integration import (
     catalog_payload,
@@ -2485,6 +2486,8 @@ def nova_run():
     print(f"[NOVA] Run triggered by '{username}' — "
           f"({complaint_lat},{complaint_lng}), r={radius_m}m, top_k={top_k}")
 
+    atom_cluster_np_id = (data.get('atom_cluster_np_id') or '').strip() or None
+
     try:
         result = run_nova_pipeline(
             complaint_lat=complaint_lat,
@@ -2492,6 +2495,7 @@ def nova_run():
             radius_m=radius_m,
             top_k=top_k,
             initiated_by=username,
+            atom_cluster_np_id=atom_cluster_np_id,
         )
         if 'error' in result:
             return jsonify({'success': False, **result}), 400
@@ -2516,10 +2520,21 @@ def nova_history():
 @app.route('/api/nova/run/<int:run_id>')
 @api_login_required
 def nova_run_detail(run_id):
-    """Return saved candidates for a past NOVA run."""
+    """Return all saved candidates (selected + rejected) for a past NOVA run."""
     try:
         candidates = get_nova_run_candidates(run_id)
         return jsonify({'success': True, 'run_id': run_id, 'candidates': candidates})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/nova/candidates/np/<np_id>')
+@api_login_required
+def nova_candidates_by_np(np_id):
+    """Return all NOVA candidates ever generated for a given NP-id (all runs)."""
+    try:
+        candidates = get_nova_candidates_by_np_id(np_id)
+        return jsonify({'success': True, 'np_id': np_id, 'candidates': candidates})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 

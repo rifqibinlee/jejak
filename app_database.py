@@ -284,8 +284,9 @@ def run_setup():
             CREATE TABLE IF NOT EXISTS nova_candidates (
                 id                SERIAL PRIMARY KEY,
                 run_id            INTEGER REFERENCES nova_runs(id) ON DELETE CASCADE,
+                np_id             VARCHAR(20),
                 label             TEXT NOT NULL,
-                rank              INTEGER NOT NULL,
+                rank              INTEGER,
                 lat               DOUBLE PRECISION NOT NULL,
                 lng               DOUBLE PRECISION NOT NULL,
                 dist_m            DOUBLE PRECISION,
@@ -293,11 +294,24 @@ def run_setup():
                 signal_weight_sum INTEGER DEFAULT 0,
                 avg_rsrp          DOUBLE PRECISION,
                 color             TEXT,
+                candidate_type    TEXT DEFAULT 'centroid',
+                is_selected       BOOLEAN DEFAULT FALSE,
+                selection_reason  TEXT,
+                rejection_reason  TEXT,
                 created_at        TIMESTAMP DEFAULT NOW()
             );
+            ALTER TABLE nova_candidates ADD COLUMN IF NOT EXISTS np_id VARCHAR(20);
+            ALTER TABLE nova_candidates ADD COLUMN IF NOT EXISTS candidate_type TEXT DEFAULT 'centroid';
+            ALTER TABLE nova_candidates ADD COLUMN IF NOT EXISTS is_selected BOOLEAN DEFAULT FALSE;
+            ALTER TABLE nova_candidates ADD COLUMN IF NOT EXISTS selection_reason TEXT;
+            ALTER TABLE nova_candidates ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
             CREATE INDEX IF NOT EXISTS idx_nova_candidates_run_id ON nova_candidates(run_id);
+            CREATE INDEX IF NOT EXISTS idx_nova_candidates_np_id  ON nova_candidates(np_id);
         """)
-        print("  [OK] NOVA nova_candidates table created.")
+        cursor.execute("""
+            ALTER TABLE nova_runs ADD COLUMN IF NOT EXISTS atom_cluster_np_id VARCHAR(20);
+        """)
+        print("  [OK] NOVA nova_runs + nova_candidates tables created.")
 
         # --- 9. PAVE MODULE: Run History + Site Results ---
         cursor.execute("""

@@ -9527,7 +9527,8 @@ out center;`;
         if (typeof map !== 'undefined' && map) return map;
         return null;
     }
-    var atomHullLayerJeak = null, atomPointLayerJeak = null, atomHullsOnJeak = true, atomPointsOnJeak = false;
+    var atomHullLayerJeak = null, atomPointLayerJeak = null, atomCentroidLayerJeak = null;
+    var atomHullsOnJeak = true, atomPointsOnJeak = false, atomCentroidsOnJeak = true;
 
     function toggleAtomPanel() {
         const p = document.getElementById('atomPanel');
@@ -9630,14 +9631,74 @@ out center;`;
               '<i class="fas fa-crosshairs text-gray-300 text-xs"></i></div>';
         }).join('');
 
+        // ── Centroid NP-id markers ──────────────────────────────────────────
+        if (atomCentroidLayerJeak) { try { LMap.removeLayer(atomCentroidLayerJeak); } catch(e){} }
+        atomCentroidLayerJeak = L.layerGroup();
+        summaries.forEach(function(c) {
+            if (c.center_lat == null || c.center_lng == null) return;
+            var npLabel = c.np_id || ('C' + c.cluster_id);
+            var iconHtml =
+                '<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">' +
+                '<div style="background:#1e293b;color:white;border:2.5px solid ' + c.color + ';border-radius:8px;' +
+                'padding:3px 8px;font-size:0.62rem;font-weight:900;font-family:monospace;white-space:nowrap;' +
+                'box-shadow:0 2px 8px rgba(0,0,0,0.45);letter-spacing:.05em;">' + npLabel + '</div>' +
+                '<div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;' +
+                'border-top:6px solid ' + c.color + ';margin-top:-1px;"></div>' +
+                '<div style="width:8px;height:8px;background:' + c.color + ';border-radius:50%;border:2px solid white;' +
+                'box-shadow:0 1px 4px rgba(0,0,0,0.4);margin-top:-1px;"></div></div>';
+            var m = L.marker([c.center_lat, c.center_lng], {
+                icon: L.divIcon({ className: '', html: iconHtml, iconSize: [80, 40], iconAnchor: [40, 40] }),
+                zIndexOffset: 900,
+            });
+            m.bindPopup(
+                '<div style="font-family:Inter,sans-serif;min-width:200px;">' +
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+                '<div style="width:14px;height:14px;border-radius:3px;background:' + c.color + ';flex-shrink:0;"></div>' +
+                '<span style="font-weight:900;font-size:0.85rem;color:#1e293b;">' + npLabel + '</span>' +
+                '&nbsp;<span style="font-size:0.65rem;color:#64748b;">Cluster ' + c.cluster_id + '</span></div>' +
+                '<table style="font-size:0.72rem;width:100%;border-collapse:collapse;">' +
+                '<tr><td style="color:#6b7280;padding:2px 0;">Points</td><td style="font-weight:700;">' + c.point_count + '</td></tr>' +
+                '<tr><td style="color:#6b7280;padding:2px 0;">Avg RSRP</td><td style="font-weight:700;">' + (c.avg_rsrp != null ? c.avg_rsrp + ' dBm' : 'N/A') + '</td></tr>' +
+                '<tr><td style="color:#6b7280;padding:2px 0;">Centre</td><td style="font-size:0.62rem;font-weight:600;">' + c.center_lat.toFixed(5) + ', ' + c.center_lng.toFixed(5) + '</td></tr>' +
+                '</table>' +
+                '<div style="margin-top:8px;display:flex;gap:6px;">' +
+                '<button onclick="atomTriggerNova(' + JSON.stringify(c) + ');this.closest(\'.leaflet-popup\').querySelector(\'.leaflet-popup-close-button\').click()" ' +
+                'style="flex:1;background:linear-gradient(135deg,#15803d,#16a34a);color:white;border:none;border-radius:6px;padding:5px;font-size:0.6rem;font-weight:700;cursor:pointer;">' +
+                '<i class="fas fa-broadcast-tower"></i> NOVA</button>' +
+                '<button onclick="atomCreateRollout(' + JSON.stringify(c) + ');this.closest(\'.leaflet-popup\').querySelector(\'.leaflet-popup-close-button\').click()" ' +
+                'style="flex:1;background:linear-gradient(135deg,#0c4a6e,#0369a1);color:white;border:none;border-radius:6px;padding:5px;font-size:0.6rem;font-weight:700;cursor:pointer;">' +
+                '<i class="fas fa-route"></i> Rollout</button>' +
+                '</div></div>'
+            );
+            m.addTo(atomCentroidLayerJeak);
+        });
+        if (atomCentroidsOnJeak) atomCentroidLayerJeak.addTo(LMap);
+
         if (atomHullLayerJeak) {
             try { LMap.fitBounds(atomHullLayerJeak.getBounds(), { padding: [50, 50], maxZoom: 14 }); } catch (err) {}
         }
+        if (typeof updateMapLegend === 'function') updateMapLegend();
     }
 
     function atomFlyToJeak(lat, lng) {
         const m = atomTargetMapJeak();
         if (m) m.flyTo([lat, lng], 14, { animate: true, duration: 1.2 });
+    }
+
+    function atomTriggerNova(cluster) {
+        // Pre-set NOVA pin to this ATOM cluster centroid and associate the NP-id
+        window._novaAtomNpId = cluster.np_id || null;
+        if (typeof _novaSetPin === 'function') {
+            _novaSetPin(cluster.center_lat, cluster.center_lng);
+        } else {
+            // Fallback: set internal vars manually
+            window._novaPinLat = cluster.center_lat;
+            window._novaPinLng = cluster.center_lng;
+        }
+        if (!_novaOpen) toggleNovaPanel();
+        // Show a toast so user knows NOVA is pre-loaded
+        var npId = cluster.np_id ? ' (' + cluster.np_id + ')' : '';
+        console.log('[NOVA] Triggered from ATOM cluster' + npId + ' at (' + cluster.center_lat + ',' + cluster.center_lng + ')');
     }
 
     function atomCreateRollout(cluster) {
@@ -9676,9 +9737,10 @@ out center;`;
 
     function clearAtomLayersJeak() {
         var LMap = atomTargetMapJeak();
-        if (LMap && atomHullLayerJeak) { try { LMap.removeLayer(atomHullLayerJeak); } catch (e) {} }
-        if (LMap && atomPointLayerJeak) { try { LMap.removeLayer(atomPointLayerJeak); } catch (e) {} }
-        atomHullLayerJeak = null; atomPointLayerJeak = null;
+        if (LMap && atomHullLayerJeak)     { try { LMap.removeLayer(atomHullLayerJeak);     } catch (e) {} }
+        if (LMap && atomPointLayerJeak)    { try { LMap.removeLayer(atomPointLayerJeak);    } catch (e) {} }
+        if (LMap && atomCentroidLayerJeak) { try { LMap.removeLayer(atomCentroidLayerJeak); } catch (e) {} }
+        atomHullLayerJeak = null; atomPointLayerJeak = null; atomCentroidLayerJeak = null;
         var sb = document.getElementById('atomStatsBar'), lb = document.getElementById('atomLayerToggles'), ch = document.getElementById('atomParamChips');
         if (sb) sb.classList.add('hidden');
         if (lb) lb.classList.add('hidden');
@@ -9853,10 +9915,11 @@ out center;`;
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    complaint_lat: _novaPinLat,
-                    complaint_lng: _novaPinLng,
-                    radius_m: _novaRadiusM,
-                    top_k: topK,
+                    complaint_lat:      _novaPinLat,
+                    complaint_lng:      _novaPinLng,
+                    radius_m:           _novaRadiusM,
+                    top_k:              topK,
+                    atom_cluster_np_id: window._novaAtomNpId || null,
                 }),
             });
             var data = await res.json();
@@ -9869,13 +9932,15 @@ out center;`;
         }
     }
 
+    window._novaAtomNpId = null;   // set when NOVA is triggered from an ATOM cluster
+
     function novaRenderResultsJeak(data) {
-        _novaRunId = data.run_id || null;   // store for Rollout linkage
-        var LMap = novaTargetMap();
+        _novaRunId = data.run_id || null;
+        var LMap   = novaTargetMap();
         clearNovaLayersJeak();
         var meta = data.meta || {};
 
-        // Update stats bar
+        // Stats bar
         var sb = document.getElementById('novaStatsBar');
         if (sb) sb.style.display = 'flex';
         var el = function(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; };
@@ -9883,55 +9948,96 @@ out center;`;
         el('novaStatNPs',        meta.n_nps         || 0);
         el('novaStatCandidates', meta.n_candidates  || 0);
 
-        // Param chips
+        // Geometry type badge + NP-id
+        var geoType = data.geometry_type || 'city';
+        var geoColor = geoType === 'highway' ? '#d97706' : '#2563eb';
+        var npBadge = meta.atom_cluster_np_id
+            ? '<span style="background:#dbeafe;color:#1d4ed8;font-family:monospace;font-weight:800;font-size:0.72rem;padding:2px 7px;border-radius:4px;">' + meta.atom_cluster_np_id + '</span>'
+            : '';
         var chips = document.getElementById('novaParamChips');
-        if (chips) chips.innerHTML = '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:3px 8px;font-size:.68rem;font-weight:800;">r=' + _novaRadiusM + 'm</span>';
+        if (chips) chips.innerHTML =
+            '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:3px 8px;font-size:.68rem;font-weight:800;">r=' + _novaRadiusM + 'm</span>' +
+            '<span style="background:' + geoColor + '44;color:white;border:1px solid ' + geoColor + ';border-radius:5px;padding:3px 8px;font-size:.68rem;font-weight:800;text-transform:uppercase;">' + geoType + '</span>' +
+            (npBadge ? '<span style="background:rgba(255,255,255,.15);border-radius:5px;padding:3px 6px;">' + npBadge + '</span>' : '');
 
-        // Show layer toggles
         var lt = document.getElementById('novaLayerToggles');
         if (lt) lt.style.display = 'flex';
 
-        // Delaunay mesh layer
+        // Delaunay mesh
         if (data.delaunay_geojson && LMap) {
             _novaDelaunayLayer = L.geoJSON(data.delaunay_geojson, {
                 style: { color: '#86efac', weight: 1, fillOpacity: 0.04, dashArray: '3 4' },
             }).addTo(LMap);
         }
 
-        // Candidate markers
+        // Candidate markers + wedge rays
         if (data.geojson && LMap) {
             _novaCandidateLayer = L.geoJSON(data.geojson, {
-                filter: function(f) { return f.properties.type === 'candidate'; },
+                filter: function(f) {
+                    return f.properties.type === 'candidate' || f.properties.type === 'candidate_ray';
+                },
+                style: function(f) {
+                    if (f.properties.type === 'candidate_ray') {
+                        return { color: f.properties.color, weight: 2, dashArray: '6 4', opacity: 0.7 };
+                    }
+                },
                 pointToLayer: function(f, latlng) {
+                    if (f.properties.type !== 'candidate') return null;
                     var p = f.properties;
+                    // Determine wedge icon shape based on candidate type
+                    var typeIcon = p.candidate_type === 'triangulation'
+                        ? '<div style="font-size:0.5rem;margin-top:1px;opacity:.8;">⬡</div>'  // hexagon = equidistant
+                        : '<div style="font-size:0.5rem;margin-top:1px;opacity:.8;">◉</div>'; // centroid
+                    // Wedge sector pointing toward candidate from centroid
+                    var bearing = p.bearing_deg || 0;
+                    var wedgeHtml =
+                        '<div style="position:relative;width:50px;height:50px;">' +
+                        // Wedge sector (CSS clip-path)
+                        '<div style="position:absolute;top:0;left:0;width:50px;height:50px;' +
+                        'border:3px solid ' + p.color + ';border-radius:50%;opacity:0.35;"></div>' +
+                        // Label circle
+                        '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);' +
+                        'width:32px;height:32px;background:' + p.color + ';border-radius:50%;' +
+                        'border:2.5px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.4);' +
+                        'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+                        'font-size:0.82rem;font-weight:900;color:white;line-height:1;">' +
+                        p.label + typeIcon + '</div>' +
+                        // Direction arrow
+                        '<div style="position:absolute;top:2px;left:50%;transform:translateX(-50%) rotate(' + bearing + 'deg);' +
+                        'width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;' +
+                        'border-bottom:10px solid ' + p.color + ';"></div>' +
+                        '</div>';
                     return L.marker(latlng, {
-                        icon: L.divIcon({
-                            className: '',
-                            html: '<div style="width:34px;height:34px;background:' + p.color + ';border-radius:50%;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:900;color:white;">' + p.label + '</div>',
-                            iconSize: [34, 34],
-                            iconAnchor: [17, 17],
-                        })
+                        icon: L.divIcon({ className: '', html: wedgeHtml, iconSize: [50, 50], iconAnchor: [25, 25] })
                     });
                 },
                 onEachFeature: function(f, layer) {
+                    if (f.properties.type !== 'candidate') return;
                     var p = f.properties;
                     var rsrp = p.avg_rsrp !== null ? p.avg_rsrp + ' dBm' : 'N/A';
+                    var typeLabel = p.candidate_type === 'triangulation'
+                        ? '<span style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:1px 5px;font-size:0.58rem;font-weight:800;">⬡ TRIANGULATION</span>'
+                        : '<span style="background:#f0fdf4;color:#15803d;border-radius:3px;padding:1px 5px;font-size:0.58rem;font-weight:800;">◉ CENTROID</span>';
                     layer.bindPopup(
-                        '<div style="font-family:Inter,sans-serif;min-width:180px;">' +
-                        '<div style="background:' + p.color + ';color:white;padding:8px 12px;border-radius:8px 8px 0 0;font-weight:900;font-size:1rem;margin:-8px -8px 8px;">Candidate ' + p.label + '</div>' +
+                        '<div style="font-family:Inter,sans-serif;min-width:200px;">' +
+                        '<div style="background:' + p.color + ';color:white;padding:8px 12px;border-radius:8px 8px 0 0;font-weight:900;font-size:1rem;margin:-8px -8px 8px;">' +
+                        'Candidate ' + p.label + (p.np_id ? ' <span style="font-size:0.62rem;font-weight:600;opacity:.85;">| ' + p.np_id + '</span>' : '') + '</div>' +
+                        '<div style="margin-bottom:6px;">' + typeLabel + '</div>' +
                         '<table style="font-size:0.72rem;width:100%;border-collapse:collapse;">' +
                         '<tr><td style="color:#6b7280;padding:2px 0;">Rank</td><td style="font-weight:700;">#' + p.rank + '</td></tr>' +
                         '<tr><td style="color:#6b7280;padding:2px 0;">Distance</td><td style="font-weight:700;">' + p.dist_m + ' m</td></tr>' +
                         '<tr><td style="color:#6b7280;padding:2px 0;">Signal pts</td><td style="font-weight:700;">' + p.signal_count + '</td></tr>' +
-                        '<tr><td style="color:#6b7280;padding:2px 0;">Signal weight</td><td style="font-weight:700;">' + p.signal_weight_sum + '</td></tr>' +
+                        '<tr><td style="color:#6b7280;padding:2px 0;">Weight score</td><td style="font-weight:700;">' + p.signal_weight_sum + '</td></tr>' +
                         '<tr><td style="color:#6b7280;padding:2px 0;">Avg RSRP</td><td style="font-weight:700;">' + rsrp + '</td></tr>' +
-                        '</table></div>'
+                        '</table>' +
+                        (p.selection_reason ? '<div style="margin-top:6px;font-size:0.6rem;color:#15803d;background:#f0fdf4;border-radius:4px;padding:4px 6px;">✓ ' + p.selection_reason + '</div>' : '') +
+                        '</div>'
                     );
                 },
             }).addTo(LMap);
         }
 
-        // Candidate list in panel
+        // Panel candidate list
         var list = document.getElementById('novaCandidateList');
         if (!list) return;
         var candidates = data.candidates || [];
@@ -9939,22 +10045,34 @@ out center;`;
             list.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:24px;font-size:0.75rem;">No candidates found. Try increasing radius.</div>';
             return;
         }
-        list.innerHTML = candidates.map(function(c) {
-            var rsrp = c.avg_rsrp !== null ? c.avg_rsrp + ' dBm' : '—';
-            var signalBadge = c.signal_count > 0
-                ? '<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:0.6rem;font-weight:700;">' + c.signal_count + ' poor-signal pts</span>'
-                : '<span style="background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 6px;font-size:0.6rem;">No signal data</span>';
+
+        // Geometry type notice
+        var geoNotice = geoType === 'highway'
+            ? '<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:6px 10px;font-size:0.62rem;color:#92400e;margin-bottom:8px;"><strong>Highway geometry detected</strong> — centroid NPs used (equidistant circumcenter unreliable for linear site layouts).</div>'
+            : '<div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:6px;padding:6px 10px;font-size:0.62rem;color:#1e40af;margin-bottom:8px;"><strong>City geometry</strong> — triangulation circumcenters preferred (equidistant from surrounding sites).</div>';
+
+        list.innerHTML = geoNotice + candidates.map(function(c) {
+            var rsrp       = c.avg_rsrp !== null ? c.avg_rsrp + ' dBm' : '—';
+            var typeLabel  = c.candidate_type === 'triangulation'
+                ? '<span style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:1px 5px;font-size:0.58rem;font-weight:800;">⬡ Triangulation</span>'
+                : '<span style="background:#f0fdf4;color:#15803d;border-radius:3px;padding:1px 5px;font-size:0.58rem;font-weight:800;">◉ Centroid</span>';
+            var sigBadge   = c.signal_count > 0
+                ? '<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:0.58rem;font-weight:700;">' + c.signal_count + ' poor-sig pts</span>'
+                : '<span style="background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 6px;font-size:0.58rem;">No signal data</span>';
             return '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 12px;margin-bottom:6px;border-left:4px solid ' + c.color + ';">' +
-                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;" onclick="novaFlyToCandidate(' + c.lat + ',' + c.lng + ')" style="cursor:pointer;">' +
-                '<div style="width:26px;height:26px;background:' + c.color + ';border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:0.8rem;flex-shrink:0;">' + c.label + '</div>' +
-                '<div style="flex:1;cursor:pointer;" onclick="novaFlyToCandidate(' + c.lat + ',' + c.lng + ')">' +
-                '<div style="font-size:0.75rem;font-weight:800;color:#166534;">Candidate ' + c.label + ' <span style="color:#6b7280;font-weight:400;font-size:0.65rem;">' + c.dist_m + ' m away</span></div>' +
-                '<div style="font-size:0.62rem;color:#374151;">Avg RSRP: ' + rsrp + ' · Weight sum: ' + c.signal_weight_sum + '</div>' +
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;" onclick="novaFlyToCandidate(' + c.lat + ',' + c.lng + ')">' +
+                '<div style="width:28px;height:28px;background:' + c.color + ';border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:0.82rem;flex-shrink:0;">' + c.label + '</div>' +
+                '<div style="flex:1;">' +
+                '<div style="font-size:0.75rem;font-weight:800;color:#166534;">Candidate ' + c.label +
+                (c.np_id ? ' <span style="font-family:monospace;font-size:0.62rem;background:#f0fdf4;color:#15803d;padding:1px 5px;border-radius:3px;">' + c.np_id + '</span>' : '') +
+                ' <span style="color:#6b7280;font-weight:400;font-size:0.62rem;">' + (c.dist_m || '?') + ' m</span></div>' +
+                '<div style="margin-top:2px;">' + typeLabel + '</div>' +
+                '<div style="font-size:0.6rem;color:#374151;margin-top:2px;">RSRP: ' + rsrp + ' · Score: ' + (c.signal_weight_sum || 0) + '</div>' +
                 '</div></div>' +
                 '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px;">' +
-                signalBadge +
+                sigBadge +
                 '<button onclick="rolloutCreateFromNova(' + c.lat + ',' + c.lng + ',\'' + c.label + '\')" ' +
-                'style="background:linear-gradient(135deg,#0c4a6e,#0369a1);color:white;border:none;border-radius:5px;padding:3px 9px;font-size:0.6rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;">' +
+                'style="background:linear-gradient(135deg,#0c4a6e,#0369a1);color:white;border:none;border-radius:5px;padding:3px 9px;font-size:0.58rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;">' +
                 '<i class="fas fa-route"></i> Rollout</button>' +
                 '</div>' +
                 '</div>';
