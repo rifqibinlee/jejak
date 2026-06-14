@@ -8,7 +8,7 @@ DB_CONFIG = {
     'port':     int(os.getenv('DB_PORT', '5432')),
     'database': os.getenv('DB_NAME',     'vibe_db'),
     'user':     os.getenv('DB_USER',     'postgres'),
-    'password': os.getenv('DB_PASSWORD', '1234'),
+    'password': os.getenv('DB_PASSWORD'),
 }
 
 def run_setup():
